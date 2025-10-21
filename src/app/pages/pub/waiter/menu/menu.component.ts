@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 
 @Component({
   selector: 'app-menu',
-  imports: [CommonModule, ModalComponent],
+  imports: [CommonModule, ModalComponent, FormsModule],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css'
 })
@@ -282,10 +283,18 @@ export class MenuComponent {
     ]
   };
 
-  // Getter para produtos da categoria ativa
+  // Getter para produtos da categoria ativa (com suporte a busca)
   get currentCategoryProducts() {
     const activeCategory = this.categories.find((cat: any) => cat.active);
-    return activeCategory ? this.products[activeCategory.name as keyof typeof this.products] || [] : [];
+    if (!activeCategory) return [];
+
+    // If searching, return filtered products for active category
+    if (this.searchTerm && this.searchTerm.trim() !== '') {
+      return this.filteredProducts[activeCategory.name] || [];
+    }
+
+    // Otherwise return normal products
+    return this.products[activeCategory.name as keyof typeof this.products] || [];
   }
 
   // Getter para nome da categoria ativa
@@ -538,5 +547,40 @@ export class MenuComponent {
     });
     
     return items;
+  }
+
+  // Search functionality properties
+  searchTerm: string = '';
+  filteredProducts: any = {};
+
+  // Search methods
+  onSearchChange(): void {
+    this.filterProducts();
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.filterProducts();
+  }
+
+  private filterProducts(): void {
+    if (!this.searchTerm || this.searchTerm.trim() === '') {
+      this.filteredProducts = {};
+      return;
+    }
+
+    const searchLower = this.searchTerm.toLowerCase().trim();
+    this.filteredProducts = {};
+
+    Object.keys(this.products).forEach(category => {
+      const filtered = this.products[category as keyof typeof this.products].filter(product =>
+        product.name.toLowerCase().includes(searchLower) ||
+        product.description.toLowerCase().includes(searchLower)
+      );
+      
+      if (filtered.length > 0) {
+        this.filteredProducts[category] = filtered;
+      }
+    });
   }
 }
