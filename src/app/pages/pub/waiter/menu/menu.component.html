@@ -20,12 +20,13 @@
     @for (category of categories; let i = $index; track i) {
       <button 
         (click)="selectCategory(i)"
-        class="flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200"
+        class="flex-shrink-0 w-16 h-16 rounded-2xl flex flex-col items-center justify-center text-xs font-medium transition-all duration-200 border-2"
         [class]="category.active ? 
-          'bg-green-500 text-white shadow-lg shadow-green-500/25' : 
-          'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+          'bg-green-500 text-white shadow-lg shadow-green-500/25 border-green-500' : 
+          'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'"
       >
-        {{ category.name }}
+        <span class="text-lg mb-1">{{ category.icon }}</span>
+        <span class="leading-tight">{{ category.name }}</span>
       </button>
     }
   </div>
