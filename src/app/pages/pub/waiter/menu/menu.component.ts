@@ -309,24 +309,49 @@ export class MenuComponent {
 
   // New methods for modal quantity adjustment
   increaseQuantity(item: any) {
-    // Find the original product in the products array and update it
-    const category = item.category;
-    const product = this.products[category as keyof typeof this.products].find(p => p.id === item.id);
-    if (product) {
-      product.quantity++;
+    // Check if it's a recommended product
+    if (item.category === 'Recomendados') {
+      const recommendedProduct = this.recommendedProducts.find(p => p.id === item.id);
+      if (recommendedProduct) {
+        recommendedProduct.quantity++;
+        this.triggerItemCountAnimation();
+      }
+    } else {
+      // Find the original product in the products array and update it
+      const category = item.category;
+      const product = this.products[category as keyof typeof this.products]?.find(p => p.id === item.id);
+      if (product) {
+        product.quantity++;
+        this.triggerItemCountAnimation();
+      }
     }
   }
 
   decreaseQuantity(item: any) {
-    // Find the original product in the products array and update it
-    const category = item.category;
-    const product = this.products[category as keyof typeof this.products].find(p => p.id === item.id);
-    if (product) {
-      if (product.quantity > 1) {
-        product.quantity--;
-      } else {
-        // If quantity becomes 0, remove from cart
-        product.quantity = 0;
+    // Check if it's a recommended product
+    if (item.category === 'Recomendados') {
+      const recommendedProduct = this.recommendedProducts.find(p => p.id === item.id);
+      if (recommendedProduct) {
+        if (recommendedProduct.quantity > 1) {
+          recommendedProduct.quantity--;
+        } else {
+          // If quantity becomes 0, remove from cart
+          recommendedProduct.quantity = 0;
+        }
+        this.triggerItemCountAnimation();
+      }
+    } else {
+      // Find the original product in the products array and update it
+      const category = item.category;
+      const product = this.products[category as keyof typeof this.products]?.find(p => p.id === item.id);
+      if (product) {
+        if (product.quantity > 1) {
+          product.quantity--;
+        } else {
+          // If quantity becomes 0, remove from cart
+          product.quantity = 0;
+        }
+        this.triggerItemCountAnimation();
       }
     }
   }
