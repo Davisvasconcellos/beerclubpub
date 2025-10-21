@@ -337,30 +337,43 @@ export class MenuComponent {
   // Dados dos produtos recomendados
   recommendedProducts = [
     {
+      id: 20,
       name: 'Lemon tea',
       price: 'R$ 12,00',
       image: '🍋',
-      favorite: false
+      favorite: false,
+      quantity: 0
     },
     {
+      id: 21,
       name: 'Green ginger tea',
       price: 'R$ 14,00',
       image: '🫖',
-      favorite: true
+      favorite: true,
+      quantity: 0
     },
     {
+      id: 22,
       name: 'Kiwi smoothie',
       price: 'R$ 16,00',
       image: '🥝',
-      favorite: false
+      favorite: false,
+      quantity: 0
     },
     {
+      id: 23,
       name: 'Orange juice',
       price: 'R$ 10,00',
       image: '🍊',
-      favorite: true
+      favorite: true,
+      quantity: 0
     }
   ];
+
+  // Método para adicionar produto recomendado ao carrinho
+  addRecommendedToCart(product: any): void {
+    product.quantity = (product.quantity || 0) + 1;
+  }
 
   // Método para selecionar categoria
   selectCategory(index: number): void {
@@ -418,6 +431,8 @@ export class MenuComponent {
   // Get cart items with quantities > 0
   get cartItems() {
     const items: any[] = [];
+    
+    // Adicionar produtos das categorias
     Object.keys(this.products).forEach(category => {
       this.products[category as keyof typeof this.products].forEach(product => {
         if (product.quantity > 0) {
@@ -428,6 +443,17 @@ export class MenuComponent {
         }
       });
     });
+    
+    // Adicionar produtos recomendados
+    this.recommendedProducts.forEach(product => {
+      if (product.quantity > 0) {
+        items.push({
+          ...product,
+          category: 'Recomendados'
+        });
+      }
+    });
+    
     return items;
   }
 }

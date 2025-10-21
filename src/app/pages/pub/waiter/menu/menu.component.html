@@ -48,7 +48,8 @@
       <div class="flex flex-row space-x-4 w-max">
         @for (product of recommendedProducts; track $index) {
           <div class="w-40 flex-shrink-0 snap-start">
-            <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl p-4 h-48 relative overflow-hidden">
+            <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl p-4 h-48 relative overflow-hidden cursor-pointer hover:shadow-md transition-shadow duration-200"
+                 (click)="addRecommendedToCart(product)">
               <!-- Favorite Icon -->
               <button class="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
                 <svg class="w-4 h-4" [class.text-red-500]="product.favorite" [class.text-gray-400]="!product.favorite" fill="currentColor" viewBox="0 0 24 24">
