@@ -298,12 +298,14 @@ export class MenuComponent {
   incrementQuantity(product: any) {
     product.quantity++;
     this.triggerItemCountAnimation();
+    this.triggerCardClickAnimation(product.id);
   }
 
   decrementQuantity(product: any) {
     if (product.quantity > 0) {
       product.quantity--;
       this.triggerItemCountAnimation();
+      this.triggerCardClickAnimation(product.id);
     }
   }
 
@@ -399,30 +401,36 @@ export class MenuComponent {
 
   // Método para adicionar produto recomendado ao carrinho
   addRecommendedToCart(product: any, event?: Event): void {
-    product.quantity = (product.quantity || 0) + 1;
-    console.log('Produto recomendado adicionado:', product.name, 'Quantidade:', product.quantity);
-    
-    // Efeito visual no elemento clicado
     if (event) {
-      const element = event.currentTarget as HTMLElement;
-      element.classList.add('animate-pulse', 'scale-95');
-      
-      // Remover classes após a animação
-      setTimeout(() => {
-        element.classList.remove('animate-pulse', 'scale-95');
-      }, 300);
+      event.preventDefault();
+      event.stopPropagation();
     }
     
-    // Trigger animation for item count
+    // Adicionar produto ao carrinho
+    product.quantity = (product.quantity || 0) + 1;
+    
+    // Disparar animação do contador
     this.triggerItemCountAnimation();
+    
+    // Disparar animação do card clicado
+    this.triggerCardClickAnimation(product.id);
+    
+    console.log('Produto recomendado adicionado:', product);
   }
 
-  // Método para trigger da animação do contador
   private triggerItemCountAnimation(): void {
     this.itemCountChanged = true;
     setTimeout(() => {
       this.itemCountChanged = false;
     }, 600);
+  }
+
+  // Novo método para animação de clique nos cards
+  private triggerCardClickAnimation(productId: number): void {
+    this.clickedCardId = productId;
+    setTimeout(() => {
+      this.clickedCardId = null;
+    }, 300);
   }
 
   // Método para selecionar categoria
@@ -441,6 +449,9 @@ export class MenuComponent {
 
   // Animation properties
   itemCountChanged = false;
+
+  // Propriedade para controlar animação de clique nos cards
+  clickedCardId: number | null = null;
 
   // Calcular total do carrinho
   get cartTotal(): number {
