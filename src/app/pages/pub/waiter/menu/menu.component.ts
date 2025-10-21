@@ -297,11 +297,13 @@ export class MenuComponent {
   // Métodos para controle de quantidade
   incrementQuantity(product: any) {
     product.quantity++;
+    this.triggerItemCountAnimation();
   }
 
   decrementQuantity(product: any) {
     if (product.quantity > 0) {
       product.quantity--;
+      this.triggerItemCountAnimation();
     }
   }
 
@@ -371,9 +373,31 @@ export class MenuComponent {
   ];
 
   // Método para adicionar produto recomendado ao carrinho
-  addRecommendedToCart(product: any): void {
+  addRecommendedToCart(product: any, event?: Event): void {
     product.quantity = (product.quantity || 0) + 1;
     console.log('Produto recomendado adicionado:', product.name, 'Quantidade:', product.quantity);
+    
+    // Efeito visual no elemento clicado
+    if (event) {
+      const element = event.currentTarget as HTMLElement;
+      element.classList.add('animate-pulse', 'scale-95');
+      
+      // Remover classes após a animação
+      setTimeout(() => {
+        element.classList.remove('animate-pulse', 'scale-95');
+      }, 300);
+    }
+    
+    // Trigger animation for item count
+    this.triggerItemCountAnimation();
+  }
+
+  // Método para trigger da animação do contador
+  private triggerItemCountAnimation(): void {
+    this.itemCountChanged = true;
+    setTimeout(() => {
+      this.itemCountChanged = false;
+    }, 600);
   }
 
   // Método para selecionar categoria
@@ -389,6 +413,9 @@ export class MenuComponent {
 
   // Modal properties
   isCartModalOpen = false;
+
+  // Animation properties
+  itemCountChanged = false;
 
   // Calcular total do carrinho
   get cartTotal(): number {
