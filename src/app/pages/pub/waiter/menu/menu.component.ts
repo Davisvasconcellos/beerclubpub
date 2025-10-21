@@ -373,6 +373,7 @@ export class MenuComponent {
   // Método para adicionar produto recomendado ao carrinho
   addRecommendedToCart(product: any): void {
     product.quantity = (product.quantity || 0) + 1;
+    console.log('Produto recomendado adicionado:', product.name, 'Quantidade:', product.quantity);
   }
 
   // Método para selecionar categoria
@@ -392,6 +393,8 @@ export class MenuComponent {
   // Calcular total do carrinho
   get cartTotal(): number {
     let total = 0;
+    
+    // Calcular total dos produtos das categorias
     Object.values(this.products).forEach(categoryProducts => {
       categoryProducts.forEach(product => {
         if (product.quantity > 0) {
@@ -400,17 +403,34 @@ export class MenuComponent {
         }
       });
     });
+    
+    // Calcular total dos produtos recomendados
+    this.recommendedProducts.forEach(product => {
+      if (product.quantity > 0) {
+        const price = parseFloat(product.price.replace('R$ ', '').replace(',', '.'));
+        total += price * product.quantity;
+      }
+    });
+    
     return total;
   }
 
   // Calcular quantidade total de itens
   get totalItems(): number {
     let count = 0;
+    
+    // Contar produtos das categorias
     Object.values(this.products).forEach(categoryProducts => {
       categoryProducts.forEach(product => {
         count += product.quantity;
       });
     });
+    
+    // Contar produtos recomendados
+    this.recommendedProducts.forEach(product => {
+      count += product.quantity;
+    });
+    
     return count;
   }
 
