@@ -81,7 +81,11 @@ import { CheckUserStatusComponent } from './pages/home/check-user-status/check-u
 import { HomeAdminComponent } from './pages/home/home-admin/home-admin.component';
 import { HomeMasterComponent } from './pages/home/home-master/home-master.component';
 import { HomeUserComponent } from './pages/home/home-user/home-user.component';
-import { HomeWaiterComponent } from './pages/home/home-waiter/home-waiter.component';
+import { HomeWaiterComponent } from './pages/pub/waiter/home-waiter/home-waiter.component';
+import { OrdersComponent } from './pages/pub/waiter/orders/orders.component';
+import { MenuComponent } from './pages/pub/waiter/menu/menu.component';
+import { TablesComponent } from './pages/pub/waiter/tables/tables.component';
+import { PaymentsComponent } from './pages/pub/waiter/payments/payments.component';
 
 export const routes: Routes = [
   {
@@ -249,22 +253,42 @@ export const routes: Routes = [
       {
         path:'home-admin',
         component:HomeAdminComponent,
-        title:'Angular Home Admin | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pub Admin | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'home-master',
         component:HomeMasterComponent,
-        title:'Angular Home Master | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pub Master | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'home-user',
         component:HomeUserComponent,
-        title:'Angular Home User | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pub User | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'home-waiter',
         component:HomeWaiterComponent,
-        title:'Angular Home Waiter | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pub Waiter | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/waiter/orders',
+        component:OrdersComponent,
+        title:'Angular Pub Pedidos | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/waiter/menu',
+        component:MenuComponent,
+        title:'Angular Pub Cardápio | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/waiter/tables',
+        component:TablesComponent,
+        title:'Angular Pub Mesas | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/waiter/payments',
+        component:PaymentsComponent,
+        title:'Angular Pub Pagamentos | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'blank',

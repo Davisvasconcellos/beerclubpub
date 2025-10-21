@@ -1,0 +1,248 @@
+<!-- Header -->
+<div class="bg-white dark:bg-gray-900 shadow-sm">
+  <div class="flex items-center justify-between p-4">
+    <button class="p-2">
+      <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+      </svg>
+    </button>
+    <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Menu</h1>
+    <button class="p-2">
+      <svg class="w-6 h-6 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<!-- Search Bar -->
+<div class="p-4 bg-white dark:bg-gray-900">
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+    </div>
+    <input 
+      type="text" 
+      placeholder="Search for food, coffee, etc.." 
+      class="w-full pl-10 pr-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-green-500 focus:outline-none"
+    >
+  </div>
+</div>
+
+<!-- Categories Section -->
+<div class="px-4 pb-4 bg-white dark:bg-gray-900">
+  <div class="relative">
+    <div 
+      class="overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
+      id="categories-carousel"
+      style="scrollbar-width: none; -ms-overflow-style: none;"
+    >
+      <div class="flex flex-row space-x-3 w-max px-1">
+        @for (category of categories; let i = $index; track i) {
+          <button 
+            (click)="selectCategory(i)"
+            class="flex flex-col items-center p-4 rounded-2xl transition-all duration-200 hover:scale-105 min-w-[80px] snap-start"
+            [class.bg-gray-50]="!category.active"
+            [class.dark:bg-gray-800]="!category.active"
+            [class.bg-green-100]="category.active"
+            [class.dark:bg-green-900]="category.active"
+            [class.border-2]="category.active"
+            [class.border-green-500]="category.active"
+          >
+            <!-- Category Icon -->
+            <div class="w-12 h-12 rounded-xl bg-white dark:bg-gray-700 flex items-center justify-center mb-2 shadow-sm">
+              <span class="text-2xl">{{ category.icon }}</span>
+            </div>
+            
+            <!-- Category Name -->
+            <span 
+              class="text-xs font-medium text-center whitespace-nowrap"
+              [class.text-gray-700]="!category.active"
+              [class.dark:text-gray-300]="!category.active"
+              [class.text-green-700]="category.active"
+              [class.dark:text-green-300]="category.active"
+            >
+              {{ category.name }}
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Recommend Section -->
+<div class="px-4 pb-4 bg-white dark:bg-gray-900">
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recommend</h2>
+  
+  <!-- Carrossel com scroll automático -->
+  <div class="relative">
+    <div 
+      class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
+      id="recommend-carousel"
+      (mousedown)="startDrag($event, 'recommend-carousel')"
+      (touchstart)="startDragTouch($event, 'recommend-carousel')"
+      style="scrollbar-width: none; -ms-overflow-style: none;"
+    >
+      <div class="flex flex-row space-x-4 w-max">
+        @for (product of recommendedProducts; track $index) {
+          <div class="w-40 flex-shrink-0 snap-start">
+            <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl p-4 h-48 relative overflow-hidden">
+              <!-- Favorite Icon -->
+              <button class="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
+                <svg class="w-4 h-4" [class.text-red-500]="product.favorite" [class.text-gray-400]="!product.favorite" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                </svg>
+              </button>
+              
+              <!-- Product Image -->
+              <div class="flex items-center justify-center h-20 mb-3">
+                <span class="text-4xl">{{ product.image }}</span>
+              </div>
+              
+              <!-- Product Info -->
+              <div class="text-center">
+                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1">{{ product.name }}</h3>
+                <p class="text-green-600 dark:text-green-400 font-bold text-lg">{{ product.price }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    
+    <!-- Indicadores de página com efeito de deslize -->
+    <div class="flex justify-center mt-4 space-x-2">
+      @for (product of recommendedProducts; let i = $index; track i) {
+        @if (i % 2 === 0) {
+          <button 
+            (click)="scrollToItem('recommend-carousel', i)"
+            class="h-2 rounded-full transition-all duration-300 bg-gray-300 hover:bg-green-500"
+            [class.bg-green-500]="currentRecommendPage === i / 2"
+            [style.width]="currentRecommendPage === i / 2 ? '24px' : '8px'"
+          ></button>
+        }
+      }
+    </div>
+  </div>
+</div>
+
+<!-- Products Section -->
+<div class="px-4 pb-20 bg-white dark:bg-gray-900">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+      {{ activeCategoryName }}
+    </h2>
+    <button class="text-green-500 text-sm font-medium">See All</button>
+  </div>
+  
+  <!-- Products List -->
+  <div class="space-y-3">
+    @for (product of currentCategoryProducts; track product.id) {
+      <div class="bg-white dark:bg-gray-800/50 rounded-2xl shadow-theme-sm hover:shadow-theme-md dark:shadow-gray-900/20 transition-shadow duration-200 p-4 border border-transparent dark:border-gray-700/50">
+        <div class="flex items-center space-x-4">
+          <!-- Product Image -->
+          <div class="flex-shrink-0">
+            <div class="w-12 h-12 bg-gray-100 dark:bg-gray-700/80 rounded-xl flex items-center justify-center">
+              <span class="text-xl">{{ product.image }}</span>
+            </div>
+          </div>
+          
+          <!-- Product Content -->
+          <div class="flex-1 min-w-0">
+            <h3 class="font-semibold text-gray-800 dark:text-white text-sm">{{ product.name }}</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">{{ product.description }}</p>
+          </div>
+          
+          <!-- Right side: Price and Controls -->
+          <div class="flex-shrink-0 text-right">
+            <div class="text-sm font-bold text-green-600 dark:text-green-400 mb-2">{{ product.price }}</div>
+            <div class="flex items-center space-x-2">
+              <button 
+                (click)="decrementQuantity(product)"
+                class="w-6 h-6 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500 rounded-md flex items-center justify-center transition-colors duration-200"
+                [class.opacity-50]="product.quantity === 0"
+                [disabled]="product.quantity === 0"
+              >
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+                </svg>
+              </button>
+              
+              <span class="w-6 text-center text-xs font-medium text-gray-700 dark:text-gray-200">
+                {{ product.quantity }}
+              </span>
+              
+              <button 
+                (click)="incrementQuantity(product)"
+                class="w-6 h-6 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-500 rounded-md flex items-center justify-center transition-colors duration-200"
+              >
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+  
+  <!-- Espaço adicional para evitar sobreposição com o rodapé -->
+  <div class="h-20 md:h-16"></div>
+</div>
+
+<!-- Cart Summary Footer -->
+<div class="fixed bottom-11 md:bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2 shadow-lg z-40">
+  <div class="flex items-center justify-between">
+    <!-- Table and Total Info -->
+    <div class="flex flex-col">
+      <span class="text-base font-semibold text-gray-800 dark:text-white">{{ tableNumber }}</span>
+      <span class="text-lg font-bold text-green-600 dark:text-green-400">${{ cartTotal.toFixed(2) }}</span>
+    </div>
+    
+    <!-- Items Count and Add Button -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600 dark:text-gray-300">{{ totalItems }} {{ totalItems === 1 ? 'item' : 'itens' }}</span>
+      </div>
+      <button 
+        (click)="addToCart()"
+        [disabled]="totalItems === 0"
+        class="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center gap-1.5">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        Adicionar
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  #recommend-carousel::-webkit-scrollbar,
+  #categories-carousel::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  #recommend-carousel,
+  #categories-carousel {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+</style>
+
+<!-- CSS personalizado para esconder scrollbar -->
+<style>
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+</style>

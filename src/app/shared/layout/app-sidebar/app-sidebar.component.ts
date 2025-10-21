@@ -30,13 +30,13 @@ export class AppSidebarComponent {
   mainItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" fill="currentColor"></path></svg>`,
-      name: "Home",
+      name: "Pub",
       subItems: [
         { name: "Check User Status", path: "/check-user-status" },
-        { name: "Home Admin", path: "/home-admin" },
-        { name: "Home Master", path: "/home-master" },
-        { name: "Home User", path: "/home-user" },
-        { name: "Home Waiter", path: "/home-waiter" },
+        { name: "Pub Admin", path: "/home-admin" },
+        { name: "Pub Master", path: "/home-master" },
+        { name: "Pub User", path: "/home-user" },
+        { name: "Pub Waiter", path: "/home-waiter" },
       ],
     },
     {
