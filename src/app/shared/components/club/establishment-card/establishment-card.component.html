@@ -1,0 +1,46 @@
+<div class="bg-white rounded-2xl shadow-theme-sm hover:shadow-theme-md transition-shadow duration-200 p-4 mb-4">
+  <div class="flex items-center space-x-4">
+    <!-- Icon -->
+    <div class="flex-shrink-0">
+      <div class="w-12 h-12 {{ iconColor }} rounded-xl flex items-center justify-center">
+        @if (icon && icon !== '') {
+          <img [src]="icon" [alt]="name" class="w-8 h-8" />
+        } @else {
+          <span class="text-white font-bold text-lg">{{ name.charAt(0) }}</span>
+        }
+      </div>
+    </div>
+    
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <h3 class="font-semibold text-gray-800 dark:text-white/90 text-sm">{{ name }}</h3>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ category }}</p>
+      
+      <div class="flex items-center space-x-2 mt-2">
+        <span class="text-xs text-gray-500">{{ distance }}</span>
+        @if (isFreeDelivery) {
+          <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full font-medium">
+            entrega grátis
+          </span>
+        } @else if (deliveryFee && deliveryFee !== '') {
+          <span class="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">
+            {{ deliveryFee }}
+          </span>
+        }
+      </div>
+    </div>
+    
+    <!-- Right side info -->
+    <div class="flex-shrink-0 text-right">
+      <div class="text-xs text-gray-500 mb-1">{{ deliveryTime }}</div>
+      @if (rating && rating !== '') {
+        <div class="flex items-center justify-end">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" class="text-yellow-400 mr-1">
+            <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" fill="currentColor"/>
+          </svg>
+          <span class="text-xs font-medium text-gray-700">{{ rating }}</span>
+        </div>
+      }
+    </div>
+  </div>
+</div>

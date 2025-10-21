@@ -1,0 +1,12 @@
+<div class="relative overflow-hidden rounded-2xl {{ backgroundColor }} {{ textColor }} shadow-theme-sm hover:shadow-theme-md transition-shadow duration-200 h-24">
+  <div class="p-4 h-full flex items-center justify-center">
+    <div class="text-center">
+      @if (logo && logo !== '') {
+        <div class="mb-2">
+          <img [src]="logo" [alt]="name" class="mx-auto h-8 w-auto" />
+        </div>
+      }
+      <h3 class="font-bold {{ isLarge ? 'text-xl' : 'text-sm' }}">{{ name }}</h3>
+    </div>
+  </div>
+</div>

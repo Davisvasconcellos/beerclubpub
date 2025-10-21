@@ -1,0 +1,58 @@
+<div class="relative">
+  <!-- Carousel Container -->
+  <div class="overflow-hidden">
+    <div 
+      class="flex flex-nowrap transition-transform duration-300 ease-in-out cursor-grab active:cursor-grabbing"
+      [style.transform]="'translateX(-' + (currentIndex * 100) + '%)'"
+      (mousedown)="startDrag($event)"
+      (mousemove)="onDrag($event)"
+      (mouseup)="endDrag()"
+      (mouseleave)="endDrag()"
+      (touchstart)="startDragTouch($event)"
+      (touchmove)="onDragTouch($event)"
+      (touchend)="endDrag()"
+    >
+      <div class="w-full flex-shrink-0">
+        <div class="flex flex-row flex-nowrap gap-4">
+          <ng-content></ng-content>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Navigation Arrows -->
+  @if (totalPages > 1) {
+    <button 
+      (click)="prev()" 
+      [disabled]="currentIndex === 0"
+      class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-gray-600">
+        <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    
+    <button 
+      (click)="next()" 
+      [disabled]="currentIndex === totalPages - 1"
+      class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/80 hover:bg-white rounded-full shadow-md flex items-center justify-center transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed z-10"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" class="text-gray-600">
+        <path d="M9 18L15 12L9 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+  }
+  
+  <!-- Indicators -->
+  @if (showIndicators && totalPages > 1) {
+    <div class="flex justify-center mt-4 space-x-2">
+      @for (page of getPages(); track $index) {
+        <button 
+          (click)="goToPage(page)"
+          class="w-2 h-2 rounded-full transition-all duration-200"
+          [class]="page === currentIndex ? 'bg-orange-500' : 'bg-gray-300'"
+        ></button>
+      }
+    </div>
+  }
+</div>

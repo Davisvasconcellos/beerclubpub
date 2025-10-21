@@ -1,0 +1,43 @@
+<div class="bg-white rounded-2xl shadow-theme-sm hover:shadow-theme-md transition-shadow duration-200 overflow-hidden">
+  <div class="relative">
+    @if (discount && discount !== '') {
+      <div class="absolute top-3 left-3 z-10">
+        <span class="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
+          {{ discount }}
+        </span>
+      </div>
+    }
+    @if (quantity && quantity !== '') {
+      <div class="absolute top-3 right-3 z-10">
+        <span class="bg-gray-800 text-white text-xs font-bold px-2 py-1 rounded-full">
+          {{ quantity }}
+        </span>
+      </div>
+    }
+    <div class="h-32 bg-gray-100 flex items-center justify-center">
+      @if (image && image !== '') {
+        <img [src]="image" [alt]="name" class="h-24 w-auto object-contain" />
+      } @else {
+        <div class="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" class="text-gray-500">
+            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      }
+    </div>
+  </div>
+  <div class="p-4">
+    <h3 class="font-semibold text-gray-800 dark:text-white/90 text-sm mb-1">{{ name }}</h3>
+    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">{{ description }}</p>
+    <div class="flex items-center justify-between">
+      <div>
+        @if (originalPrice && originalPrice !== '') {
+          <span class="text-xs text-gray-400 line-through mr-2">{{ originalPrice }}</span>
+        }
+        <span class="font-bold text-gray-800 dark:text-white/90">{{ discountedPrice }}</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<div class="relative inline-block">
+  <div #triggerRef (click)="togglePopover()">
+    <ng-container *ngTemplateOutlet="triggerTpl"></ng-container>
+  </div>
+  @if (isOpen) {
+    <div
+      #popoverRef
+      class="absolute w-[300px] z-99999"
+      [ngClass]="positionClasses"
+    >
+      <div class="w-full bg-white rounded-xl shadow-theme-lg dark:bg-[#1E2634] relative">
+        <ng-container *ngTemplateOutlet="contentTpl"></ng-container>
+        <div
+          class="absolute w-3 h-3 bg-white shadow-theme-lg dark:bg-[#1E2634]"
+          [ngClass]="arrowClasses"
+        ></div>
+      </div>
+    </div>
+  }
+</div>
