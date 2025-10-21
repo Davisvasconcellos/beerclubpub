@@ -1,8 +1,10 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 
 @Component({
   selector: 'app-menu',
-  imports: [],
+  imports: [CommonModule, ModalComponent],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css'
 })
@@ -303,6 +305,35 @@ export class MenuComponent {
     }
   }
 
+  // New methods for modal quantity adjustment
+  increaseQuantity(item: any) {
+    // Find the original product in the products array and update it
+    const category = item.category;
+    const product = this.products[category as keyof typeof this.products].find(p => p.id === item.id);
+    if (product) {
+      product.quantity++;
+    }
+  }
+
+  decreaseQuantity(item: any) {
+    // Find the original product in the products array and update it
+    const category = item.category;
+    const product = this.products[category as keyof typeof this.products].find(p => p.id === item.id);
+    if (product) {
+      if (product.quantity > 1) {
+        product.quantity--;
+      } else {
+        // If quantity becomes 0, remove from cart
+        product.quantity = 0;
+      }
+    }
+  }
+
+  // TrackBy function for better change detection
+  trackByItemId(index: number, item: any): any {
+    return item.id;
+  }
+
   // Dados dos produtos recomendados
   recommendedProducts = [
     {
@@ -342,6 +373,9 @@ export class MenuComponent {
   // Informações da mesa
   tableNumber = 'Mesa 05';
 
+  // Modal properties
+  isCartModalOpen = false;
+
   // Calcular total do carrinho
   get cartTotal(): number {
     let total = 0;
@@ -369,10 +403,31 @@ export class MenuComponent {
 
   // Método para adicionar ao carrinho (finalizar pedido)
   addToCart(): void {
-    if (this.totalItems > 0) {
-      alert(`Pedido adicionado ao carrinho!\nMesa: ${this.tableNumber}\nTotal: $${this.cartTotal.toFixed(2)}\nItens: ${this.totalItems}`);
-    } else {
-      alert('Adicione pelo menos um item ao carrinho!');
-    }
+    console.log('Adicionando ao carrinho...');
+  }
+
+  // Modal methods
+  openCartModal(): void {
+    this.isCartModalOpen = true;
+  }
+
+  closeCartModal(): void {
+    this.isCartModalOpen = false;
+  }
+
+  // Get cart items with quantities > 0
+  get cartItems() {
+    const items: any[] = [];
+    Object.keys(this.products).forEach(category => {
+      this.products[category as keyof typeof this.products].forEach(product => {
+        if (product.quantity > 0) {
+          items.push({
+            ...product,
+            category: category
+          });
+        }
+      });
+    });
+    return items;
   }
 }
