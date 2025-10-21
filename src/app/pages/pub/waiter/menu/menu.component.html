@@ -169,7 +169,8 @@
     <div class="flex items-center gap-3">
       <div class="flex items-center gap-2">
         <span class="text-sm text-gray-600 dark:text-gray-300 transition-all duration-300" 
-              [class.animate-bounce]="itemCountChanged" 
+              [class.animate-pulse]="itemCountChanged" 
+              [class.scale-110]="itemCountChanged"
               [class.text-green-600]="itemCountChanged" 
               [class.font-semibold]="itemCountChanged">{{ totalItems }} {{ totalItems === 1 ? 'item' : 'itens' }}</span>
         <!-- Eye icon button with improved mobile accessibility -->
