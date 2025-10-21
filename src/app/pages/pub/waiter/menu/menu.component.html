@@ -248,43 +248,47 @@
     </div>
     
     <div *ngFor="let item of cartItems; trackBy: trackByItemId" class="py-4 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
-      <!-- Product info row -->
-      <div class="flex items-center space-x-3 mb-3">
-        <span class="text-2xl">{{ item.image }}</span>
-        <div class="flex-1">
-          <h4 class="font-medium text-gray-900 dark:text-white text-base">{{ item.name }}</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">{{ item.category }}</p>
-        </div>
-      </div>
-      
-      <!-- Price and controls row -->
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="font-semibold text-gray-900 dark:text-white text-lg">{{ item.price }}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400">cada</p>
+      <!-- Main row: Product info on left, price and controls on right -->
+      <div class="flex items-start justify-between">
+        <!-- Left side: Image and product info -->
+        <div class="flex items-center space-x-3 flex-1">
+          <span class="text-2xl">{{ item.image }}</span>
+          <div>
+            <h4 class="font-medium text-gray-900 dark:text-white text-base">{{ item.name }}</h4>
+            <p class="text-sm text-gray-500 dark:text-gray-400">{{ item.category }}</p>
+          </div>
         </div>
         
-        <!-- Quantity controls -->
-        <div class="flex items-center space-x-3">
-          <button 
-            (click)="decreaseQuantity(item); $event.stopPropagation()"
-            [attr.data-item-id]="item.id"
-            class="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-red-900/30 flex items-center justify-center text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-all duration-200 transform hover:scale-105 active:scale-95"
-            title="Diminuir quantidade">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
-            </svg>
-          </button>
-          <span class="w-8 text-center font-medium text-gray-900 dark:text-white text-lg">{{ item.quantity }}</span>
-          <button 
-            (click)="increaseQuantity(item); $event.stopPropagation()"
-            [attr.data-item-id]="item.id"
-            class="w-8 h-8 rounded-full bg-gray-100 hover:bg-green-100 dark:bg-gray-700 dark:hover:bg-green-900/30 flex items-center justify-center text-gray-600 hover:text-green-600 dark:text-gray-300 dark:hover:text-green-400 transition-all duration-200 transform hover:scale-105 active:scale-95"
-            title="Aumentar quantidade">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-            </svg>
-          </button>
+        <!-- Right side: Price and controls -->
+        <div class="flex flex-col items-end space-y-3">
+          <!-- Price -->
+          <div class="text-right">
+            <p class="font-semibold text-gray-900 dark:text-white text-lg">{{ item.price }}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400">cada</p>
+          </div>
+          
+          <!-- Quantity controls -->
+          <div class="flex items-center space-x-3">
+            <button 
+              (click)="decreaseQuantity(item); $event.stopPropagation()"
+              [attr.data-item-id]="item.id"
+              class="w-8 h-8 rounded-full bg-gray-100 hover:bg-red-100 dark:bg-gray-700 dark:hover:bg-red-900/30 flex items-center justify-center text-gray-600 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 transition-all duration-200 transform hover:scale-105 active:scale-95"
+              title="Diminuir quantidade">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/>
+              </svg>
+            </button>
+            <span class="w-8 text-center font-medium text-gray-900 dark:text-white text-lg">{{ item.quantity }}</span>
+            <button 
+              (click)="increaseQuantity(item); $event.stopPropagation()"
+              [attr.data-item-id]="item.id"
+              class="w-8 h-8 rounded-full bg-gray-100 hover:bg-green-100 dark:bg-gray-700 dark:hover:bg-green-900/30 flex items-center justify-center text-gray-600 hover:text-green-600 dark:text-gray-300 dark:hover:text-green-400 transition-all duration-200 transform hover:scale-105 active:scale-95"
+              title="Aumentar quantidade">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
