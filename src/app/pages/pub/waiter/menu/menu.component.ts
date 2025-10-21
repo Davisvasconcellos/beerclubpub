@@ -285,16 +285,17 @@ export class MenuComponent {
 
   // Getter para produtos da categoria ativa (com suporte a busca)
   get currentCategoryProducts() {
-    const activeCategory = this.categories.find((cat: any) => cat.active);
-    if (!activeCategory) return [];
-
-    // If searching, return filtered products for active category
-    if (this.searchTerm && this.searchTerm.trim() !== '') {
-      return this.filteredProducts[activeCategory.name] || [];
+    // Se estiver buscando, retornar produtos filtrados
+    if (this.isSearching && this.searchTerm.trim() !== '') {
+      return this.filteredProducts;
     }
 
-    // Otherwise return normal products
-    return this.products[activeCategory.name as keyof typeof this.products] || [];
+    // Comportamento normal: retornar produtos da categoria ativa
+    const activeCategory = this.categories.find(cat => cat.active);
+    if (!activeCategory) return [];
+    
+    const categoryKey = activeCategory.name.toLowerCase() as keyof typeof this.products;
+    return this.products[categoryKey] || [];
   }
 
   // Getter para nome da categoria ativa
@@ -551,7 +552,8 @@ export class MenuComponent {
 
   // Search functionality properties
   searchTerm: string = '';
-  filteredProducts: any = {};
+  filteredProducts: any[] = [];
+  isSearching: boolean = false;
 
   // Search methods
   onSearchChange(): void {
@@ -560,27 +562,57 @@ export class MenuComponent {
 
   clearSearch(): void {
     this.searchTerm = '';
-    this.filterProducts();
+    this.isSearching = false;
+    this.filteredProducts = [];
+    // Reativar a primeira categoria quando limpar a busca
+    this.selectCategory(0);
   }
 
   private filterProducts(): void {
     if (!this.searchTerm || this.searchTerm.trim() === '') {
-      this.filteredProducts = {};
+      this.isSearching = false;
+      this.filteredProducts = [];
+      // Reativar a primeira categoria quando não há busca
+      if (!this.categories.some(cat => cat.active)) {
+        this.selectCategory(0);
+      }
       return;
     }
 
-    const searchLower = this.searchTerm.toLowerCase().trim();
-    this.filteredProducts = {};
+    this.isSearching = true;
+    // Desmarcar todas as categorias quando iniciar busca
+    this.categories.forEach(cat => cat.active = false);
 
+    const searchLower = this.searchTerm.toLowerCase().trim();
+    this.filteredProducts = [];
+
+    // Buscar em todas as categorias
     Object.keys(this.products).forEach(category => {
-      const filtered = this.products[category as keyof typeof this.products].filter(product =>
+      const categoryProducts = this.products[category as keyof typeof this.products];
+      const filtered = categoryProducts.filter(product =>
         product.name.toLowerCase().includes(searchLower) ||
         product.description.toLowerCase().includes(searchLower)
       );
       
-      if (filtered.length > 0) {
-        this.filteredProducts[category] = filtered;
-      }
+      // Adicionar produtos encontrados com informação da categoria
+      filtered.forEach(product => {
+        this.filteredProducts.push({
+          ...product,
+          categoryName: category
+        });
+      });
+    });
+
+    // Também buscar nos produtos recomendados
+    const filteredRecommended = this.recommendedProducts.filter(product =>
+      product.name.toLowerCase().includes(searchLower)
+    );
+    
+    filteredRecommended.forEach(product => {
+      this.filteredProducts.push({
+        ...product,
+        categoryName: 'Recomendados'
+      });
     });
   }
 }
