@@ -50,7 +50,7 @@
           <div class="w-40 flex-shrink-0 snap-start">
             <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl p-4 h-48 relative overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 transform hover:scale-105"
                   [class.animate-pulse]="clickedCardId === product.id"
-                  [class.scale-110]="clickedCardId === product.id"
+                  [class.scale-95]="clickedCardId === product.id"
                   (click)="addRecommendedToCart(product, $event)">
               <!-- Favorite Icon -->
               <button class="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
@@ -105,7 +105,7 @@
     @for (product of currentCategoryProducts; track product.id) {
       <div class="rounded-2xl p-4 border border-gray-200 dark:border-gray-700"
            [class.animate-pulse]="clickedCardId === product.id"
-           [class.scale-105]="clickedCardId === product.id">
+           [class.scale-95]="clickedCardId === product.id">
         <div class="flex items-start space-x-4">
           <!-- Product Image -->
           <div class="flex-shrink-0">
