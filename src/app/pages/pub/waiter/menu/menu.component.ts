@@ -108,7 +108,8 @@ export class MenuComponent {
     { name: 'Desserts', icon: '🍰', active: false },
     { name: 'Salads', icon: '🥗', active: false },
     { name: 'Coffee', icon: '☕', active: false },
-    { name: 'Snacks', icon: '🍿', active: false }
+    { name: 'Snacks', icon: '🍿', active: false },
+    { name: 'Beer', icon: '🍺', active: false }
   ];
 
   // Dados dos produtos por categoria
@@ -120,7 +121,8 @@ export class MenuComponent {
         description: 'Premium beef steak',
         price: '$18.99',
         image: '🥩',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 2,
@@ -128,7 +130,8 @@ export class MenuComponent {
         description: 'Smoky barbecue ribs',
         price: '$22.50',
         image: '🍖',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 3,
@@ -136,7 +139,8 @@ export class MenuComponent {
         description: 'Tender lamb chops',
         price: '$24.99',
         image: '🐑',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Fast Food': [
@@ -146,7 +150,8 @@ export class MenuComponent {
         description: 'Burger Hunt',
         price: '$4.99',
         image: '🍔',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 5,
@@ -154,7 +159,8 @@ export class MenuComponent {
         description: 'Crispy chicken pieces',
         price: '$6.50',
         image: '🍗',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 6,
@@ -162,7 +168,8 @@ export class MenuComponent {
         description: 'Golden crispy fries',
         price: '$3.99',
         image: '🍟',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Drinks': [
@@ -172,7 +179,8 @@ export class MenuComponent {
         description: 'Natural orange juice',
         price: '$4.50',
         image: '🍊',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 8,
@@ -180,7 +188,8 @@ export class MenuComponent {
         description: 'Cold brew coffee',
         price: '$5.99',
         image: '☕',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 9,
@@ -188,7 +197,8 @@ export class MenuComponent {
         description: 'Mixed fruit smoothie',
         price: '$7.50',
         image: '🥤',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Pizza': [
@@ -198,7 +208,8 @@ export class MenuComponent {
         description: 'Pizza Italiano',
         price: '$11.88',
         image: '🍕',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 11,
@@ -206,7 +217,8 @@ export class MenuComponent {
         description: 'Classic pepperoni',
         price: '$13.50',
         image: '🍕',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Desserts': [
@@ -216,7 +228,8 @@ export class MenuComponent {
         description: 'Rich chocolate dessert',
         price: '$6.99',
         image: '🍰',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 13,
@@ -224,7 +237,8 @@ export class MenuComponent {
         description: 'Vanilla ice cream',
         price: '$4.50',
         image: '🍦',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Salads': [
@@ -234,7 +248,8 @@ export class MenuComponent {
         description: 'Meli House',
         price: '$4.56',
         image: '🥗',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 15,
@@ -242,7 +257,8 @@ export class MenuComponent {
         description: 'Classic caesar',
         price: '$8.99',
         image: '🥗',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Coffee': [
@@ -252,7 +268,8 @@ export class MenuComponent {
         description: 'Strong coffee shot',
         price: '$3.50',
         image: '☕',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 17,
@@ -260,7 +277,8 @@ export class MenuComponent {
         description: 'Creamy coffee',
         price: '$4.99',
         image: '☕',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       }
     ],
     'Snacks': [
@@ -270,7 +288,8 @@ export class MenuComponent {
         description: 'Buttery popcorn',
         price: '$2.99',
         image: '🍿',
-        quantity: 0
+        quantity: 0,
+        favorite: false
       },
       {
         id: 19,
@@ -278,7 +297,118 @@ export class MenuComponent {
         description: 'Cheese nachos',
         price: '$5.50',
         image: '🌮',
-        quantity: 0
+        quantity: 0,
+        favorite: false
+      }
+    ],
+    'Beer': [
+      {
+        id: 24,
+        name: 'Heineken Longneck',
+        description: 'Cerveja Premium 330ml',
+        price: 'R$ 8,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 25,
+        name: 'Heineken 600ml',
+        description: 'Cerveja Premium 600ml',
+        price: 'R$ 12,00',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 26,
+        name: 'Stella Artois Longneck',
+        description: 'Cerveja Belga 330ml',
+        price: 'R$ 9,00',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 27,
+        name: 'Stella Artois 600ml',
+        description: 'Cerveja Belga 600ml',
+        price: 'R$ 13,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 28,
+        name: 'Bohemia Longneck',
+        description: 'Cerveja Pilsen 330ml',
+        price: 'R$ 6,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 29,
+        name: 'Bohemia 600ml',
+        description: 'Cerveja Pilsen 600ml',
+        price: 'R$ 10,00',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 30,
+        name: 'Amstel Longneck',
+        description: 'Cerveja Holandesa 330ml',
+        price: 'R$ 7,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 31,
+        name: 'Amstel 600ml',
+        description: 'Cerveja Holandesa 600ml',
+        price: 'R$ 11,00',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 32,
+        name: 'Original Longneck',
+        description: 'Cerveja Nacional 330ml',
+        price: 'R$ 5,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 33,
+        name: 'Original 600ml',
+        description: 'Cerveja Nacional 600ml',
+        price: 'R$ 8,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 34,
+        name: 'Petra Longneck',
+        description: 'Cerveja Puro Malte 330ml',
+        price: 'R$ 6,00',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
+      },
+      {
+        id: 35,
+        name: 'Petra 600ml',
+        description: 'Cerveja Puro Malte 600ml',
+        price: 'R$ 9,50',
+        image: '🍺',
+        quantity: 0,
+        favorite: false
       }
     ]
   };
@@ -298,7 +428,7 @@ export class MenuComponent {
       return [];
     }
     
-    const categoryKey = activeCategory.name.toLowerCase() as keyof typeof this.products;
+    const categoryKey = activeCategory.name as keyof typeof this.products;
     return this.products[categoryKey] || [];
   }
 
@@ -577,17 +707,13 @@ export class MenuComponent {
   }
 
   private filterProducts(): void {
-    if (!this.searchTerm || this.searchTerm.trim() === '') {
-      this.isSearching = false;
+    if (!this.searchTerm.trim()) {
       this.filteredProducts = [];
-      // Não reativar categoria automaticamente quando limpar busca
+      this.isSearching = false;
       return;
     }
 
     this.isSearching = true;
-    // Desmarcar todas as categorias quando iniciar busca
-    this.categories.forEach(cat => cat.active = false);
-
     const searchLower = this.searchTerm.toLowerCase().trim();
     this.filteredProducts = [];
 
@@ -603,21 +729,48 @@ export class MenuComponent {
       filtered.forEach(product => {
         this.filteredProducts.push({
           ...product,
-          categoryName: category
+          category: category
         });
       });
     });
+  }
 
-    // Também buscar nos produtos recomendados
-    const filteredRecommended = this.recommendedProducts.filter(product =>
-      product.name.toLowerCase().includes(searchLower)
-    );
+  // Função para alternar favorito
+  toggleFavorite(product: any): void {
+    // Primeiro, alternar o favorito no produto atual
+    product.favorite = !product.favorite;
     
-    filteredRecommended.forEach(product => {
-      this.filteredProducts.push({
-        ...product,
-        categoryName: 'Recomendados'
-      });
+    // Encontrar e atualizar o produto original nas categorias
+    Object.keys(this.products).forEach(category => {
+      const categoryProducts = this.products[category as keyof typeof this.products];
+      const originalProduct = categoryProducts.find(p => p.id === product.id);
+      if (originalProduct) {
+        originalProduct.favorite = product.favorite;
+      }
     });
+    
+    // Também verificar nos produtos recomendados
+    const recommendedProduct = this.recommendedProducts.find(p => p.id === product.id);
+    if (recommendedProduct) {
+      recommendedProduct.favorite = product.favorite;
+    }
+  }
+
+  // Getter para produtos favoritos
+  get favoriteProducts() {
+    const favorites: any[] = [];
+    
+    // Buscar favoritos em todas as categorias
+    Object.keys(this.products).forEach(category => {
+      const categoryProducts = this.products[category as keyof typeof this.products];
+      const categoryFavorites = categoryProducts.filter(product => product.favorite);
+      favorites.push(...categoryFavorites);
+    });
+    
+    // Adicionar favoritos dos produtos recomendados
+    const recommendedFavorites = this.recommendedProducts.filter(product => product.favorite);
+    favorites.push(...recommendedFavorites);
+    
+    return favorites;
   }
 }

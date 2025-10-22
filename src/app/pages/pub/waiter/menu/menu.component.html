@@ -46,61 +46,76 @@
 
 <!-- Recommend Section -->
 <div class="px-4 pb-4">
-  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Recommend</h2>
+  <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Favoritos</h2>
   
-  <!-- Carrossel com scroll automático -->
-  <div class="relative">
-    <div 
-      class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
-      id="recommend-carousel"
-      (mousedown)="startDrag($event, 'recommend-carousel')"
-      (touchstart)="startDragTouch($event, 'recommend-carousel')"
-      style="scrollbar-width: none; -ms-overflow-style: none;"
-    >
-      <div class="flex flex-row space-x-4 w-max">
-        @for (product of recommendedProducts; track $index) {
-          <div class="w-40 flex-shrink-0 snap-start">
-            <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl p-4 h-48 relative overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 transform hover:scale-105"
-                  [class.animate-pulse]="clickedCardId === product.id"
-                  [class.scale-95]="clickedCardId === product.id"
-                  (click)="addRecommendedToCart(product, $event)">
-              <!-- Favorite Icon -->
-              <button class="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center">
-                <svg class="w-4 h-4" [class.text-red-500]="product.favorite" [class.text-gray-400]="!product.favorite" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                </svg>
-              </button>
-              
-              <!-- Product Image -->
-              <div class="flex items-center justify-center h-20 mb-3">
-                <span class="text-4xl">{{ product.image }}</span>
-              </div>
-              
-              <!-- Product Info -->
-              <div class="text-center">
-                <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1">{{ product.name }}</h3>
-                <p class="text-green-600 dark:text-green-400 font-bold text-lg">{{ product.price }}</p>
+  @if (favoriteProducts.length > 0) {
+    <!-- Carrossel com scroll automático -->
+    <div class="relative">
+      <div 
+        class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
+        id="recommend-carousel"
+        (mousedown)="startDrag($event, 'recommend-carousel')"
+        (touchstart)="startDragTouch($event, 'recommend-carousel')"
+        style="scrollbar-width: none; -ms-overflow-style: none;"
+      >
+        <div class="flex flex-row space-x-4 w-max">
+          @for (product of favoriteProducts; track product.id) {
+            <div class="w-40 flex-shrink-0 snap-start">
+              <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-800 dark:to-green-900 rounded-2xl p-4 h-48 relative overflow-hidden cursor-pointer hover:shadow-md transition-all duration-200 transform hover:scale-105"
+                    [class.animate-pulse]="clickedCardId === product.id"
+                    [class.scale-95]="clickedCardId === product.id"
+                    (click)="addRecommendedToCart(product, $event)">
+                <!-- Favorite Icon -->
+                <button 
+                  class="absolute top-3 right-3 w-8 h-8 bg-white/80 rounded-full flex items-center justify-center"
+                  (click)="toggleFavorite(product); $event.stopPropagation()"
+                >
+                  <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                  </svg>
+                </button>
+                
+                <!-- Product Image -->
+                <div class="flex items-center justify-center h-20 mb-3">
+                  <span class="text-4xl">{{ product.image }}</span>
+                </div>
+                
+                <!-- Product Info -->
+                <div class="text-center">
+                  <h3 class="font-semibold text-gray-900 dark:text-white text-sm mb-1">{{ product.name }}</h3>
+                  <p class="text-green-600 dark:text-green-400 font-bold text-lg">{{ product.price }}</p>
+                </div>
               </div>
             </div>
-          </div>
+          }
+        </div>
+      </div>
+      
+      <!-- Indicadores de página com efeito de deslize -->
+      <div class="flex justify-center mt-4 space-x-2">
+        @for (product of favoriteProducts; let i = $index; track i) {
+          @if (i % 2 === 0) {
+            <button 
+              (click)="scrollToItem('recommend-carousel', i)"
+              class="h-2 rounded-full transition-all duration-300 bg-gray-300 hover:bg-green-500"
+              [class.bg-green-500]="currentRecommendPage === i / 2"
+              [style.width]="currentRecommendPage === i / 2 ? '24px' : '8px'"
+            ></button>
+          }
         }
       </div>
     </div>
-    
-    <!-- Indicadores de página com efeito de deslize -->
-    <div class="flex justify-center mt-4 space-x-2">
-      @for (product of recommendedProducts; let i = $index; track i) {
-        @if (i % 2 === 0) {
-          <button 
-            (click)="scrollToItem('recommend-carousel', i)"
-            class="h-2 rounded-full transition-all duration-300 bg-gray-300 hover:bg-green-500"
-            [class.bg-green-500]="currentRecommendPage === i / 2"
-            [style.width]="currentRecommendPage === i / 2 ? '24px' : '8px'"
-          ></button>
-        }
-      }
+  } @else {
+    <div class="text-center py-8">
+      <div class="text-gray-400 dark:text-gray-500 mb-2">
+        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+      </div>
+      <p class="text-gray-500 dark:text-gray-400 text-sm">Nenhum produto favorito ainda</p>
+      <p class="text-gray-400 dark:text-gray-500 text-xs mt-1">Clique no ❤️ para adicionar favoritos</p>
     </div>
-  </div>
+  }
 </div>
 
 <!-- Products Section -->
@@ -128,8 +143,25 @@
           
           <!-- Product Content -->
           <div class="flex-1 min-w-0">
-            <h3 class="font-semibold text-gray-800 dark:text-white text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{{ product.name }}</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-300 mt-1 leading-tight">{{ product.description }}</p>
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-gray-800 dark:text-white text-sm leading-tight whitespace-nowrap overflow-hidden text-ellipsis">{{ product.name }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-300 mt-1 leading-tight">{{ product.description }}</p>
+              </div>
+              <!-- Favorite Icon -->
+              <button 
+                (click)="toggleFavorite(product)"
+                class="ml-2 p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                title="Adicionar aos favoritos"
+              >
+                <svg class="w-4 h-4 transition-colors duration-200" 
+                     [class]="product.favorite ? 'text-red-500 fill-current' : 'text-gray-400 dark:text-gray-500'"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </button>
+            </div>
           </div>
           
           <!-- Right side: Price and Controls -->
