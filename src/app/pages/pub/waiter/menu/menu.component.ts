@@ -101,7 +101,7 @@ export class MenuComponent {
 
   // Dados das categorias
   categories = [
-    { name: 'Meat', icon: '🥩', active: true },
+    { name: 'Meat', icon: '🥩', active: false },
     { name: 'Fast Food', icon: '🍔', active: false },
     { name: 'Drinks', icon: '🧃', active: false },
     { name: 'Pizza', icon: '🍕', active: false },
@@ -292,7 +292,11 @@ export class MenuComponent {
 
     // Comportamento normal: retornar produtos da categoria ativa
     const activeCategory = this.categories.find(cat => cat.active);
-    if (!activeCategory) return [];
+    if (!activeCategory) {
+      // Se não há categoria ativa e não há busca, retornar array vazio
+      // Isso permite que o usuário escolha entre buscar ou selecionar categoria
+      return [];
+    }
     
     const categoryKey = activeCategory.name.toLowerCase() as keyof typeof this.products;
     return this.products[categoryKey] || [];
@@ -445,6 +449,11 @@ export class MenuComponent {
 
   // Método para selecionar categoria
   selectCategory(index: number): void {
+    // Limpar busca quando selecionar categoria
+    this.searchTerm = '';
+    this.isSearching = false;
+    this.filteredProducts = [];
+    
     // Reset all categories
     this.categories.forEach(cat => cat.active = false);
     // Set selected category as active
@@ -564,18 +573,14 @@ export class MenuComponent {
     this.searchTerm = '';
     this.isSearching = false;
     this.filteredProducts = [];
-    // Reativar a primeira categoria quando limpar a busca
-    this.selectCategory(0);
+    // Não reativar categoria automaticamente - deixar o usuário escolher
   }
 
   private filterProducts(): void {
     if (!this.searchTerm || this.searchTerm.trim() === '') {
       this.isSearching = false;
       this.filteredProducts = [];
-      // Reativar a primeira categoria quando não há busca
-      if (!this.categories.some(cat => cat.active)) {
-        this.selectCategory(0);
-      }
+      // Não reativar categoria automaticamente quando limpar busca
       return;
     }
 
