@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
 
 interface Product {
   id: number;
@@ -22,7 +23,7 @@ interface Table {
 
 @Component({
   selector: 'app-tables',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, InputFieldComponent],
   templateUrl: './tables.component.html',
   styleUrl: './tables.component.css'
 })

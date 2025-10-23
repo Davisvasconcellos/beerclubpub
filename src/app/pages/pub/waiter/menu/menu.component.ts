@@ -2,10 +2,11 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
+import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
 
 @Component({
   selector: 'app-menu',
-  imports: [CommonModule, ModalComponent, FormsModule],
+  imports: [CommonModule, ModalComponent, FormsModule, InputFieldComponent],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css'
 })

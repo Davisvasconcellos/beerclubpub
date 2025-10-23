@@ -183,96 +183,98 @@
     <!-- Cash Payment Form -->
     <div class="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
       <h3 class="mb-4 text-lg font-semibold text-black dark:text-white/90">Pagamento em Dinheiro</h3>
-      <form class="space-y-4">
+      <form class="space-y-4" (ngSubmit)="onCashPayment()">
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Mesa</label>
-          <select class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90">
-            <option value="">Selecione a mesa</option>
-            <option value="02">Mesa 02</option>
-            <option value="05">Mesa 05</option>
-            <option value="08">Mesa 08</option>
-          </select>
+          <app-select
+            [options]="tableOptions"
+            [value]="selectedTable"
+            (valueChange)="selectedTable = $event"
+            placeholder="Selecione a mesa"
+          ></app-select>
         </div>
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Valor Total</label>
-          <input
+          <app-input-field
             type="text"
+            [value]="cashAmount"
+            (valueChange)="cashAmount = $event.toString()"
             placeholder="R$ 0,00"
-            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90"
-          />
+          ></app-input-field>
         </div>
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Valor Recebido</label>
-          <input
+          <app-input-field
             type="text"
+            [value]="changeAmount"
+            (valueChange)="changeAmount = $event.toString()"
             placeholder="R$ 0,00"
-            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90"
-          />
+          ></app-input-field>
         </div>
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Troco</label>
-          <input
+          <app-input-field
             type="text"
             placeholder="R$ 0,00"
-            readonly
-            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-gray-100 px-5 py-3 text-black outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white/90"
-          />
+            [disabled]="true"
+          ></app-input-field>
         </div>
-        <button
+        <app-button
           type="submit"
-          class="w-full rounded-lg bg-green-600 px-5 py-3 text-center font-medium text-white transition hover:bg-green-700"
+          variant="primary"
+          class="w-full bg-green-600 hover:bg-green-700"
         >
           Processar Pagamento
-        </button>
+        </app-button>
       </form>
     </div>
 
     <!-- Card Payment Form -->
     <div class="rounded-xl border border-gray-200 bg-white p-6 dark:border-gray-800 dark:bg-white/[0.03]">
       <h3 class="mb-4 text-lg font-semibold text-black dark:text-white/90">Pagamento no Cartão</h3>
-      <form class="space-y-4">
+      <form class="space-y-4" (ngSubmit)="onCardPayment()">
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Mesa</label>
-          <select class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90">
-            <option value="">Selecione a mesa</option>
-            <option value="02">Mesa 02</option>
-            <option value="05">Mesa 05</option>
-            <option value="08">Mesa 08</option>
-          </select>
+          <app-select
+            [options]="tableOptions"
+            [value]="selectedCardTable"
+            (valueChange)="selectedCardTable = $event"
+            placeholder="Selecione a mesa"
+          ></app-select>
         </div>
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Valor Total</label>
-          <input
+          <app-input-field
             type="text"
+            [value]="cardAmount"
+            (valueChange)="cardAmount = $event.toString()"
             placeholder="R$ 0,00"
-            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90"
-          />
+          ></app-input-field>
         </div>
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Tipo de Cartão</label>
-          <select class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90">
-            <option value="">Selecione o tipo</option>
-            <option value="debito">Débito</option>
-            <option value="credito">Crédito</option>
-          </select>
+          <app-select
+            [options]="cardTypeOptions"
+            [value]="cardType"
+            (valueChange)="cardType = $event"
+            placeholder="Selecione o tipo"
+          ></app-select>
         </div>
         <div>
           <label class="mb-2.5 block text-black dark:text-white/90">Parcelas</label>
-          <select class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent px-5 py-3 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-gray-600 dark:bg-form-input dark:text-white/90">
-            <option value="1">1x</option>
-            <option value="2">2x</option>
-            <option value="3">3x</option>
-            <option value="4">4x</option>
-            <option value="5">5x</option>
-            <option value="6">6x</option>
-          </select>
+          <app-select
+            [options]="installmentOptions"
+            [value]="installments"
+            (valueChange)="installments = $event"
+          ></app-select>
         </div>
-        <button
+        <app-button
           type="submit"
-          class="w-full rounded-lg bg-blue-600 px-5 py-3 text-center font-medium text-white transition hover:bg-blue-700"
+          variant="primary"
+          class="w-full bg-blue-600 hover:bg-blue-700"
         >
           Processar Pagamento
-        </button>
+        </app-button>
       </form>
     </div>
   </div>

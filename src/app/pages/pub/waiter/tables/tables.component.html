@@ -187,12 +187,13 @@
             <label class="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">
               Nome do Cliente:
             </label>
-            <input
+            <app-input-field
               type="text"
-              [(ngModel)]="customerName"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white dark:bg-gray-700"
+              [value]="customerName"
+              (valueChange)="customerName = $event.toString()"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white dark:bg-gray-700"
               placeholder="Digite o nome do cliente"
-            />
+            ></app-input-field>
           </div>
           <div class="flex justify-between">
             <button
@@ -286,12 +287,13 @@
                  <label class="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">
                    Nome do Cliente para Reserva
                  </label>
-                 <input 
+                 <app-input-field
                    type="text" 
-                   [(ngModel)]="reserveCustomerName"
+                   [value]="reserveCustomerName"
+                   (valueChange)="reserveCustomerName = $event.toString()"
                    placeholder="Digite o nome do cliente"
-                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-gray-900"
-                 />
+                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-gray-900"
+                 ></app-input-field>
                </div>
                
                <div class="flex flex-col sm:flex-row gap-3">
@@ -330,12 +332,13 @@
                  <label class="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">
                    Nome do Cliente
                  </label>
-                 <input 
+                 <app-input-field
                    type="text" 
-                   [(ngModel)]="customerName"
+                   [value]="customerName"
+                   (valueChange)="customerName = $event.toString()"
                    placeholder="Digite o nome do cliente"
-                   class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-gray-900"
-                 />
+                   className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-gray-900"
+                 ></app-input-field>
                </div>
                
                <div class="flex flex-col sm:flex-row gap-3">

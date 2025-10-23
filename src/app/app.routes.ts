@@ -67,6 +67,8 @@ import { CodeGeneratorComponent } from './pages/ai/code-generator/code-generator
 import { VideoGeneratorComponent } from './pages/ai/video-generator/video-generator.component';
 import { ProductListComponent } from './pages/ecommerce/product-list/product-list.component';
 import { AddProductComponent } from './pages/ecommerce/add-product/add-product.component';
+import { ProductListComponent as AdminProductListComponent } from './pages/pub/admin/product-list/product-list.component';
+import { AddProductComponent as AdminAddProductComponent } from './pages/pub/admin/add-product/add-product.component';
 import { BillingComponent } from './pages/ecommerce/billing/billing.component';
 import { InvoiceComponent } from './pages/ecommerce/invoice/invoice.component';
 import { SingleInvoiceComponent } from './pages/ecommerce/single-invoice/single-invoice.component';
@@ -78,14 +80,16 @@ import { TicketReplyComponent } from './pages/support/ticket-reply/ticket-reply.
 import { ApiKeysComponent } from './pages/other-page/api-keys/api-keys.component';
 import { IntegrationsComponent } from './pages/other-page/integrations/integrations.component';
 import { CheckUserStatusComponent } from './pages/home/check-user-status/check-user-status.component';
-import { HomeAdminComponent } from './pages/home/home-admin/home-admin.component';
-import { HomeMasterComponent } from './pages/home/home-master/home-master.component';
-import { HomeUserComponent } from './pages/home/home-user/home-user.component';
+import { HomeAdminComponent } from './pages/pub/admin/home-admin/home-admin.component';
+import { HomeMasterComponent } from './pages/pub/master/home-master/home-master.component';
+import { HomeUserComponent } from './pages/pub/user/home-user/home-user.component';
 import { HomeWaiterComponent } from './pages/pub/waiter/home-waiter/home-waiter.component';
 import { OrdersComponent } from './pages/pub/waiter/orders/orders.component';
 import { MenuComponent } from './pages/pub/waiter/menu/menu.component';
 import { TablesComponent } from './pages/pub/waiter/tables/tables.component';
 import { PaymentsComponent } from './pages/pub/waiter/payments/payments.component';
+import { AdminDashboardComponent } from './pages/pub/admin/admin-dashboard/admin-dashboard.component';
+import { ConfigComponent } from './pages/pub/admin/config/config.component';
 
 export const routes: Routes = [
   {
@@ -251,22 +255,22 @@ export const routes: Routes = [
         title:'Angular Check User Status | TailAdmin - Angular Admin Dashboard Template'
       },
       {
-        path:'home-admin',
+        path:'pub/admin',
         component:HomeAdminComponent,
         title:'Angular Pub Admin | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
-        path:'home-master',
+        path:'pub/master',
         component:HomeMasterComponent,
         title:'Angular Pub Master | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
-        path:'home-user',
+        path:'pub/user',
         component:HomeUserComponent,
         title:'Angular Pub User | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
-        path:'home-waiter',
+        path:'pub/waiter',
         component:HomeWaiterComponent,
         title:'Angular Pub Waiter | BeerClubPub - Angular Admin Dashboard Template'
       },
@@ -289,6 +293,26 @@ export const routes: Routes = [
         path:'pub/waiter/payments',
         component:PaymentsComponent,
         title:'Angular Pub Pagamentos | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/admin-dashboard',
+        component:AdminDashboardComponent,
+        title:'Angular Pub Dashboard Admin | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/product-list',
+        component:AdminProductListComponent,
+        title:'Angular Pub Lista de Produtos | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/add-product',
+        component:AdminAddProductComponent,
+        title:'Angular Pub Cadastro de Produto | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/config',
+        component:ConfigComponent,
+        title:'Angular Pub Configurações | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'blank',

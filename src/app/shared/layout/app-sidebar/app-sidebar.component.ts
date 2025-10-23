@@ -33,10 +33,14 @@ export class AppSidebarComponent {
       name: "Pub",
       subItems: [
         { name: "Check User Status", path: "/check-user-status" },
-        { name: "Pub Admin", path: "/home-admin" },
-        { name: "Pub Master", path: "/home-master" },
-        { name: "Pub User", path: "/home-user" },
-        { name: "Pub Waiter", path: "/home-waiter" },
+        { name: "Dashboard Admin", path: "/pub/admin/admin-dashboard" },
+        { name: "Pub Admin", path: "/pub/admin" },
+        { name: "Lista de Produtos", path: "/pub/admin/product-list" },
+        { name: "Cadastro de Produto", path: "/pub/admin/add-product" },
+        { name: "Configurações", path: "/pub/admin/config" },
+        { name: "Pub Master", path: "/pub/master" },
+        { name: "Pub User", path: "/pub/user" },
+        { name: "Pub Waiter", path: "/pub/waiter" },
       ],
     },
     {

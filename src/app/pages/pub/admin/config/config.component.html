@@ -1,0 +1,419 @@
+<div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <!-- Nav Tabs -->
+  <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+    <nav class="flex space-x-8">
+      <button 
+        (click)="setActiveTab('establishment')"
+        [class]="activeTab === 'establishment' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary'"
+        class="whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium transition-colors">
+        Estabelecimento
+      </button>
+      <button 
+        (click)="setActiveTab('company')"
+        [class]="activeTab === 'company' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary'"
+        class="whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium transition-colors">
+        Dados da Empresa
+      </button>
+      <button 
+        (click)="setActiveTab('hours')"
+        [class]="activeTab === 'hours' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary'"
+        class="whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium transition-colors">
+        Horários
+      </button>
+      <button 
+        (click)="setActiveTab('payments')"
+        [class]="activeTab === 'payments' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary'"
+        class="whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium transition-colors">
+        Pagamentos
+      </button>
+      <button 
+        (click)="setActiveTab('delivery')"
+        [class]="activeTab === 'delivery' ? 'border-primary text-primary dark:text-primary' : 'border-transparent text-gray-600 hover:text-primary dark:text-gray-400 dark:hover:text-primary'"
+        class="whitespace-nowrap border-b-2 py-2 px-1 text-sm font-medium transition-colors">
+        Delivery
+      </button>
+    </nav>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="p-4 sm:p-6">
+    <!-- Estabelecimento Tab -->
+    <div *ngIf="activeTab === 'establishment'">
+      <h3 class="mb-6 text-lg font-medium text-gray-800 dark:text-white">
+        Configurações do Estabelecimento
+      </h3>
+      
+      <div class="mb-4.5">
+        <app-label>Nome do Estabelecimento <span class="text-error-500">*</span></app-label>
+        <app-input-field 
+          [value]="establishmentName"
+          (valueChange)="establishmentName = $event.toString()"
+          placeholder="Digite o nome do estabelecimento">
+        </app-input-field>
+      </div>
+
+      <div class="mb-4.5">
+        <app-label>Capacidade <span class="text-error-500">*</span></app-label>
+        <app-input-field 
+          [value]="capacity"
+          (valueChange)="capacity = $event.toString()"
+          placeholder="Ex: 50 pessoas">
+        </app-input-field>
+      </div>
+
+      <div class="mb-4.5">
+        <app-label>Tipo de Estabelecimento <span class="text-error-500">*</span></app-label>
+        <app-select 
+          [options]="establishmentTypes"
+          [value]="establishmentType"
+          (valueChange)="establishmentType = $event">
+        </app-select>
+      </div>
+
+      <div class="mb-6">
+        <app-label>Descrição</app-label>
+        <app-text-area 
+          [value]="establishmentDescription"
+          (valueChange)="establishmentDescription = $event.toString()"
+          placeholder="Descreva seu estabelecimento">
+        </app-text-area>
+      </div>
+    </div>
+
+    <!-- Dados da Empresa Tab -->
+    <div *ngIf="activeTab === 'company'">
+      <h3 class="mb-6 text-lg font-medium text-gray-800 dark:text-white">
+        Dados da Empresa
+      </h3>
+      
+      <div class="mb-4.5">
+        <app-label>Razão Social <span class="text-error-500">*</span></app-label>
+        <app-input-field 
+          [value]="companyName"
+          (valueChange)="companyName = $event.toString()"
+          placeholder="Digite a razão social">
+        </app-input-field>
+      </div>
+
+      <div class="mb-4.5">
+        <app-label>CNPJ <span class="text-error-500">*</span></app-label>
+        <app-input-field 
+          [value]="cnpj"
+          (valueChange)="cnpj = $event.toString()"
+          placeholder="00.000.000/0000-00">
+        </app-input-field>
+      </div>
+
+      <div class="mb-4.5">
+        <app-label>Telefone <span class="text-error-500">*</span></app-label>
+        <app-input-field 
+          [value]="phone"
+          (valueChange)="phone = $event.toString()"
+          placeholder="(00) 00000-0000">
+        </app-input-field>
+      </div>
+
+      <div class="mb-4.5">
+        <app-label>E-mail <span class="text-error-500">*</span></app-label>
+        <app-input-field 
+          [value]="email"
+          (valueChange)="email = $event.toString()"
+          placeholder="contato@empresa.com">
+        </app-input-field>
+      </div>
+
+      <div class="mb-6">
+        <app-label>Endereço <span class="text-error-500">*</span></app-label>
+        <app-text-area 
+          [value]="address"
+          (valueChange)="address = $event.toString()"
+          placeholder="Digite o endereço completo">
+        </app-text-area>
+      </div>
+    </div>
+
+    <!-- Horários Tab -->
+    <div *ngIf="activeTab === 'hours'">
+      <h3 class="mb-6 text-lg font-medium text-gray-800 dark:text-white">
+        Horários de Funcionamento
+      </h3>
+      
+      <div class="space-y-4">
+        <!-- Segunda-feira -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Segunda-feira</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Seg
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="mondayOpen"
+              (valueChange)="mondayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="mondayClose"
+              (valueChange)="mondayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+
+        <!-- Terça-feira -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Terça-feira</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Ter
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="tuesdayOpen"
+              (valueChange)="tuesdayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="tuesdayClose"
+              (valueChange)="tuesdayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+
+        <!-- Quarta-feira -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Quarta-feira</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Qua
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="wednesdayOpen"
+              (valueChange)="wednesdayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="wednesdayClose"
+              (valueChange)="wednesdayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+
+        <!-- Quinta-feira -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Quinta-feira</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Qui
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="thursdayOpen"
+              (valueChange)="thursdayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="thursdayClose"
+              (valueChange)="thursdayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+
+        <!-- Sexta-feira -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Sexta-feira</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Sex
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="fridayOpen"
+              (valueChange)="fridayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="fridayClose"
+              (valueChange)="fridayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+
+        <!-- Sábado -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Sábado</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Sáb
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="saturdayOpen"
+              (valueChange)="saturdayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="saturdayClose"
+              (valueChange)="saturdayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+
+        <!-- Domingo -->
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
+          <div>
+            <app-label>Domingo</app-label>
+            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+              Dom
+            </div>
+          </div>
+          <div>
+            <app-label>Abertura</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="sundayOpen"
+              (valueChange)="sundayOpen = $event.toString()">
+            </app-input-field>
+          </div>
+          <div>
+            <app-label>Fechamento</app-label>
+            <app-input-field 
+              type="time" 
+              [value]="sundayClose"
+              (valueChange)="sundayClose = $event.toString()">
+            </app-input-field>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagamentos Tab -->
+    <div *ngIf="activeTab === 'payments'">
+      <h3 class="mb-6 text-lg font-medium text-gray-800 dark:text-white">
+        Métodos de Pagamento
+      </h3>
+      
+      <div class="space-y-4">
+        <app-checkbox
+          [checked]="acceptCash"
+          (checkedChange)="acceptCash = $event"
+          label="Dinheiro">
+        </app-checkbox>
+        
+        <app-checkbox
+          [checked]="acceptCard"
+          (checkedChange)="acceptCard = $event"
+          label="Cartão de Crédito/Débito">
+        </app-checkbox>
+        
+        <app-checkbox
+          [checked]="acceptPix"
+          (checkedChange)="acceptPix = $event"
+          label="PIX">
+        </app-checkbox>
+        
+        <app-checkbox
+          [checked]="acceptVoucher"
+          (checkedChange)="acceptVoucher = $event"
+          label="Vale Refeição/Alimentação">
+        </app-checkbox>
+      </div>
+    </div>
+
+    <!-- Delivery Tab -->
+    <div *ngIf="activeTab === 'delivery'">
+      <h3 class="mb-6 text-lg font-medium text-gray-800 dark:text-white">
+        Integração com Delivery
+      </h3>
+      
+      <div class="mb-6">
+        <div class="flex items-center">
+          <app-checkbox
+            [checked]="deliveryEnabled"
+            (checkedChange)="deliveryEnabled = $event"
+            label="Habilitar Delivery">
+          </app-checkbox>
+        </div>
+      </div>
+
+      <div *ngIf="deliveryEnabled" class="space-y-4">
+        <div class="mb-4.5">
+          <app-label>Raio de Entrega (km)</app-label>
+          <app-input-field 
+            placeholder="Digite o raio de entrega"
+            [value]="deliveryRadius"
+            (valueChange)="deliveryRadius = $event.toString()">
+          </app-input-field>
+        </div>
+
+        <div class="mb-4.5">
+          <app-label>Taxa de Entrega (R$)</app-label>
+          <app-input-field 
+            placeholder="Digite a taxa de entrega"
+            [value]="deliveryFee"
+            (valueChange)="deliveryFee = $event.toString()">
+          </app-input-field>
+        </div>
+
+        <div class="mb-4.5">
+          <app-label>Valor Mínimo do Pedido (R$)</app-label>
+          <app-input-field 
+            placeholder="Digite o valor mínimo"
+            [value]="minOrderValue"
+            (valueChange)="minOrderValue = $event.toString()">
+          </app-input-field>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-end gap-4.5 mt-6">
+      <app-button 
+        variant="outline"
+        (btnClick)="onCancel()">
+        Cancelar
+      </app-button>
+      <app-button 
+        variant="primary"
+        (btnClick)="onSave()">
+        Salvar Configurações
+      </app-button>
+    </div>
+  </div>
+</div>

@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
-import { PromotionCardComponent } from '../../../shared/components/club/promotion-card/promotion-card.component';
-import { BrandCardComponent } from '../../../shared/components/club/brand-card/brand-card.component';
-import { ProductCardComponent } from '../../../shared/components/club/product-card/product-card.component';
-import { EstablishmentCardComponent } from '../../../shared/components/club/establishment-card/establishment-card.component';
-import { CarouselComponent } from '../../../shared/components/club/carousel/carousel.component';
+import { PageBreadcrumbComponent } from '../../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { PromotionCardComponent } from '../../../../shared/components/club/promotion-card/promotion-card.component';
+import { BrandCardComponent } from '../../../../shared/components/club/brand-card/brand-card.component';
+import { ProductCardComponent } from '../../../../shared/components/club/product-card/product-card.component';
+import { EstablishmentCardComponent } from '../../../../shared/components/club/establishment-card/establishment-card.component';
+import { CarouselComponent } from '../../../../shared/components/club/carousel/carousel.component';
+import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
 
 @Component({
   selector: 'app-home-user',
@@ -17,6 +18,7 @@ import { CarouselComponent } from '../../../shared/components/club/carousel/caro
     ProductCardComponent,
     EstablishmentCardComponent,
     CarouselComponent,
+    InputFieldComponent,
   ],
   templateUrl: './home-user.component.html',
   styles: ``
