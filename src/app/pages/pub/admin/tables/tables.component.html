@@ -3,7 +3,7 @@
   <!-- Cabeçalho -->
   <div class="mb-6">
     <h3 class="font-medium text-black dark:text-white">
-      Cadastro de Mesas
+      Gerenciamento de Mesas
     </h3>
   </div>
 
@@ -31,17 +31,54 @@
       @if (activeTab === tab.id) {
       <ng-container>
         @if (tab.id === 'tables') {
-        <!-- Lista de Mesas -->
-        <div class="space-y-4">
-          <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
-            Lista de Mesas
-          </h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
-            Visualize e gerencie todas as mesas cadastradas no sistema.
-          </p>
-          <!-- Aqui será implementada a lista de mesas -->
-          <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-            <p class="text-gray-600 dark:text-gray-400">Lista de mesas será implementada aqui</p>
+        <!-- Lista de Mesas com Layout Visual -->
+        <div class="space-y-6">
+          <div class="mb-6">
+            <h3 class="text-title-md2 font-bold text-black dark:text-white">
+              Layout das Mesas
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              Visualize e gerencie o status de todas as mesas em tempo real.
+            </p>
+          </div>
+
+          <!-- Legend -->
+          <div class="flex flex-wrap gap-4 justify-center sm:justify-start">
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 bg-green-500 rounded"></div>
+              <span class="text-sm text-gray-600 dark:text-gray-400">Mesa Livre</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 bg-red-500 rounded"></div>
+              <span class="text-sm text-gray-600 dark:text-gray-400">Mesa Ocupada</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+              <span class="text-sm text-gray-600 dark:text-gray-400">Mesa Reservada</span>
+            </div>
+          </div>
+
+          <!-- Tables Grid - Responsive Layout -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            <!-- Dynamic Tables -->
+            <div 
+              *ngFor="let table of tables" 
+              [class]="'rounded-xl border-2 bg-white dark:bg-white/[0.03] p-4 text-center cursor-pointer hover:shadow-lg transition-all duration-200 relative ' + getStatusColor(table.status)"
+              (click)="openTableModal(table)"
+            >
+              <!-- People count indicator for occupied tables -->
+              <div 
+                *ngIf="table.status === 'occupied' && table.peopleCount" 
+                class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs font-bold"
+              >
+                {{ table.peopleCount }}
+              </div>
+              
+              <div class="text-lg font-bold text-gray-900 dark:text-white/90">{{ table.number }}</div>
+              <div [class]="'text-xs font-medium mt-1 ' + getStatusTextColor(table.status)">
+                {{ getStatusText(table.status) }}
+              </div>
+            </div>
           </div>
         </div>
         }
@@ -115,5 +152,331 @@
       }
     </div>
     }
+  </div>
+</div>
+
+<!-- Modal de Detalhes da Mesa -->
+<div 
+  *ngIf="showModal" 
+  class="fixed inset-0 z-[999999] flex items-center justify-center bg-black bg-opacity-50 p-4"
+  (click)="closeModal()"
+>
+  <div 
+    class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Modal para Mesa Ocupada -->
+    <div *ngIf="modalType === 'occupied'">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-xl">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+              Mesa {{ selectedTable?.number }}
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">
+              Cliente: {{ selectedTable?.customerName }}
+            </p>
+            <p class="text-sm text-gray-500 dark:text-gray-500 mt-1">
+              {{ selectedTable?.peopleCount }} pessoa(s)
+            </p>
+          </div>
+          <button 
+            (click)="closeModal()"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body - Products List -->
+      <div class="p-6">
+        <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Produtos Consumidos
+        </h4>
+        
+        <div class="space-y-3 mb-6">
+          <div 
+            *ngFor="let product of selectedTable?.products; let i = index" 
+            class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
+          >
+            <div class="flex items-center space-x-4">
+              <div class="text-2xl">{{ product.image }}</div>
+              <div>
+                <h5 class="font-medium text-gray-900 dark:text-white">{{ product.name }}</h5>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  R$ {{ product.price.toFixed(2) }} × {{ product.quantity }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <div class="text-right">
+                <p class="font-semibold text-gray-900 dark:text-white">
+                  R$ {{ (product.price * product.quantity).toFixed(2) }}
+                </p>
+              </div>
+              <!-- Botão de Exclusão (apenas para admin) -->
+              <button 
+                (click)="removeProduct(i)"
+                class="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
+                title="Excluir produto"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtotal -->
+        <div class="border-t border-gray-200 dark:border-gray-600 pt-4 mb-6">
+          <div class="flex justify-between items-center">
+            <span class="text-lg font-semibold text-gray-900 dark:text-white">Subtotal:</span>
+            <span class="text-xl font-bold text-primary dark:text-white">
+              R$ {{ selectedTable?.subtotal?.toFixed(2) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <button 
+            (click)="addProducts()"
+            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            </svg>
+            Adicionar Produtos
+          </button>
+          <button 
+            (click)="closeAccount()"
+            class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Fechar Conta
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para mesa reservada -->
+    <div *ngIf="modalType === 'reserved'" class="p-6">
+      <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Mesa {{ selectedTable?.number }} - Reservada</h3>
+      
+      <div class="mb-4">
+        <p class="text-gray-800 dark:text-gray-200 mb-2">
+          <strong class="text-gray-900 dark:text-white">Reservada para:</strong> {{ selectedTable?.customerName }}
+        </p>
+      </div>
+
+      <div class="flex justify-end space-x-3">
+        <button
+          (click)="showOpenForm()"
+          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Abrir
+        </button>
+        <button
+          (click)="releaseTable()"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+        >
+          Liberar
+        </button>
+      </div>
+
+      <!-- Formulário para abrir mesa reservada -->
+      <div *ngIf="showOpenTableForm" class="mt-4 border-t pt-4">
+        <h4 class="text-md font-semibold mb-3 text-gray-900 dark:text-white">Abrir Mesa</h4>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">
+            Nome do Cliente:
+          </label>
+          <app-input-field
+            type="text"
+            [value]="customerName"
+            (valueChange)="customerName = $event.toString()"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 dark:text-white dark:bg-gray-700"
+            placeholder="Digite o nome do cliente"
+          ></app-input-field>
+        </div>
+        <div class="flex justify-between">
+          <button
+            (click)="scanQRCode()"
+            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Escanear QR Code
+          </button>
+          <div class="space-x-2">
+            <button
+              (click)="closeModal()"
+              class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              (click)="openReservedTable()"
+              [disabled]="!customerName.trim()"
+              class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Mesa Livre -->
+    <div *ngIf="modalType === 'free'">
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-xl">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-2xl font-bold text-gray-900 dark:text-white">
+              Mesa {{ selectedTable?.number }}
+            </h3>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">
+              Mesa Livre
+            </p>
+          </div>
+          <button 
+            (click)="closeModal()"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Modal Body - Free Table Options -->
+       <div class="p-6">
+         <!-- Opções iniciais: Reservar ou Abrir -->
+         <div *ngIf="!showOpenTableForm && !showReserveTableForm" class="space-y-4">
+           <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">
+             O que você gostaria de fazer com esta mesa?
+           </h4>
+           
+           <div class="flex flex-col gap-4">
+             <button 
+               (click)="reserveTable()"
+               class="w-full bg-yellow-600 hover:bg-yellow-700 text-white font-medium py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
+             >
+               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+               </svg>
+               Reservar Mesa
+             </button>
+             
+             <button 
+               (click)="showOpenForm()"
+               class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-4 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-3"
+             >
+               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+               </svg>
+               Abrir Mesa
+             </button>
+           </div>
+         </div>
+
+         <!-- Formulário para reservar mesa -->
+         <div *ngIf="showReserveTableForm" class="space-y-6">
+           <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
+             Reservar Mesa {{ selectedTable?.number }}
+           </h4>
+           
+           <div class="space-y-4">
+             <div>
+               <label class="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">
+                 Nome do Cliente para Reserva
+               </label>
+               <app-input-field
+                 type="text" 
+                 [value]="reserveCustomerName"
+                 (valueChange)="reserveCustomerName = $event.toString()"
+                 placeholder="Digite o nome do cliente"
+                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-gray-900"
+               ></app-input-field>
+             </div>
+             
+             <div class="flex flex-col sm:flex-row gap-3">
+               <button 
+                 (click)="showReserveTableForm = false"
+                 class="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+               >
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                 </svg>
+                 Cancelar
+               </button>
+               
+               <button 
+                 (click)="confirmReservation()"
+                 [disabled]="!reserveCustomerName.trim()"
+                 class="flex-1 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+               >
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                 </svg>
+                 Confirmar Reserva
+               </button>
+             </div>
+           </div>
+         </div>
+
+         <!-- Formulário para abrir mesa -->
+         <div *ngIf="showOpenTableForm" class="space-y-6">
+           <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 text-center">
+             Abrir Mesa {{ selectedTable?.number }}
+           </h4>
+           
+           <div class="space-y-4">
+             <div>
+               <label class="block text-sm font-medium text-gray-900 dark:text-gray-300 mb-2">
+                 Nome do Cliente
+               </label>
+               <app-input-field
+                 type="text" 
+                 [value]="customerName"
+                 (valueChange)="customerName = $event.toString()"
+                 placeholder="Digite o nome do cliente"
+                 className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-gray-900"
+               ></app-input-field>
+             </div>
+             
+             <div class="flex flex-col sm:flex-row gap-3">
+               <button 
+                 (click)="scanQRCode()"
+                 class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+               >
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path>
+                 </svg>
+                 Escanear QR Code
+               </button>
+               
+               <button 
+                 (click)="openTable()"
+                 [disabled]="!customerName.trim()"
+                 class="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+               >
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                 </svg>
+                 Confirmar
+               </button>
+             </div>
+           </div>
+         </div>
+       </div>
+    </div>
   </div>
 </div>

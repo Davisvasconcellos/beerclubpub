@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ModalComponent } from '../../../../shared/components/ui/modal/modal.component';
 import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
 
@@ -10,7 +11,28 @@ import { InputFieldComponent } from '../../../../shared/components/form/input/in
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css'
 })
-export class MenuComponent {
+export class MenuComponent implements OnInit {
+  constructor(
+    private route: ActivatedRoute,
+    private router: Router
+  ) {}
+
+  // Propriedades para informações da mesa
+  selectedTableId: string | null = null;
+  selectedTableName: string = 'Mesa';
+  returnTo: string | null = null;
+
+  ngOnInit(): void {
+    // Capturar parâmetros da URL
+    this.route.queryParams.subscribe(params => {
+      this.selectedTableId = params['tableId'] || null;
+      this.selectedTableName = params['tableName'] || 'Mesa';
+      this.returnTo = params['returnTo'] || null;
+      
+      // Atualizar o nome da mesa no componente
+      this.tableNumber = this.selectedTableName;
+    });
+  }
   // Variáveis para controle do carrossel
   currentRecommendPage = 0;
   
@@ -649,7 +671,48 @@ export class MenuComponent {
 
   // Método para adicionar ao carrinho (finalizar pedido)
   addToCart(): void {
-    console.log('Adicionando ao carrinho...');
+    if (!this.selectedTableId) {
+      console.log('Nenhuma mesa selecionada');
+      return;
+    }
+
+    const cartItems = this.cartItems;
+    if (cartItems.length === 0) {
+      console.log('Carrinho vazio');
+      return;
+    }
+
+    // Simular adição dos produtos à mesa
+    console.log(`Adicionando ${cartItems.length} produtos à ${this.selectedTableName}:`, cartItems);
+    
+    // Aqui você pode implementar a lógica para salvar os produtos na mesa
+    // Por exemplo, enviar para um serviço ou atualizar o estado da mesa
+    
+    // Limpar carrinho após adicionar
+    this.clearCart();
+    
+    // Fechar modal
+    this.closeCartModal();
+    
+    // Navegar de volta para a tela de origem se especificado
+    if (this.returnTo === 'admin-tables') {
+      this.router.navigate(['/pub/admin/tables']);
+    }
+  }
+
+  // Método para limpar o carrinho
+  private clearCart(): void {
+    // Limpar quantidades dos produtos das categorias
+    Object.values(this.products).forEach(categoryProducts => {
+      categoryProducts.forEach(product => {
+        product.quantity = 0;
+      });
+    });
+    
+    // Limpar quantidades dos produtos recomendados
+    this.recommendedProducts.forEach(product => {
+      product.quantity = 0;
+    });
   }
 
   // Modal methods
