@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
 
 interface Product {
@@ -35,6 +36,8 @@ export class TablesComponent {
   showReserveTableForm = false;
   customerName = '';
   reserveCustomerName = '';
+
+  constructor(private router: Router) {}
 
   tables: Table[] = [
     { id: 1, number: '01', status: 'free' },
@@ -154,12 +157,16 @@ export class TablesComponent {
   }
 
   addProducts() {
+    console.log('Adicionar produtos para a mesa:', this.selectedTable?.number);
     if (this.selectedTable) {
-      // Lógica para adicionar produtos
-      console.log('Adicionando produtos à mesa:', this.selectedTable.number);
-      // Aqui você pode implementar a navegação para o menu
-      this.closeModal();
+      this.router.navigate(['/pub/waiter/menu'], { 
+        queryParams: { 
+          tableId: this.selectedTable.id,
+          tableName: `Mesa ${this.selectedTable.number}` 
+        } 
+      });
     }
+    this.closeModal();
   }
 
   reserveTable() {
