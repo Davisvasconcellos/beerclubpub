@@ -1,7 +1,6 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { PageBreadcrumbComponent } from '../../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { LabelComponent } from '../../../../shared/components/form/label/label.component';
 import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
 import { SelectComponent } from '../../../../shared/components/form/select/select.component';
@@ -15,13 +14,12 @@ import { CheckboxComponent } from '../../../../shared/components/form/input/chec
   imports: [
     CommonModule,
     FormsModule,
-    PageBreadcrumbComponent,
     LabelComponent,
     InputFieldComponent,
     SelectComponent,
     TextAreaComponent,
     ButtonComponent,
-    CheckboxComponent
+    CheckboxComponent,
   ],
   templateUrl: './config.component.html',
   styleUrls: []
