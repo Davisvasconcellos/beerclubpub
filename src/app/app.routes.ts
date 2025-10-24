@@ -90,6 +90,9 @@ import { TablesComponent } from './pages/pub/waiter/tables/tables.component';
 import { PaymentsComponent } from './pages/pub/waiter/payments/payments.component';
 import { AdminDashboardComponent } from './pages/pub/admin/admin-dashboard/admin-dashboard.component';
 import { ConfigComponent } from './pages/pub/admin/config/config.component';
+import { ClientsComponent } from './pages/pub/admin/clients/clients.component';
+import { WaitersComponent } from './pages/pub/admin/waiters/waiters.component';
+import { TablesComponent as AdminTablesComponent } from './pages/pub/admin/tables/tables.component';
 
 export const routes: Routes = [
   {
@@ -313,6 +316,21 @@ export const routes: Routes = [
         path:'pub/admin/config',
         component:ConfigComponent,
         title:'Angular Pub Configurações | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/clients',
+        component:ClientsComponent,
+        title:'Angular Pub Clientes | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/waiters',
+        component:WaitersComponent,
+        title:'Angular Pub Garçons | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/admin/tables',
+        component:AdminTablesComponent,
+        title:'Angular Pub Mesas | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'blank',

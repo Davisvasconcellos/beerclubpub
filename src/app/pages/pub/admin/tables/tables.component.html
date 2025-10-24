@@ -1,0 +1,119 @@
+<!-- Container principal com estilo do Tab With Underline -->
+<div class="p-6 border border-gray-200 rounded-xl dark:border-gray-800">
+  <!-- Cabeçalho -->
+  <div class="mb-6">
+    <h3 class="font-medium text-black dark:text-white">
+      Cadastro de Mesas
+    </h3>
+  </div>
+
+  <!-- Sistema de Abas com Tab With Underline -->
+  <div class="border-b border-gray-200 dark:border-gray-800">
+    <nav
+      class="-mb-px flex space-x-2 overflow-x-auto [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-200 dark:[&::-webkit-scrollbar-thumb]:bg-gray-600 dark:[&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar]:h-1.5">
+      @for (tab of tabs; track $index) {
+      <button
+        class="inline-flex items-center border-b-2 px-2.5 py-2 text-sm font-medium transition-colors duration-200 ease-in-out"
+        [ngClass]="activeTab === tab.id
+              ? 'text-brand-500 dark:text-brand-400 border-brand-500 dark:border-brand-400'
+              : 'bg-transparent text-gray-500 border-transparent hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'"
+        (click)="activeTab = tab.id">
+        {{ tab.label }}
+      </button>
+      }
+    </nav>
+  </div>
+
+  <!-- Conteúdo das Abas -->
+  <div class="pt-4">
+    @for (tab of tabs; track $index) {
+    <div>
+      @if (activeTab === tab.id) {
+      <ng-container>
+        @if (tab.id === 'tables') {
+        <!-- Lista de Mesas -->
+        <div class="space-y-4">
+          <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+            Lista de Mesas
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Visualize e gerencie todas as mesas cadastradas no sistema.
+          </p>
+          <!-- Aqui será implementada a lista de mesas -->
+          <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+            <p class="text-gray-600 dark:text-gray-400">Lista de mesas será implementada aqui</p>
+          </div>
+        </div>
+        }
+        
+        @if (tab.id === 'add-table') {
+        <!-- Formulário de Cadastro -->
+        <div class="space-y-4">
+          <h3 class="mb-1 text-xl font-medium text-gray-800 dark:text-white/90">
+            Cadastrar Nova Mesa
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Preencha os dados abaixo para cadastrar uma nova mesa.
+          </p>
+          
+          <!-- Formulário -->
+          <form class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Número da Mesa
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Mesa 01"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Capacidade
+              </label>
+              <input
+                type="number"
+                placeholder="Número de pessoas"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Localização
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: Salão Principal"
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400"
+              />
+            </div>
+            
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Tipo
+              </label>
+              <select class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 dark:border-gray-600 dark:bg-gray-800 dark:text-white dark:focus:border-brand-400">
+                <option value="interna">Interna</option>
+                <option value="externa">Externa</option>
+                <option value="vip">VIP</option>
+              </select>
+            </div>
+            
+            <button
+              type="submit"
+              class="w-full rounded-lg bg-brand-500 px-4 py-2 text-white font-medium hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors"
+            >
+              Cadastrar Mesa
+            </button>
+          </form>
+        </div>
+        }
+      </ng-container>
+      }
+    </div>
+    }
+  </div>
+</div>
