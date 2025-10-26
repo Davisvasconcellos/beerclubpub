@@ -1,20 +1,15 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
-import { PageBreadcrumbComponent } from '../../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../../../shared/services/auth.service';
 
 @Component({
-  selector: 'app-home-master',
-  imports: [
-    CommonModule,
-    RouterModule,
-    PageBreadcrumbComponent,
-  ],
-  templateUrl: './home-master.component.html',
-  styles: ``
+  selector: 'app-home-manager',
+  imports: [RouterModule, CommonModule],
+  templateUrl: './home-manager.component.html',
+  styleUrl: './home-manager.component.css'
 })
-export class HomeMasterComponent implements OnInit {
+export class HomeManagerComponent implements OnInit {
   currentUser: User | null = null;
 
   constructor(
@@ -39,4 +34,3 @@ export class HomeMasterComponent implements OnInit {
     });
   }
 }
-

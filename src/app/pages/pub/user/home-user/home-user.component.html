@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-900">
-  <!-- Header com busca -->
+  <!-- Header com busca e logout -->
   <div class="bg-orange-500 px-4 py-3">
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center justify-between space-x-3">
       <div class="flex-1">
         <div class="relative">
           <app-input-field
@@ -14,6 +14,11 @@
           </svg>
         </div>
       </div>
+      <button 
+        (click)="logout()"
+        class="px-3 py-2 bg-white/20 text-white rounded-lg hover:bg-white/30 transition-colors text-sm">
+        Sair
+      </button>
     </div>
   </div>
 
@@ -23,7 +28,12 @@
     <div class="bg-white dark:bg-white/[0.03] rounded-xl border border-gray-200 dark:border-gray-800 p-6">
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Olá Pedro Henrique,</h1>
+          <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90" *ngIf="currentUser; else defaultGreeting">
+            Olá {{ currentUser.name }},
+          </h1>
+          <ng-template #defaultGreeting>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Olá,</h1>
+          </ng-template>
           <p class="text-gray-500 dark:text-gray-400 mt-1">O que vamos pedir hoje?</p>
         </div>
         <div class="w-16 h-16 bg-orange-100 dark:bg-orange-500/10 rounded-full flex items-center justify-center">

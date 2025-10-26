@@ -58,6 +58,7 @@ import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { ResetPasswordComponent } from './pages/auth-pages/reset-password/reset-password.component';
 import { TwoStepVerificationComponent } from './pages/auth-pages/two-step-verification/two-step-verification.component';
+import { LogoutComponent } from './pages/auth-pages/logout/logout.component';
 import { LogisticsComponent } from './pages/dashboard/logistics/logistics.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { TextGeneratorComponent } from './pages/ai/text-generator/text-generator.component';
@@ -94,10 +95,16 @@ import { ClientsComponent } from './pages/pub/admin/clients/clients.component';
 import { WaitersComponent } from './pages/pub/admin/waiters/waiters.component';
 import { TablesComponent as AdminTablesComponent } from './pages/pub/admin/tables/tables.component';
 
+// Import guards
+import { AuthGuard } from './shared/guards/auth.guard';
+import { RoleGuard } from './shared/guards/role.guard';
+import { GuestGuard } from './shared/guards/guest.guard';
+
 export const routes: Routes = [
   {
     path:'',
     component:AppLayoutComponent,
+    canActivate: [AuthGuard],
     children:[
       {
         path: '',
@@ -260,76 +267,106 @@ export const routes: Routes = [
       {
         path:'pub/admin',
         component:HomeAdminComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Admin | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/master',
         component:HomeMasterComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['master'] },
         title:'Angular Pub Master | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/user',
         component:HomeUserComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['user'] },
         title:'Angular Pub User | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/waiter',
         component:HomeWaiterComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
         title:'Angular Pub Waiter | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/waiter/orders',
         component:OrdersComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
         title:'Angular Pub Pedidos | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/waiter/menu',
         component:MenuComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
         title:'Angular Pub Cardápio | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/waiter/tables',
         component:TablesComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
         title:'Angular Pub Mesas | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/waiter/payments',
         component:PaymentsComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
         title:'Angular Pub Pagamentos | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/admin-dashboard',
         component:AdminDashboardComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Dashboard Admin | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/product-list',
         component:AdminProductListComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Lista de Produtos | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/add-product',
         component:AdminAddProductComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Cadastro de Produto | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/config',
         component:ConfigComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Configurações | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/clients',
         component:ClientsComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Clientes | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/waiters',
         component:WaitersComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Garçons | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
         path:'pub/admin/tables',
         component:AdminTablesComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['admin'] },
         title:'Angular Pub Mesas | BeerClubPub - Angular Admin Dashboard Template'
       },
       {
@@ -541,21 +578,30 @@ export const routes: Routes = [
   {
     path:'signin',
     component:SignInComponent,
+    canActivate: [GuestGuard],
     title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
+  },
+  {
+    path:'logout',
+    component:LogoutComponent,
+    title:'Angular Logout | TailAdmin - Angular Admin Dashboard Template'
   },
   {
     path:'signup',
     component:SignUpComponent,
+    canActivate: [GuestGuard],
     title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
   },
   {
     path:'reset-password',
     component:ResetPasswordComponent,
+    canActivate: [GuestGuard],
     title:'Angular Reset Password Dashboard | TailAdmin - Angular Admin Dashboard Template'
   },
   {
     path:'two-step-verification',
     component:TwoStepVerificationComponent,
+    canActivate: [GuestGuard],
     title:'Angular Two Step Verification Dashboard | TailAdmin - Angular Admin Dashboard Template'
   },
   // error pages

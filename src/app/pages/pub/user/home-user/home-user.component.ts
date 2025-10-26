@@ -1,15 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { RouterModule, Router } from '@angular/router';
 import { PromotionCardComponent } from '../../../../shared/components/club/promotion-card/promotion-card.component';
 import { BrandCardComponent } from '../../../../shared/components/club/brand-card/brand-card.component';
 import { ProductCardComponent } from '../../../../shared/components/club/product-card/product-card.component';
 import { EstablishmentCardComponent } from '../../../../shared/components/club/establishment-card/establishment-card.component';
 import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
+import { AuthService, User } from '../../../../shared/services/auth.service';
 
 @Component({
   selector: 'app-home-user',
   imports: [
     CommonModule,
+    RouterModule,
     PromotionCardComponent,
     BrandCardComponent,
     ProductCardComponent,
@@ -19,7 +22,30 @@ import { InputFieldComponent } from '../../../../shared/components/form/input/in
   templateUrl: './home-user.component.html',
   styles: ``
 })
-export class HomeUserComponent {
+export class HomeUserComponent implements OnInit {
+  currentUser: User | null = null;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.currentUser = this.authService.getCurrentUser();
+  }
+
+  logout(): void {
+    this.authService.logout().subscribe({
+      next: () => {
+        this.router.navigate(['/signin']);
+      },
+      error: (error) => {
+        console.error('Erro ao fazer logout:', error);
+        // Mesmo com erro, redireciona para login
+        this.router.navigate(['/signin']);
+      }
+    });
+  }
   // Variáveis para controle dos carrosséis
   currentPromoPage = 0;
   currentBrandPage = 0;
