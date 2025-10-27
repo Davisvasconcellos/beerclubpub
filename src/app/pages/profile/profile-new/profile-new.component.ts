@@ -1,5 +1,6 @@
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { AuthService, User } from '../../../shared/services/auth.service';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { UserInfoCardComponent } from '../../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../../shared/components/user-profile/user-address-card/user-address-card.component';
@@ -16,24 +17,47 @@ import { UserAddressCardComponent } from '../../../shared/components/user-profil
   templateUrl: './profile-new.component.html',
   styles: ``
 })
-export class ProfileNewComponent {
-  user = {
-    name: 'Bagus Yuliono',
-    email: 'bagusy@mail.com',
-    handleUrl: 'wall.et/bagusy',
-    avatar: '/images/user/owner.jpg',
-    plan: 'Gold' as 'Bronze' | 'Silver' | 'Gold',
-    favoriteTeam: 'VASCO',
-    team: {
-      name: 'Botafogo de Futebol e Regatas',
-      short_name: 'Botafogo',
-      abbreviation: 'BOT',
-      shield: 'https://s.sde.globo.com/media/organizations/2019/02/04/botafogo-svg.svg'
-    }
-  };
+export class ProfileNewComponent implements OnInit {
+  user: User | null = null;
+  isLoading = true;
+  error: string | null = null;
+
+  constructor(private authService: AuthService) {}
+
+  ngOnInit(): void {
+    this.loadUserData();
+  }
+
+  loadUserData(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    // Primeiro, tenta obter o usuário do cache
+    this.user = this.authService.getCurrentUser();
+
+    // Depois, busca dados atualizados da API
+    this.authService.getUserMe().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.user = response.data.user;
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados do usuário:', error);
+        this.error = 'Erro ao carregar dados do usuário';
+        this.isLoading = false;
+        
+        // Se falhar, mantém os dados do cache se existirem
+        if (!this.user) {
+          this.user = this.getDefaultUser();
+        }
+      }
+    });
+  }
 
   get qrData() {
-    return `user:${this.user.email}`;
+    return `user:${this.user?.email || 'usuario@email.com'}`;
   }
 
   get qrUrl() {
@@ -41,16 +65,37 @@ export class ProfileNewComponent {
     return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encoded}`;
   }
 
-  getPlanGradientStyle(plan: 'Bronze' | 'Silver' | 'Gold'): string {
-    switch (plan) {
+  private getDefaultUser(): User {
+    return {
+      id: 0,
+      id_code: '0',
+      name: 'Usuário',
+      email: 'usuario@email.com',
+      role: 'customer',
+      email_verified: false,
+      status: 'active',
+      plan: {
+        id: 0,
+        name: 'Bronze',
+        price: '0',
+        description: 'Plano padrão'
+      }
+    };
+  }
+
+  getPlanGradientStyle(): string {
+    const planName = this.user?.plan?.name || 'Bronze';
+    
+    switch (planName) {
       case 'Bronze':
-        return 'radial-gradient(ellipse farthest-corner at right bottom, #CD7F32 0%, #B87333 8%, #A57164 30%, #8B4513 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #F0D8C0 0%, #E0C8A0 8%, #C0A080 25%, #806040 62.5%, #806040 100%)';
+        return 'linear-gradient(135deg, #CD7F32 0%, #8B4513 100%)';
       case 'Silver':
-        return 'radial-gradient(ellipse farthest-corner at right bottom, #C0C0C0 0%, #B0B0B0 8%, #A0A0A0 30%, #909090 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #E0E0E0 0%, #D0D0D0 8%, #C0C0C0 25%, #A0A0A0 62.5%, #A0A0A0 100%)';
+        return 'linear-gradient(135deg, #C0C0C0 0%, #808080 100%)';
       case 'Gold':
-        return 'radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 30%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 62.5%, #5d4a1f 100%)';
+        return 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
       default:
-        return '';
+        // Plano padrão roxo para casos não encontrados
+        return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
     }
   }
 }

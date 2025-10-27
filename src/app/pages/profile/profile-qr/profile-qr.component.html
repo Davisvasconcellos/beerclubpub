@@ -5,7 +5,7 @@
   <div class="mx-auto w-full max-w-md">
     <!-- Header com Avatar e Dados do Usuário com Gradiente Gold -->
     <div class="relative overflow-visible rounded-2xl p-5 pt-8"
-      [ngStyle]="{'background': getPlanGradientStyle(user.plan)}">
+      [ngStyle]="{'background': getPlanGradientStyle()}">
       <div class="absolute -top-20 -left-24 h-48 w-48 rounded-full bg-blue-500/20 blur-2xl dark:bg-blue-400/30"></div>
       <div class="absolute -top-14 right-6 h-28 w-28 rounded-full bg-purple-400/20 blur-xl dark:bg-purple-300/30"></div>
 
@@ -15,12 +15,12 @@
           <!-- Coluna esquerda: Avatar e dados do usuário -->
           <div class="flex flex-col items-start">
             <div class="relative -mt-14 rounded-full p-1 bg-white shadow-theme-md mb-3">
-              <img [src]="user.avatar" alt="Avatar" class="h-20 w-20 rounded-full object-cover" />
+              <img [src]="user?.avatar || ''" alt="Avatar" class="h-20 w-20 rounded-full object-cover" />
             </div>
             <div class="text-left">
-              <div class="text-base font-semibold text-white">{{ user.name }}</div>
-              <div class="text-sm text-white/70">{{ user.email }}</div>
-              <div class="text-sm text-white/70">Plano: {{ user.plan }}</div>
+              <div class="text-base font-semibold text-white">{{ user?.name || 'User' }}</div>
+              <div class="text-sm text-white/70">{{ user?.email || 'email@example.com' }}</div>
+              <div class="text-sm text-white/70">Plano: {{ user?.plan?.name || 'Premium' }}</div>
             </div>
           </div>
           
@@ -83,25 +83,25 @@
   <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
     Time de Coração
   </h3>
-  <div class="flex items-center space-x-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800/20 border border-blue-200 dark:border-blue-800">
+  <div class="flex items-center space-x-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800/20 border border-blue-200 dark:border-blue-800" *ngIf="user?.team">
     <div class="flex-shrink-0">
       <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800">
         <img 
-          [src]="user.team.shield" 
-          [alt]="user.team.name + ' escudo'"
+          [src]="user?.team?.shield || ''" 
+          [alt]="(user?.team?.name || 'Team') + ' escudo'"
           class="w-12 h-12 object-contain"
           onerror="this.style.display='none'"
         />
       </div>
     </div>
     <div class="flex-1">
-      <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">{{ user.team.name }}</h4>
+      <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">{{ user?.team?.name || 'Team' }}</h4>
       <p class="text-sm text-blue-600 dark:text-blue-300">Meu time do coração desde sempre!</p>
       <div class="mt-2 flex items-center space-x-2">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200">
           Torcedor Fiel
         </span>
-        <span class="text-xs text-blue-500 dark:text-blue-400">{{ user.team.abbreviation }}</span>
+        <span class="text-xs text-blue-500 dark:text-blue-400">{{ user?.team?.name || 'Team' }}</span>
       </div>
     </div>
   </div>

@@ -7,11 +7,50 @@ import { LocalStorageService } from './local-storage.service';
 // Interfaces para tipagem
 export interface User {
   id: number;
+  id_code: string;
   name: string;
   email: string;
   phone?: string;
   role: 'waiter' | 'customer' | 'master' | 'admin' | 'manager';
+  google_id?: string | null;
+  avatar_url?: string | null;
+  birth_date?: string | null;
+  address_street?: string | null;
+  address_number?: string | null;
+  address_complement?: string | null;
+  address_neighborhood?: string | null;
+  address_city?: string | null;
+  address_state?: string | null;
+  address_zip_code?: string | null;
+  email_verified: boolean;
+  status: string;
+  team_user?: number;
+  plan_id?: number;
+  plan_start?: string | null;
+  plan_end?: string | null;
   created_at?: string;
+  avatar?: string;
+  handleUrl?: string;
+  plan?: {
+    id: number;
+    name: 'Bronze' | 'Silver' | 'Gold';
+    price: string;
+    description: string;
+  };
+  team?: {
+    name: string;
+    short_name: string;
+    abbreviation: string;
+    shield: string;
+  };
+}
+
+export interface UserMeResponse {
+  success: boolean;
+  message: string;
+  data: {
+    user: User;
+  };
 }
 
 export interface LoginRequest {
@@ -115,6 +154,40 @@ export class AuthService {
   // Métodos auxiliares
   getCurrentUser(): User | null {
     return this.currentUserSubject.value;
+  }
+
+  // Buscar dados atualizados do usuário logado
+  getUserMe(): Observable<UserMeResponse> {
+    const token = this.getAuthToken();
+    if (!token) {
+      return throwError(() => new Error('Token não encontrado'));
+    }
+
+    const headers = { 'Authorization': `Bearer ${token}` };
+    
+    return this.http.get<UserMeResponse>(`${this.API_BASE_URL}/auth/me`, { headers })
+      .pipe(
+        tap((response: UserMeResponse) => {
+          if (response.success && response.data) {
+            // Mapear os dados da API para o formato esperado pelos componentes
+            const mappedUser = this.mapApiUserToUser(response.data.user);
+            
+            // Atualizar o usuário atual no localStorage e no BehaviorSubject
+            this.localStorageService.setCurrentUser(mappedUser);
+            this.currentUserSubject.next(mappedUser);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  // Mapear dados da API para o formato esperado pelos componentes
+  private mapApiUserToUser(apiUser: any): User {
+    return {
+      ...apiUser,
+      avatar: apiUser.avatar_url || undefined,
+      handleUrl: `wall.et/${apiUser.name?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`
+    };
   }
 
   getAuthToken(): string | null {

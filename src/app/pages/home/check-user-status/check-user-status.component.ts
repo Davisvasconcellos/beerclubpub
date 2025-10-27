@@ -1,54 +1,87 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { CommonModule } from '@angular/common';
+import { AuthService, User } from '../../../shared/services/auth.service';
 
 @Component({
   selector: 'app-check-user-status',
   standalone: true,
-  imports: [CommonModule, PageBreadcrumbComponent],
+  imports: [CommonModule],
   templateUrl: './check-user-status.component.html',
-  styleUrl: './check-user-status.component.css'
+  styles: ``
 })
 export class CheckUserStatusComponent implements OnInit {
-  user: { name: string; email: string; plan: 'Bronze' | 'Silver' | 'Gold'; avatar: string } = {
-    name: 'Bagus Yuliono',
-    email: 'bagusy@mail.com',
-    plan: 'Bronze',
-    avatar: '/images/user/owner.jpg',
-  };
-  selectedPlan: 'Bronze' | 'Silver' | 'Gold' = 'Gold';
-  checkedIn: boolean = false;
-  plans: ('Bronze' | 'Silver' | 'Gold')[] = ['Bronze', 'Silver', 'Gold'];
+  user: User | null = null;
+  isLoading = true;
+  error: string | null = null;
+
+  constructor(private authService: AuthService) {}
 
   ngOnInit(): void {
-    this.user.plan = this.selectedPlan; // Inicializa o plano do usuário com o plano selecionado
+    this.loadUserData();
   }
 
-  selectPlan(plan: 'Bronze' | 'Silver' | 'Gold') {
-    this.selectedPlan = plan;
-    this.user.plan = plan; // Atualiza o plano do usuário ao selecionar um novo plano
-    this.checkedIn = false; // Resetar o status de check-in ao mudar de plano
+  loadUserData(): void {
+    this.isLoading = true;
+    this.error = null;
+
+    // Primeiro, tenta obter o usuário do cache
+    this.user = this.authService.getCurrentUser();
+
+    // Depois, busca dados atualizados da API
+    this.authService.getUserMe().subscribe({
+      next: (response) => {
+        if (response.success && response.data) {
+          this.user = response.data.user;
+        }
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados do usuário:', error);
+        this.error = 'Erro ao carregar dados do usuário';
+        this.isLoading = false;
+        
+        // Se falhar, mantém os dados do cache se existirem
+        if (!this.user) {
+          this.user = this.getDefaultUser();
+        }
+      }
+    });
   }
 
-  doCheckin() {
-    this.checkedIn = true;
+  private getDefaultUser(): User {
+    return {
+      id: 0,
+      id_code: '0',
+      name: 'Usuário',
+      email: 'usuario@email.com',
+      role: 'customer',
+      email_verified: false,
+      status: 'active',
+      plan: {
+        id: 0,
+        name: 'Bronze',
+        price: '0',
+        description: 'Plano padrão'
+      }
+    };
   }
 
-  getPlanGradientStyle(plan: 'Bronze' | 'Silver' | 'Gold'): string {
-    switch (plan) {
+  getPlanGradientStyle(planName: string | undefined): string {
+    switch (planName) {
       case 'Bronze':
-        return 'radial-gradient(ellipse farthest-corner at right bottom, #CD7F32 0%, #B87333 8%, #A57164 30%, #8B4513 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #F0D8C0 0%, #E0C8A0 8%, #C0A080 25%, #806040 62.5%, #806040 100%)';
+        return 'bg-gradient-to-r from-amber-600 to-yellow-500';
       case 'Silver':
-        return 'radial-gradient(ellipse farthest-corner at right bottom, #C0C0C0 0%, #B0B0B0 8%, #A0A0A0 30%, #909090 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #E0E0E0 0%, #D0D0D0 8%, #C0C0C0 25%, #A0A0A0 62.5%, #A0A0A0 100%)';
+        return 'bg-gradient-to-r from-gray-400 to-gray-600';
       case 'Gold':
-        return 'radial-gradient(ellipse farthest-corner at right bottom, #FEDB37 0%, #FDB931 8%, #9f7928 30%, #8A6E2F 40%, transparent 80%), radial-gradient(ellipse farthest-corner at left top, #FFFFFF 0%, #FFFFAC 8%, #D1B464 25%, #5d4a1f 62.5%, #5d4a1f 100%)';
+        return 'bg-gradient-to-r from-yellow-400 to-yellow-600';
       default:
-        return '';
+        // Plano padrão (roxo/Premium) para casos onde não há plano definido
+        return 'bg-gradient-to-r from-purple-500 to-purple-700';
     }
   }
 
-  getPlanBorderClass(plan: 'Bronze' | 'Silver' | 'Gold'): string {
-    switch (plan) {
+  getPlanBorderStyle(planName: string | undefined): string {
+    switch (planName) {
       case 'Bronze':
         return 'border-amber-500';
       case 'Silver':
@@ -56,7 +89,8 @@ export class CheckUserStatusComponent implements OnInit {
       case 'Gold':
         return 'border-yellow-500';
       default:
-        return '';
+        // Plano padrão (roxo/Premium) para casos onde não há plano definido
+        return 'border-purple-500';
     }
   }
 

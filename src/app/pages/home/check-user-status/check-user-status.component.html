@@ -1,83 +1,48 @@
 <div>
-  <app-page-breadcrumb pageTitle="Validação de Cliente" />
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-6">
+    <div class="flex items-center justify-center py-8">
+      <div class="text-gray-500 dark:text-white/70">Carregando dados do usuário...</div>
+    </div>
+  </div>
 
-  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-6">
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="rounded-2xl border border-red-200 bg-red-50 p-5 dark:border-red-800 dark:bg-red-900/20 lg:p-6 mb-6">
+    <div class="text-center text-red-600 dark:text-red-400">{{ error }}</div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!isLoading && user" class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-6">
     <div class="mx-auto w-full max-w-md">
       <!-- Header com Avatar e Dados do Usuário -->
       <div class="relative overflow-visible rounded-2xl p-5 pt-8"
-        [ngStyle]="{'background': getPlanGradientStyle(selectedPlan)}">
+        [ngClass]="getPlanGradientStyle(user.plan?.name)">
         <div class="absolute -top-20 -left-24 h-48 w-48 rounded-full bg-blue-500/20 blur-2xl dark:bg-blue-400/30"></div>
         <div class="absolute -top-14 right-6 h-28 w-28 rounded-full bg-purple-400/20 blur-xl dark:bg-purple-300/30"></div>
 
         <div class="p-5 pt-8 -mt-10">
           <div class="flex flex-col items-center">
             <div class="relative -mt-14 rounded-full p-1 bg-white shadow-theme-md">
-              <img [src]="user.avatar" alt="Avatar" class="h-24 w-24 rounded-full object-cover" />
+              <img [src]="user.avatar || '/images/user/default-avatar.webp'" alt="Avatar" class="h-24 w-24 rounded-full object-cover" />
             </div>
             <div class="mt-3 text-center">
-              <div class="text-base font-semibold text-white">{{ user.name }}</div>
-              <div class="text-sm text-white/70">{{ user.email }}</div>
-              <div class="text-sm text-white/70">Plano: {{ selectedPlan }}</div>
+              <div class="text-base font-semibold text-white">{{ user.name || 'Usuário' }}</div>
+              <div class="text-sm text-white/70">{{ user.email || 'usuario@email.com' }}</div>
+              <div class="text-sm text-white/70">Plano: {{ user.plan?.name || 'Bronze' }}</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Seletor de Planos -->
-      <div class="mt-6 grid grid-cols-3 gap-3">
-        <button *ngFor="let plan of plans" (click)="selectedPlan = plan"
-          class="relative flex flex-col items-center justify-center rounded-xl border p-3 text-center transition-all duration-200"
-          [ngClass]="{
-            'border-gray-300 bg-white text-gray-500 hover:border-gray-400 dark:border-gray-700 dark:bg-white/[0.03] dark:text-white/70 dark:hover:border-gray-600': selectedPlan !== plan,
-            'border-primary-500 bg-primary-50 text-primary-700 dark:border-primary-600 dark:bg-primary-900/20 dark:text-primary-400': selectedPlan === plan
-          }">
-          <span class="text-sm font-semibold">{{ plan }}</span>
-        </button>
-      </div>
-
       <!-- Cards de Status -->
       <div class="mt-6 space-y-4">
-        @if (selectedPlan === 'Gold' || selectedPlan === 'Silver' || selectedPlan === 'Bronze') {
-          <div [ngClass]="getBorderClass('valid')" class="rounded-2xl border-2 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
-            <div class="flex items-center justify-between">
-              <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Válido</h4>
-              <span class="text-green-500 font-bold">ATIVO</span>
-            </div>
-            <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente possui um plano ativo e está em dia com suas obrigações.</p>
+        <div [ngClass]="getPlanBorderStyle(user.plan?.name)" class="rounded-2xl border-2 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+          <div class="flex items-center justify-between">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Válido</h4>
+            <span class="text-green-500 font-bold">ATIVO</span>
           </div>
-        }
-        @if ((selectedPlan === 'Gold' || selectedPlan === 'Silver') && !checkedIn) {
-          <div [ngClass]="getBorderClass('delinquent')" class="rounded-2xl border-2 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
-            <div class="flex items-center justify-between">
-              <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Inadimplente</h4>
-              <span class="text-yellow-500 font-bold">PENDENTE</span>
-            </div>
-            <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente está com pagamentos pendentes ou plano expirado.</p>
-          </div>
-        }
-        @if (selectedPlan === 'Gold' || selectedPlan === 'Silver' || selectedPlan === 'Bronze') {
-          <div [ngClass]="getBorderClass('blocked')" class="rounded-2xl border-2 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
-            <div class="flex items-center justify-between">
-              <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Bloqueado</h4>
-              <span class="text-red-500 font-bold">INATIVO</span>
-            </div>
-            <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O acesso do cliente está bloqueado devido a irregularidades ou cancelamento.</p>
-          </div>
-        }
-      </div>
-
-      <div class="mt-5 flex justify-center">
-        <button
-          (click)="doCheckin()"
-          [disabled]="checkedIn"
-          class="w-full rounded-md bg-green-500 p-3 text-white"
-          [ngClass]="{
-            'opacity-50 cursor-not-allowed': checkedIn,
-            'hover:bg-green-600': !checkedIn
-          }"
-        >
-          {{ checkedIn ? 'Check-in Realizado!' : 'Realizar Check-in' }}
-        </button>
+          <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente possui um plano ativo e está em dia com suas obrigações.</p>
+        </div>
       </div>
     </div>
   </div>
