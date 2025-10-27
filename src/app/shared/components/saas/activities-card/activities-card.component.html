@@ -34,7 +34,7 @@
       <div class="relative mb-6 flex" [ngClass]="{'mb-0': i === activities.length - 1}">
         <div class="z-10 flex-shrink-0">
           <img
-            [src]="activity.avatar"
+            [src]="activity.avatar || 'images/user/default-avatar.jpg'"
             [alt]="activity.user"
             class="size-10 rounded-full object-cover ring-4 ring-white dark:ring-gray-800"
           />
