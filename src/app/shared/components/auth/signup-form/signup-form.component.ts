@@ -24,6 +24,7 @@ import { AuthService, RegisterRequest } from '../../../services/auth.service';
 export class SignupFormComponent {
 
   showPassword = false;
+  showConfirmPassword = false;
   isChecked = false;
   isLoading = false;
   errorMessage = '';
@@ -32,6 +33,7 @@ export class SignupFormComponent {
   lname = '';
   email = '';
   password = '';
+  confirmPassword = '';
 
   constructor(
     private authService: AuthService,
@@ -42,18 +44,49 @@ export class SignupFormComponent {
     this.showPassword = !this.showPassword;
   }
 
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+
+  isPasswordValid(): boolean {
+    return this.password.length >= 6 && 
+           this.hasNumber(this.password) && 
+           this.hasLetter(this.password);
+  }
+
+  hasNumber(str: string): boolean {
+    return /\d/.test(str);
+  }
+
+  hasLetter(str: string): boolean {
+    return /[a-zA-Z]/.test(str);
+  }
+
   onSignUp() {
     // Reset error message
     this.errorMessage = '';
     
     // Basic validation
-    if (!this.fname.trim() || !this.lname.trim() || !this.email.trim() || !this.password.trim()) {
-      this.errorMessage = 'Todos os campos são obrigatórios.';
+    if (!this.fname.trim() || !this.lname.trim() || !this.email.trim() || !this.password.trim() || !this.confirmPassword.trim()) {
+      this.errorMessage = 'All fields are required';
       return;
     }
 
-    if (this.password.length < 6) {
-      this.errorMessage = 'A senha deve ter pelo menos 6 caracteres.';
+    // Password validation
+    if (!this.isPasswordValid()) {
+      this.errorMessage = 'Password must be at least 6 characters long and contain both numbers and letters';
+      return;
+    }
+
+    // Password confirmation validation
+    if (this.password !== this.confirmPassword) {
+      this.errorMessage = 'Passwords do not match';
+      return;
+    }
+
+    // Checkbox validation
+    if (!this.isChecked) {
+      this.errorMessage = 'You must agree to the Terms and Conditions';
       return;
     }
 
