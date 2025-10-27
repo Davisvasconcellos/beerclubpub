@@ -3,6 +3,7 @@ import { DropdownComponent } from '../../ui/dropdown/dropdown.component';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdown-item.component-two';
+import { ThemeService } from '../../../services/theme.service';
 
 @Component({
   selector: 'app-user-dropdown',
@@ -11,10 +12,14 @@ import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdo
 })
 export class UserDropdownComponent {
   isOpen = false;
+  readonly theme$;
 
   constructor(
-    private router: Router
-  ) {}
+    private router: Router,
+    private themeService: ThemeService
+  ) {
+    this.theme$ = this.themeService.theme$;
+  }
 
   toggleDropdown() {
     this.isOpen = !this.isOpen;
@@ -22,6 +27,10 @@ export class UserDropdownComponent {
 
   closeDropdown() {
     this.isOpen = false;
+  }
+
+  toggleTheme() {
+    this.themeService.toggleTheme();
   }
 
   logout(): void {
