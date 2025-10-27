@@ -130,10 +130,10 @@
         </div>
 
         <app-button
+          type="submit"
           className="w-full"
           size="sm"
           [disabled]="isLoading"
-          (btnClick)="onSignIn()"
         >
           @if (isLoading) {
             <svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">

@@ -59,6 +59,7 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { ResetPasswordComponent } from './pages/auth-pages/reset-password/reset-password.component';
 import { TwoStepVerificationComponent } from './pages/auth-pages/two-step-verification/two-step-verification.component';
 import { LogoutComponent } from './pages/auth-pages/logout/logout.component';
+import { SignoutComponent } from './pages/auth/signout/signout.component';
 import { LogisticsComponent } from './pages/dashboard/logistics/logistics.component';
 import { CalenderComponent } from './pages/calender/calender.component';
 import { TextGeneratorComponent } from './pages/ai/text-generator/text-generator.component';
@@ -580,6 +581,11 @@ export const routes: Routes = [
     component:SignInComponent,
     canActivate: [GuestGuard],
     title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
+  },
+  {
+    path:'signout',
+    component:SignoutComponent,
+    title:'Angular Sign Out | TailAdmin - Angular Admin Dashboard Template'
   },
   {
     path:'logout',

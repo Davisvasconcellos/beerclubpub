@@ -91,9 +91,6 @@ export class LogoutComponent implements OnInit {
   }
 
   private redirectToSignin(): void {
-    this.router.navigate(['/signin']).then(() => {
-      // Força uma atualização da página para garantir que todos os dados sejam limpos
-      window.location.reload();
-    });
+    this.router.navigate(['/signin']);
   }
 }

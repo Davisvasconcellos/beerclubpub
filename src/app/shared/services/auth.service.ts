@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError, of } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of, timeout } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { LocalStorageService } from './local-storage.service';
 
@@ -97,8 +97,12 @@ export class AuthService {
   }
 
   logout(): Observable<any> {
-    return this.http.post(`${this.API_BASE_URL}/auth/logout`, {})
+    const token = this.getAuthToken();
+    const headers: { [key: string]: string } = token ? { 'Authorization': `Bearer ${token}` } : {};
+    
+    return this.http.post(`${this.API_BASE_URL}/auth/signout`, {}, { headers })
       .pipe(
+        timeout(5000), // Timeout de 5 segundos
         catchError(() => of(null)), // Continue mesmo se a API falhar
         tap(() => {
           this.localStorageService.clearAuthData();

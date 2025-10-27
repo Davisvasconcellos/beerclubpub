@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { PageBreadcrumbComponent } from '../../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { AuthService, User } from '../../../../shared/services/auth.service';
 
@@ -18,25 +18,11 @@ export class HomeMasterComponent implements OnInit {
   currentUser: User | null = null;
 
   constructor(
-    private authService: AuthService,
-    private router: Router
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-  }
-
-  logout(): void {
-    this.authService.logout().subscribe({
-      next: () => {
-        this.router.navigate(['/signin']);
-      },
-      error: (error) => {
-        console.error('Erro ao fazer logout:', error);
-        // Mesmo com erro, redireciona para login
-        this.router.navigate(['/signin']);
-      }
-    });
   }
 }
 
