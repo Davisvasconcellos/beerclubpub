@@ -866,3 +866,16 @@ pre[class*="language-"] {
 pre[class*="language-"].line-numbers {
   padding-left: 2.8em !important;
 }
+
+/* Custom mobile positioning for notification dropdown */
+@media (width < 640px) {
+  .max-sm\:right-4 {
+    right: calc(var(--spacing) * -12) !important;
+  }
+}
+
+@media (width < 640px) {
+  .max-sm\:max-w-\[350px\] {
+    /* max-width: 350px; */
+  }
+}

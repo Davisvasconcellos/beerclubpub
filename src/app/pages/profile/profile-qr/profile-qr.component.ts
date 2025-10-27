@@ -23,7 +23,13 @@ export class ProfileQrComponent {
     handleUrl: 'wall.et/bagusy',
     avatar: '/images/user/owner.jpg',
     plan: 'Gold' as 'Bronze' | 'Silver' | 'Gold',
-    favoriteTeam: 'VASCO'
+    favoriteTeam: 'VASCO',
+    team: {
+      name: 'Botafogo de Futebol e Regatas',
+      short_name: 'Botafogo',
+      abbreviation: 'BOT',
+      shield: 'https://s.sde.globo.com/media/organizations/2019/02/04/botafogo-svg.svg'
+    }
   };
 
   get qrData() {
