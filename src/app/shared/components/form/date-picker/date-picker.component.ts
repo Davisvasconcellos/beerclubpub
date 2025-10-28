@@ -28,6 +28,10 @@ export class DatePickerComponent {
     // Find the closest modal container to append the calendar to
     const modalContainer = this.dateInput.nativeElement.closest('.modal, [role="dialog"], .fixed') as HTMLElement;
     
+    // Calculate the maximum date (18 years ago from today)
+    const today = new Date();
+    const maxDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    
     // Create flatpickr configuration
     const config: any = {
       mode: this.mode,
@@ -36,6 +40,7 @@ export class DatePickerComponent {
       dateFormat: this.dateFormat || 'd/m/Y',
       defaultDate: this.defaultDate,
       position: this.position || 'auto',
+      maxDate: maxDate, // Disable dates after 18 years ago (prevent minors)
       onChange: (selectedDates: any, dateStr: string, instance: any) => {
         this.dateChange.emit({ selectedDates, dateStr, instance });
       }
