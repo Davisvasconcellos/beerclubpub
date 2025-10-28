@@ -5,6 +5,7 @@ import { TeamService, Team } from '../../../shared/services/team.service';
 import { UserInfoCardComponent } from '../../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../../shared/components/user-profile/user-address-card/user-address-card.component';
 import { ModalComponent } from '../../../shared/components/ui/modal/modal.component';
+import { QRCodeComponent } from 'angularx-qrcode';
 
 @Component({
   selector: 'app-profile-qr',
@@ -14,6 +15,7 @@ import { ModalComponent } from '../../../shared/components/ui/modal/modal.compon
     UserInfoCardComponent,
     UserAddressCardComponent,
     ModalComponent,
+    QRCodeComponent,
   ],
   templateUrl: './profile-qr.component.html',
   styles: ``
@@ -84,10 +86,11 @@ export class ProfileQrComponent implements OnInit {
   }
 
   get qrData() {
-    return `user:${this.user?.email || 'usuario@email.com'}`;
+    return this.user?.id_code || '0';
   }
 
   get qrUrl() {
+    // Mantém a URL da API como fallback, mas agora usaremos o componente QR nativo
     const encoded = encodeURIComponent(this.qrData);
     return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encoded}`;
   }
