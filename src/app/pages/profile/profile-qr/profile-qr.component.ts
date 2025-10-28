@@ -2,22 +2,18 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../../shared/services/auth.service';
 import { TeamService, Team } from '../../../shared/services/team.service';
-import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { UserInfoCardComponent } from '../../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../../shared/components/user-profile/user-address-card/user-address-card.component';
 import { ModalComponent } from '../../../shared/components/ui/modal/modal.component';
-import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 
 @Component({
   selector: 'app-profile-qr',
   standalone: true,
   imports: [
     CommonModule,
-    PageBreadcrumbComponent,
     UserInfoCardComponent,
     UserAddressCardComponent,
     ModalComponent,
-    ButtonComponent,
   ],
   templateUrl: './profile-qr.component.html',
   styles: ``
