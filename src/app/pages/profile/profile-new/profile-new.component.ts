@@ -21,6 +21,7 @@ export class ProfileNewComponent implements OnInit {
   user: User | null = null;
   isLoading = true;
   error: string | null = null;
+  showTeamModal = false;
 
   constructor(private authService: AuthService) {}
 
@@ -97,5 +98,14 @@ export class ProfileNewComponent implements OnInit {
         // Plano padrão roxo para casos não encontrados
         return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
     }
+  }
+
+  openTeamModal(): void {
+    console.log('Modal do time clicado!');
+    this.showTeamModal = true;
+  }
+
+  closeTeamModal(): void {
+    this.showTeamModal = false;
   }
 }
