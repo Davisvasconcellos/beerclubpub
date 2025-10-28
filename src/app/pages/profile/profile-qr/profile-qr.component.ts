@@ -140,15 +140,43 @@ export class ProfileQrComponent implements OnInit {
   }
 
   selectTeam(team: any): void {
+    console.log('ID do time selecionado:', team.id);
+    console.log('Dados completos do time:', team);
+    
     if (this.user) {
+      // Atualizar localmente primeiro
       this.user.team = {
         name: team.name,
         short_name: team.short_name,
         abbreviation: team.short_name.toUpperCase(),
         shield: team.shield
       };
+      
+      // Preparar dados para envio à API
+      const updateData = {
+        team_user: team.id
+      };
+      
+      console.log('Enviando atualização para API:', updateData);
+      
+      // Enviar atualização para a API
+      this.authService.updateUser(updateData).subscribe({
+        next: (response) => {
+          console.log('Time atualizado com sucesso:', response);
+          if (response.success && response.data) {
+            this.user = response.data.user;
+          }
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar time:', error);
+          // Em caso de erro, reverter a mudança local
+          if (this.user) {
+            this.user.team = undefined;
+          }
+        }
+      });
     }
+    
     this.closeTeamModal();
-    console.log('Time selecionado:', team.short_name);
   }
 }

@@ -181,6 +181,31 @@ export class AuthService {
       );
   }
 
+  // Atualizar dados do usuário
+  updateUser(userData: Partial<User>): Observable<UserMeResponse> {
+    const token = this.getAuthToken();
+    if (!token) {
+      return throwError(() => new Error('Token não encontrado'));
+    }
+
+    const headers = { 'Authorization': `Bearer ${token}` };
+    
+    return this.http.put<UserMeResponse>(`${this.API_BASE_URL}/users/me`, userData, { headers })
+      .pipe(
+        tap((response: UserMeResponse) => {
+          if (response.success && response.data) {
+            // Mapear os dados da API para o formato esperado pelos componentes
+            const mappedUser = this.mapApiUserToUser(response.data.user);
+            
+            // Atualizar o usuário atual no localStorage e no BehaviorSubject
+            this.localStorageService.setCurrentUser(mappedUser);
+            this.currentUserSubject.next(mappedUser);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   // Mapear dados da API para o formato esperado pelos componentes
   private mapApiUserToUser(apiUser: any): User {
     return {
