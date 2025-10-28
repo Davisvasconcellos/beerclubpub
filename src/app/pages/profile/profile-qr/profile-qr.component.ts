@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../../shared/services/auth.service';
+import { TeamService, Team } from '../../../shared/services/team.service';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { UserInfoCardComponent } from '../../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../../shared/components/user-profile/user-address-card/user-address-card.component';
@@ -22,11 +23,35 @@ export class ProfileQrComponent implements OnInit {
   isLoading = true;
   error: string | null = null;
   showTeamModal = false;
+  availableTeams: Team[] = [];
+  isLoadingTeams = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private teamService: TeamService
+  ) {}
 
   ngOnInit(): void {
     this.loadUserData();
+    this.loadTeams();
+  }
+
+  private loadTeams(): void {
+    this.isLoadingTeams = true;
+    this.teamService.getAllTeams().subscribe({
+      next: (response) => {
+        if (response.success) {
+          this.availableTeams = response.data;
+        } else {
+          console.error('Erro ao carregar times:', response.message);
+        }
+        this.isLoadingTeams = false;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar times:', error);
+        this.isLoadingTeams = false;
+      }
+    });
   }
 
   loadUserData(): void {
@@ -107,5 +132,18 @@ export class ProfileQrComponent implements OnInit {
 
   closeTeamModal(): void {
     this.showTeamModal = false;
+  }
+
+  selectTeam(team: any): void {
+    if (this.user) {
+      this.user.team = {
+        name: team.name,
+        short_name: team.short_name,
+        abbreviation: team.short_name.toUpperCase(),
+        shield: team.shield
+      };
+    }
+    this.closeTeamModal();
+    console.log('Time selecionado:', team.short_name);
   }
 }
