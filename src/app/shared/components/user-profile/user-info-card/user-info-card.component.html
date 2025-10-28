@@ -76,7 +76,7 @@
 
       </div>
       <form class="flex flex-col" (ngSubmit)="handleSave()">
-        <div class="custom-scrollbar h-[350px] overflow-y-auto px-2 pb-3">
+        <div class="overflow-hidden px-2 pb-3">
           <div>
             <!-- <h5 class="mb-5 text-lg font-medium text-gray-800 dark:text-white/90 lg:mb-6">
               Personal Information
@@ -108,7 +108,7 @@
             </div>
           </div>
         </div>
-        <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
+        <div class="flex items-center gap-3 px-2 mt-5 lg:justify-end">
           <app-button size="sm" variant="outline" (btnClick)="closeModal()">Close</app-button>
           <app-button size="sm" (btnClick)="handleSave()">Save Changes</app-button>
         </div>
