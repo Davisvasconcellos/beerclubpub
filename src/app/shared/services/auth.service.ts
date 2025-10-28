@@ -212,7 +212,6 @@ export class AuthService {
   private mapApiUserToUser(apiUser: any): User {
     return {
       ...apiUser,
-      avatar: apiUser.avatar_url || undefined,
       handleUrl: `wall.et/${apiUser.name?.toLowerCase().replace(/\s+/g, '') || 'usuario'}`
     };
   }

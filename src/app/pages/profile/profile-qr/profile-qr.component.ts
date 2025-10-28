@@ -47,6 +47,10 @@ export class ProfileQrComponent implements OnInit {
       console.log('🖼️ user.avatar:', this.user?.avatar);
       console.log('🔗 user.avatar_url:', this.user?.avatar_url);
       console.log('👁️ avatarPreview:', this.avatarPreview);
+      
+      // Verificar qual valor está sendo usado no template
+      const finalSrc = this.avatarPreview || this.user?.avatar_url || 'images/user/default-avatar.jpg';
+      console.log('🎯 Valor final do src da imagem:', finalSrc);
     }, 100);
   }
 
@@ -80,6 +84,8 @@ export class ProfileQrComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.user = response.data.user;
+          console.log('📥 Dados do usuário carregados da API:', this.user);
+          console.log('🔗 user.avatar_url após carregamento:', this.user?.avatar_url);
         }
         this.isLoading = false;
       },
@@ -234,10 +240,11 @@ export class ProfileQrComponent implements OnInit {
       if (result.success) {
         console.log('✅ Upload realizado com sucesso!');
         console.log('📄 Arquivo:', result.fileName);
-        console.log('📂 Caminho:', result.filePath);
+        console.log('📂 Caminho completo retornado:', result.filePath);
         
-        // Limpar o preview para forçar carregamento do servidor
-        this.avatarPreview = null;
+        // Setar preview para a URL retornada imediatamente
+        this.avatarPreview = result.filePath ?? null;
+        console.log('👁️ avatarPreview definido como:', this.avatarPreview);
         
         // Recarregar dados do usuário para atualizar o avatar
         this.loadUserData();

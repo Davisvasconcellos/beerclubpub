@@ -26,7 +26,11 @@ app.use(cors({
 app.use(express.json());
 
 // Servir arquivos estáticos da pasta public
-app.use('/images', express.static(path.join(__dirname, 'public', 'images')));
+app.use('/images', express.static(path.join(__dirname, 'public/images'), {
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-cache');
+  }
+}));
 
 // ============================================
 // CONFIGURAÇÕES GLOBAIS
@@ -99,20 +103,20 @@ app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
       });
     }
 
-    const filePath = `/images/user/${req.file.filename}`;
+    const fileUrl = `${req.protocol}://${req.get('host')}/images/user/${req.file.filename}`;
     
     console.log('✅ Upload realizado com sucesso:', {
       originalName: req.file.originalname,
       filename: req.file.filename,
       size: req.file.size,
-      path: filePath
+      url: fileUrl
     });
 
     res.json({
       success: true,
       message: 'Upload realizado com sucesso!',
       filename: req.file.filename,
-      path: filePath,
+      url: fileUrl,
       size: req.file.size
     });
 
