@@ -5,6 +5,8 @@ import { TeamService, Team } from '../../../shared/services/team.service';
 import { PageBreadcrumbComponent } from '../../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
 import { UserInfoCardComponent } from '../../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../../shared/components/user-profile/user-address-card/user-address-card.component';
+import { ModalComponent } from '../../../shared/components/ui/modal/modal.component';
+import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 
 @Component({
   selector: 'app-profile-qr',
@@ -14,6 +16,8 @@ import { UserAddressCardComponent } from '../../../shared/components/user-profil
     PageBreadcrumbComponent,
     UserInfoCardComponent,
     UserAddressCardComponent,
+    ModalComponent,
+    ButtonComponent,
   ],
   templateUrl: './profile-qr.component.html',
   styles: ``
@@ -33,7 +37,8 @@ export class ProfileQrComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUserData();
-    this.loadTeams();
+    // Remove o carregamento automático dos times no ngOnInit
+    // Os times serão carregados apenas quando o modal for aberto
   }
 
   private loadTeams(): void {
@@ -128,6 +133,10 @@ export class ProfileQrComponent implements OnInit {
   openTeamModal(): void {
     console.log('Modal do time clicado no profile-qr!');
     this.showTeamModal = true;
+    // Só carrega os times se ainda não foram carregados
+    if (this.availableTeams.length === 0 && !this.isLoadingTeams) {
+      this.loadTeams();
+    }
   }
 
   closeTeamModal(): void {
