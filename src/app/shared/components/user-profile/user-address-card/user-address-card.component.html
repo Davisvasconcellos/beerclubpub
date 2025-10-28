@@ -2,12 +2,12 @@
   <div class="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
     <div>
       <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-6">
-        Address
+        Endereço
       </h4>
       <div class="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-7 2xl:gap-x-32">
         <div>
           <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-            Country
+            País
           </p>
           <p class="text-sm font-medium text-gray-800 dark:text-white/90">
             {{ address.country }}
@@ -15,26 +15,50 @@
         </div>
         <div>
           <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-            City/State
+            CEP
           </p>
           <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-            {{ address.cityState }}
+            {{ address.zipCode || 'Não informado' }}
           </p>
         </div>
         <div>
           <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-            Postal Code
+            Rua
           </p>
           <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-            {{ address.postalCode }}
+            {{ address.street || 'Não informado' }}
           </p>
         </div>
         <div>
           <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
-            TAX ID
+            Número
           </p>
           <p class="text-sm font-medium text-gray-800 dark:text-white/90">
-            {{ address.taxId }}
+            {{ address.number || 'Não informado' }}
+          </p>
+        </div>
+        <div>
+          <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+            Complemento
+          </p>
+          <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+            {{ address.complement || 'Não informado' }}
+          </p>
+        </div>
+        <div>
+          <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+            Bairro
+          </p>
+          <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+            {{ address.neighborhood || 'Não informado' }}
+          </p>
+        </div>
+        <div>
+          <p class="mb-2 text-xs leading-normal text-gray-500 dark:text-gray-400">
+            Cidade/Estado
+          </p>
+          <p class="text-sm font-medium text-gray-800 dark:text-white/90">
+            {{ address.city && address.state ? address.city + ', ' + address.state : 'Não informado' }}
           </p>
         </div>
       </div>
@@ -58,7 +82,7 @@
           fill=""
         />
       </svg>
-      Edit
+      Editar
     </button>
   </div>
 
@@ -71,36 +95,120 @@
     <div class="relative w-full p-4 overflow-y-auto bg-white no-scrollbar rounded-3xl dark:bg-gray-900 lg:p-11">
       <div class="px-2 pr-14">
         <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-          Edit Address
+          Editar Endereço
         </h4>
         <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">
-          Update your details to keep your profile up-to-date.
+          Digite o CEP para preenchimento automático dos dados de endereço.
         </p>
       </div>
       <form class="flex flex-col" (ngSubmit)="handleSave()">
         <div class="px-2 overflow-y-auto custom-scrollbar">
           <div class="grid grid-cols-1 gap-x-6 gap-y-5 lg:grid-cols-2">
+            <!-- CEP Field -->
+            <div class="lg:col-span-1">
+              <app-label>CEP *</app-label>
+              <div class="relative">
+                <app-input-field 
+                  type="text" 
+                  placeholder="00000-000"
+                  [(ngModel)]="formData.zipCode"
+                  (input)="onCepInput($event)"
+                  name="zipCode"
+                  maxlength="9"
+                />
+                <div *ngIf="isLoadingCep" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                </div>
+              </div>
+              <div *ngIf="cepError" class="mt-1 text-xs text-red-500">
+                {{ cepError }}
+              </div>
+            </div>
+
+            <!-- Country Field -->
             <div>
-              <app-label>Country</app-label>
-              <app-input-field type="text" [value]="address.country" />
+              <app-label>País</app-label>
+              <app-input-field 
+                type="text" 
+                [(ngModel)]="formData.country"
+                name="country"
+                 [disabled]="true"
+              />
+            </div>
+
+            <!-- Street Field (disabled) -->
+            <div class="lg:col-span-2">
+              <app-label>Rua/Logradouro</app-label>
+              <app-input-field 
+                type="text" 
+                placeholder="Nome da rua"
+                [value]="formData.street"
+                name="street"
+                [disabled]="true"
+              />
+            </div>
+
+            <!-- Number and Complement -->
+            <div>
+              <app-label>Número *</app-label>
+              <app-input-field 
+                type="text" 
+                placeholder="123"
+                [(ngModel)]="formData.number"
+                name="number"
+              />
             </div>
             <div>
-              <app-label>City/State</app-label>
-              <app-input-field type="text" [value]="address.cityState" />
+              <app-label>Complemento</app-label>
+              <app-input-field 
+                type="text" 
+                placeholder="Apto, Bloco, etc."
+                [(ngModel)]="formData.complement"
+                name="complement"
+              />
             </div>
+
+            <!-- Neighborhood (disabled) -->
             <div>
-              <app-label>Postal Code</app-label>
-              <app-input-field type="text" [value]="address.postalCode" />
+              <app-label>Bairro</app-label>
+              <app-input-field 
+                type="text" 
+                placeholder="Nome do bairro"
+                [value]="formData.neighborhood"
+                name="neighborhood"
+                [disabled]="true"
+              />
             </div>
+
+            <!-- City (disabled) -->
             <div>
-              <app-label>TAX ID</app-label>
-              <app-input-field type="text" [value]="address.taxId" />
+              <app-label>Cidade</app-label>
+              <app-input-field 
+                type="text" 
+                placeholder="Nome da cidade"
+                [value]="formData.city"
+                name="city"
+                [disabled]="true"
+              />
+            </div>
+
+            <!-- State (disabled) -->
+            <div>
+              <app-label>Estado</app-label>
+              <app-input-field 
+                type="text" 
+                placeholder="SP"
+                [value]="formData.state"
+                name="state"
+                maxlength="2"
+                [disabled]="true"
+              />
             </div>
           </div>
         </div>
         <div class="flex items-center gap-3 px-2 mt-6 lg:justify-end">
-          <app-button size="sm" variant="outline" (btnClick)="closeModal()">Close</app-button>
-          <app-button size="sm" (btnClick)="handleSave()">Save Changes</app-button>
+          <app-button size="sm" variant="outline" (btnClick)="closeModal()">Cancelar</app-button>
+          <app-button size="sm" (btnClick)="handleSave()">Salvar Alterações</app-button>
         </div>
       </form>
     </div>
