@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../../shared/services/auth.service';
 import { TeamService, Team } from '../../../shared/services/team.service';
+import { ImageUploadService } from '../../../shared/services/image-upload.service';
 import { UserInfoCardComponent } from '../../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../../shared/components/user-profile/user-address-card/user-address-card.component';
 import { ModalComponent } from '../../../shared/components/ui/modal/modal.component';
@@ -27,16 +28,26 @@ export class ProfileQrComponent implements OnInit {
   showTeamModal = false;
   availableTeams: Team[] = [];
   isLoadingTeams = false;
+  avatarPreview: string | null = null;
 
   constructor(
     private authService: AuthService,
-    private teamService: TeamService
+    private teamService: TeamService,
+    private imageUploadService: ImageUploadService
   ) {}
 
   ngOnInit(): void {
     this.loadUserData();
-    // Remove o carregamento automático dos times no ngOnInit
-    // Os times serão carregados apenas quando o modal for aberto
+    this.loadTeams();
+    
+    // Debug logs para verificar carregamento
+    setTimeout(() => {
+      console.log('🔍 Debug ngOnInit:');
+      console.log('👤 user:', this.user);
+      console.log('🖼️ user.avatar:', this.user?.avatar);
+      console.log('🔗 user.avatar_url:', this.user?.avatar_url);
+      console.log('👁️ avatarPreview:', this.avatarPreview);
+    }, 100);
   }
 
   private loadTeams(): void {
@@ -181,5 +192,76 @@ export class ProfileQrComponent implements OnInit {
     }
     
     this.closeTeamModal();
+  }
+
+  // Métodos para upload de avatar
+  triggerFileInput(): void {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+
+  async onFileSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      
+      console.log('📁 Arquivo selecionado:', file.name);
+      
+      // Mostrar preview imediato
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          this.avatarPreview = e.target.result as string;
+          console.log('👁️ Preview carregado');
+        }
+      };
+      reader.readAsDataURL(file);
+      
+      // Fazer upload usando o novo serviço
+      await this.uploadAvatar(file);
+    }
+  }
+
+  async uploadAvatar(file: File): Promise<void> {
+    try {
+      console.log('🚀 Iniciando upload com ImageUploadService...');
+      
+      // Usar o novo serviço de upload
+      const result = await this.imageUploadService.uploadAvatar(file);
+      
+      if (result.success) {
+        console.log('✅ Upload realizado com sucesso!');
+        console.log('📄 Arquivo:', result.fileName);
+        console.log('📂 Caminho:', result.filePath);
+        
+        // Limpar o preview para forçar carregamento do servidor
+        this.avatarPreview = null;
+        
+        // Recarregar dados do usuário para atualizar o avatar
+        this.loadUserData();
+        
+      } else {
+        console.log('❌ Erro no upload:', result.error);
+        
+        // Reverter preview
+        this.revertAvatarPreview();
+      }
+      
+    } catch (error) {
+      console.log('💥 Erro inesperado no upload:', error);
+      
+      // Reverter preview
+      this.revertAvatarPreview();
+    }
+  }
+
+  private revertAvatarPreview(): void {
+    if (this.user?.avatar_url) {
+      this.avatarPreview = this.user.avatar_url;
+    } else {
+      this.avatarPreview = 'images/user/default-avatar.jpg';
+    }
   }
 }

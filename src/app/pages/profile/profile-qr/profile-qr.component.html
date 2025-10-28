@@ -13,8 +13,26 @@
         <div class="flex items-start justify-between">
           <!-- Coluna esquerda: Avatar e dados do usuário -->
           <div class="flex flex-col items-start">
-            <div class="relative -mt-14 rounded-full p-1 bg-white shadow-theme-md mb-3">
-              <img [src]="user?.avatar || 'images/user/default-avatar.jpg'" alt="Avatar" class="h-20 w-20 rounded-full object-cover" />
+            <div class="relative -mt-14 rounded-full p-1 bg-white shadow-theme-md mb-3 cursor-pointer group" (click)="triggerFileInput()">
+              <img [src]="avatarPreview || user?.avatar_url || user?.avatar || 'images/user/default-avatar.jpg'" alt="Avatar" class="h-20 w-20 rounded-full object-cover" />
+              
+              <!-- Ícone de câmera flutuante -->
+              <div class="absolute -bottom-1 -right-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg transition-all duration-200 group-hover:scale-110">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
+                  <circle cx="12" cy="13" r="3"/>
+                </svg>
+              </div>
+              
+              <!-- Input file oculto -->
+              <input 
+                #fileInput 
+                type="file" 
+                accept="image/jpeg,image/jpg,image/png" 
+                capture="environment"
+                class="hidden" 
+                (change)="onFileSelected($event)"
+              />
             </div>
             <div class="text-left">
               <div class="text-base font-semibold text-white">{{ user?.name || 'User' }}</div>

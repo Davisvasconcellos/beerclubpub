@@ -31,12 +31,13 @@
           </ng-template>
           <p class="text-gray-500 dark:text-gray-400 mt-1">O que vamos pedir hoje?</p>
         </div>
-        <div class="w-16 h-16 bg-orange-100 dark:bg-orange-500/10 rounded-full flex items-center justify-center">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" class="text-orange-500 dark:text-orange-400">
-            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+        <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-orange-200 dark:border-orange-500/30">
+          <img 
+            [src]="currentUser?.avatar_url || currentUser?.avatar || '/images/user/default-avatar.jpg'" 
+            [alt]="currentUser?.name || 'Avatar do usuário'"
+            class="w-full h-full object-cover"
+            (error)="$event.target.src='/images/user/default-avatar.jpg'"
+          />
         </div>
       </div>
     </div>

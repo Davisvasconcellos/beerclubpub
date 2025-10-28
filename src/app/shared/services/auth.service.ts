@@ -206,6 +206,8 @@ export class AuthService {
       );
   }
 
+
+
   // Mapear dados da API para o formato esperado pelos componentes
   private mapApiUserToUser(apiUser: any): User {
     return {
