@@ -66,17 +66,22 @@ export class CheckUserStatusComponent implements OnInit {
     };
   }
 
-  getPlanGradientStyle(planName: string | undefined): string {
-    switch (planName) {
-      case 'Bronze':
-        return 'bg-gradient-to-r from-amber-600 to-yellow-500';
-      case 'Silver':
-        return 'bg-gradient-to-r from-gray-400 to-gray-600';
-      case 'Gold':
-        return 'bg-gradient-to-r from-yellow-400 to-yellow-600';
-      default:
-        // Plano padrão (roxo/Premium) para casos onde não há plano definido
-        return 'bg-gradient-to-r from-purple-500 to-purple-700';
+  getPlanGradientStyle(planName?: string): string {
+    const plan = planName || 'Bronze';
+    
+    // Usando if/else para evitar erro de TypeScript com strings não tipadas
+    if (plan === 'Bronze') {
+      // Gradiente bronze mais rico e quente
+      return 'linear-gradient(135deg, #CD7F32 0%, #B8860B 50%, #8B4513 100%)';
+    } else if (plan === 'Silver' || plan === 'Prata') {
+      // Gradiente prata mais brilhante e elegante
+      return 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 30%, #A8A8A8 70%, #808080 100%)';
+    } else if (plan === 'Gold' || plan === 'Ouro') {
+      // Gradiente ouro mais luxuoso e vibrante
+      return 'linear-gradient(135deg, #FFD700 0%, #FFC107 25%, #FF8F00 75%, #E65100 100%)';
+    } else {
+      // Plano padrão roxo
+      return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
     }
   }
 
@@ -85,25 +90,14 @@ export class CheckUserStatusComponent implements OnInit {
       case 'Bronze':
         return 'border-amber-500';
       case 'Silver':
+      case 'Prata':
         return 'border-gray-500';
       case 'Gold':
+      case 'Ouro':
         return 'border-yellow-500';
       default:
         // Plano padrão (roxo/Premium) para casos onde não há plano definido
         return 'border-purple-500';
-    }
-  }
-
-  getBorderClass(status: 'valid' | 'delinquent' | 'blocked'): string {
-    switch (status) {
-      case 'valid':
-        return 'border-green-500';
-      case 'delinquent':
-        return 'border-yellow-500';
-      case 'blocked':
-        return 'border-red-500';
-      default:
-        return '';
     }
   }
 

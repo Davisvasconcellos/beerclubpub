@@ -63,28 +63,34 @@ export class ProfileQrComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    // Primeiro, tenta obter o usuário do cache
-    this.user = this.authService.getCurrentUser();
+    // Primeiro, tenta carregar do cache
+    const cachedUser = this.authService.getCurrentUser();
+    if (cachedUser) {
+      this.user = cachedUser;
+      console.log('📥 Dados do usuário carregados do CACHE:', this.user);
+      console.log('🎯 Plano do usuário (cache):', this.user?.plan);
+      console.log('🎯 Nome do plano (cache):', this.user?.plan?.name);
+      this.isLoading = false;
+      return;
+    }
 
-    // Depois, busca dados atualizados da API
+    // Se não há cache, carrega da API
     this.authService.getUserMe().subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.user = response.data.user;
           console.log('📥 Dados do usuário carregados da API:', this.user);
           console.log('🔗 user.avatar_url após carregamento:', this.user?.avatar_url);
+          console.log('🎯 Plano do usuário (API):', this.user?.plan);
+          console.log('🎯 Nome do plano (API):', this.user?.plan?.name);
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Erro ao carregar dados do usuário:', error);
         this.error = 'Erro ao carregar dados do usuário';
+        this.user = this.getDefaultUser();
         this.isLoading = false;
-        
-        // Se falhar, mantém os dados do cache se existirem
-        if (!this.user) {
-          this.user = this.getDefaultUser();
-        }
       }
     });
   }
@@ -120,16 +126,19 @@ export class ProfileQrComponent implements OnInit {
   getPlanGradientStyle(): string {
     const planName = this.user?.plan?.name || 'Bronze';
     
-    switch (planName) {
-      case 'Bronze':
-        return 'linear-gradient(135deg, #CD7F32 0%, #8B4513 100%)';
-      case 'Silver':
-        return 'linear-gradient(135deg, #C0C0C0 0%, #808080 100%)';
-      case 'Gold':
-        return 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)';
-      default:
-        // Plano padrão roxo para casos não encontrados
-        return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
+    // Usando if/else para evitar erro de TypeScript com strings não tipadas
+    if (planName === 'Bronze') {
+      // Gradiente bronze mais rico e quente
+      return 'linear-gradient(135deg, #CD7F32 0%, #B8860B 50%, #8B4513 100%)';
+    } else if (planName === 'Silver' || planName === 'Prata') {
+      // Gradiente prata mais brilhante e elegante
+      return 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 30%, #A8A8A8 70%, #808080 100%)';
+    } else if (planName === 'Gold' || planName === 'Ouro') {
+      // Gradiente ouro mais luxuoso e vibrante
+      return 'linear-gradient(135deg, #FFD700 0%, #FFC107 25%, #FF8F00 75%, #E65100 100%)';
+    } else {
+      // Plano padrão roxo
+      return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
     }
   }
 

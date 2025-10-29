@@ -16,7 +16,7 @@
     <div class="mx-auto w-full max-w-md">
       <!-- Header com Avatar e Dados do Usuário -->
       <div class="relative overflow-visible rounded-2xl p-5 pt-8"
-        [ngClass]="getPlanGradientStyle(user.plan?.name)">
+        [ngStyle]="{'background': getPlanGradientStyle(user.plan?.name)}">
         <div class="absolute -top-20 -left-24 h-48 w-48 rounded-full bg-blue-500/20 blur-2xl dark:bg-blue-400/30"></div>
         <div class="absolute -top-14 right-6 h-28 w-28 rounded-full bg-purple-400/20 blur-xl dark:bg-purple-300/30"></div>
 
@@ -36,12 +36,31 @@
 
       <!-- Cards de Status -->
       <div class="mt-6 space-y-4">
+        <!-- Status Válido -->
         <div [ngClass]="getPlanBorderStyle(user.plan?.name)" class="rounded-2xl border-2 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
           <div class="flex items-center justify-between">
             <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Válido</h4>
             <span class="text-green-500 font-bold">ATIVO</span>
           </div>
           <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente possui um plano ativo e está em dia com suas obrigações.</p>
+        </div>
+
+        <!-- Status Inadimplente -->
+        <div class="rounded-2xl border-2 border-yellow-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+          <div class="flex items-center justify-between">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Inadimplente</h4>
+            <span class="text-yellow-500 font-bold">PENDENTE</span>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente possui pendências financeiras que precisam ser regularizadas.</p>
+        </div>
+
+        <!-- Status Bloqueado -->
+        <div class="rounded-2xl border-2 border-red-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+          <div class="flex items-center justify-between">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Bloqueado</h4>
+            <span class="text-red-500 font-bold">BLOQUEADO</span>
+          </div>
+          <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente teve o acesso suspenso devido a violações ou inadimplência prolongada.</p>
         </div>
       </div>
     </div>

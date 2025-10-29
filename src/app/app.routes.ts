@@ -112,158 +112,158 @@ export const routes: Routes = [
         component: EcommerceComponent,
         pathMatch: 'full',
         title:
-          'Angular Ecommerce Dashboard | TailAdmin - Angular Admin Dashboard Template',
+          'Angular Template',
       },
       {
         path:'analytics',
         component:AnalyticsComponent,
-        title:'Angular Analytics Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Analytics Dashboard'
       },
       {
         path:'marketing',
         component:MarketingComponent,
-        title:'Angular Marketing Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Marketing Dashboard'
       },
       {
         path:'crm',
         component:CrmComponent,
-        title:'Angular CRM Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular CRM Dashboard'
       },
       {
         path:'stocks',
         component:StocksComponent,
-        title:'Angular Stocks Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Stocks Dashboard'
       },
       {
         path:'saas',
         component:SaasComponent,
-        title:'Angular SaaS Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular SaaS Dashboard'
       },
       {
         path:'logistics',
         component:LogisticsComponent,
-        title:'Angular Logistics Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Logistics Dashboard'
       },
       {
         path:'calendar',
         component:CalenderComponent,
-        title:'Angular Calender | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Calender'
       },
       // ecommerce pages
       {
         path:'products-list',
         component:ProductListComponent,
-        title:'Angular Product List Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Product List Dashboard'
       },
       {
         path:'add-product',
         component:AddProductComponent,
-        title:'Angular Add Product Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Add Product Dashboard'
       },
       {
         path:'billing',
         component:BillingComponent,
-        title:'Angular Ecommerce Billing Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Ecommerce Billing Dashboard'
       },
       {
         path:'invoices',
         component:InvoiceComponent,
-        title:'Angular Ecommerce Invoice Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Ecommerce Invoice Dashboard'
       },
       {
         path:'single-invoice',
         component:SingleInvoiceComponent,
-        title:'Angular Single Invoice Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Single Invoice Dashboard'
       },
       {
         path:'create-invoice',
         component:CreateInvoiceComponent,
-        title:'Angular Create Invoice Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Create Invoice Dashboard'
       },
       {
         path:'transactions',
         component:TransactionsComponent,
-        title:'Angular Transactions Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Transactions Dashboard'
       },
       {
         path:'single-transaction',
         component:SingleTransactionComponent,
-        title:'Angular Single Transaction Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Single Transaction Dashboard'
       },
       {
         path:'profile',
         component:ProfileComponent,
-        title:'Angular Profile Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Profile Dashboard'
       },
       {
         path:'profile-new',
         component:ProfileNewComponent,
-        title:'Angular New Profile Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular New Profile Dashboard'
       },
       {
         path:'profile-qr',
         component:ProfileQrComponent,
-        title:'Angular Profile QR Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Profile QR Dashboard'
       },
       {
         path:'task-list',
         component:TaskListComponent,
-        title:'Angular Task List Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Task List Dashboard'
       },
       {
         path:'task-kanban',
         component:TaskKanbanComponent,
-        title:'Angular Task Kanban Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Task Kanban Dashboard'
       },
       {
         path:'form-elements',
         component:FormElementsComponent,
-        title:'Angular Form Elements Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Form Elements Dashboard'
       },
       {
         path:'form-layout',
         component:FormLayoutComponent,
-        title:'Angular Form Layout Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Form Layout Dashboard'
       },
       {
         path:'basic-tables',
         component:BasicTablesComponent,
-        title:'Angular Basic Tables Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Basic Tables Dashboard'
       },
       {
         path:'data-tables',
         component:DataTablesComponent,
-        title:'Angular Data Tables Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Data Tables Dashboard'
       },
       {
         path:'file-manager',
         component:FileManagerComponent,
-        title:'Angular File Manager Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular File Manager Dashboard'
       },
       {
         path:'pricing-tables',
         component:PricingTablesComponent,
-        title:'Angular Pricing Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pricing Dashboard'
       },
       {
         path:'faq',
         component:FaqsComponent,
-        title:'Angular Faqs Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Faqs Dashboard'
       },
       {
         path:'api-keys',
         component:ApiKeysComponent,
-        title:'Angular Api Keys Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Api Keys Dashboard'
       },
       {
         path:'integrations',
         component:IntegrationsComponent,
-        title:'Angular Integrations Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Integrations Dashboard'
       },
       {
         path:'check-user-status',
         component:CheckUserStatusComponent,
-        title:'Angular Check User Status | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Check User Status'
       },
       {
         path:'pub/admin',
@@ -373,163 +373,163 @@ export const routes: Routes = [
       {
         path:'blank',
         component:BlankComponent,
-        title:'Angular Blank Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Blank Dashboard'
       },
       {
         path:'chat',
         component:ChatsComponent,
-        title:'Angular Chats Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Chats Dashboard'
       },
       // support tickets
       {
         path:'support-tickets',
         component:TicketListComponent,
-        title:'Angular Support Tickets Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Support Tickets Dashboard'
       },
       {
         path:'support-ticket-reply',
         component:TicketReplyComponent,
-        title:'Angular Ticket Details Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Ticket Details Dashboard'
       },
       {
         path:'inbox',
         component:EmailInboxComponent,
-        title:'Angular Email Inbox Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Email Inbox Dashboard'
       },
       {
         path:'inbox-details',
         component:EmailDetailsComponent,
-        title:'Angular Email Inbox Details Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Email Inbox Details Dashboard'
       },
       {
         path:'invoice',
         component:InvoicesComponent,
-        title:'Angular Invoice Details Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Invoice Details Dashboard'
       },
       {
         path:'line-chart',
         component:LineChartComponent,
-        title:'Angular Line Chart Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Line Chart Dashboard'
       },
       {
         path:'bar-chart',
         component:BarChartComponent,
-        title:'Angular Bar Chart Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Bar Chart Dashboard'
       },
       {
         path:'pie-chart',
         component:PieChartComponent,
-        title:'Angular Pie Chart Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pie Chart Dashboard'
       },
       {
         path:'alerts',
         component:AlertsComponent,
-        title:'Angular Alerts Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Alerts Dashboard'
       },
       {
         path:'avatars',
         component:AvatarElementComponent,
-        title:'Angular Avatars Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Avatars Dashboard'
       },
       {
         path:'badge',
         component:BadgesComponent,
-        title:'Angular Badges Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Badges Dashboard'
       },
       {
         path:'breadcrumb',
         component:BreadcrumbComponent,
-        title:'Angular Breadcrumb Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Breadcrumb Dashboard'
       },
       {
         path:'buttons',
         component:ButtonsComponent,
-        title:'Angular Buttons Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Buttons Dashboard'
       },
       {
         path:'buttons-group',
         component:ButtonGroupComponent,
-        title:'Angular Buttons Group Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Buttons Group Dashboard'
       },
       {
         path:'cards',
         component:CardsComponent,
-        title:'Angular Cards Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Cards Dashboard'
       },
       {
         path:'carousel',
         component:CarouselComponent,
-        title:'Angular Carousel Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Carousel Dashboard'
       },
       {
         path:'dropdowns',
         component:DropdownsComponent,
-        title:'Angular Dropdown Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Dropdown Dashboard'
       },
       {
         path:'images',
         component:ImagesComponent,
-        title:'Angular Images Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Images Dashboard'
       },
       {
         path:'links',
         component:LinksComponent,
-        title:'Angular Links Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Links Dashboard'
       },
       {
         path:'list',
         component:ListsComponent,
-        title:'Angular Lists Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Lists Dashboard'
       },
       {
         path:'modals',
         component:ModalsComponent,
-        title:'Angular Modals Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Modals Dashboard'
       },
       {
         path:'notifications',
         component:NotificationsComponent,
-        title:'Angular Notifications Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Notifications Dashboard'
       },
       {
         path:'pagination',
         component:PaginationsComponent,
-        title:'Angular Pagination Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Pagination Dashboard'
       },
       {
         path:'popovers',
         component:PopoversComponent,
-        title:'Angular Popovers Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Popovers Dashboard'
       },
       {
         path:'progress-bar',
         component:ProgressBarComponent,
-        title:'Angular Progressbar Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Progressbar Dashboard'
       },
       {
         path:'ribbons',
         component:RibbonsComponent,
-        title:'Angular Ribbons Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Ribbons Dashboard'
       },
       {
         path:'spinners',
         component:SpinnersComponent,
-        title:'Angular Spinners Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Spinners Dashboard'
       },
       {
         path:'tabs',
         component:TabsComponent,
-        title:'Angular Tabs Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Tabs Dashboard'
       },
       {
         path:'tooltips',
         component:TooltipsComponent,
-        title:'Angular Tooltips Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Tooltips Dashboard'
       },
       {
         path:'videos',
         component:VideosComponent,
-        title:'Angular Videos Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular Videos Dashboard'
       },
     ]
   },
@@ -541,89 +541,89 @@ export const routes: Routes = [
       {
         path:'text-generator',
         component:TextGeneratorComponent,
-        title:'Angular AI Text Generator | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular AI Text Generator'
       },
       {
         path:'image-generator',
         component:ImageGeneratorComponent,
-        title:'Angular AI Image Generator | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular AI Image Generator'
       },
       {
         path:'code-generator',
         component:CodeGeneratorComponent,
-        title:'Angular AI Code Generator | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular AI Code Generator'
       },
       {
         path:'video-generator',
         component:VideoGeneratorComponent,
-        title:'Angular AI Video Generator | TailAdmin - Angular Admin Dashboard Template'
+        title:'Angular AI Video Generator'
       },
     ]
   },
   {
     path:'coming-soon',
     component:ComingSoonComponent,
-    title:'Angular Coming soon Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Coming soon Dashboard'
   },
   {
     path:'maintenance',
     component:MaintenanceComponent,
-    title:'Angular Maintenance Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Maintenance Dashboard'
   },
   {
     path:'success',
     component:SuccessComponent,
-    title:'Angular Success Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Success Dashboard'
   },
   // auth pages
   {
     path:'signin',
     component:SignInComponent,
     canActivate: [GuestGuard],
-    title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Sign In Dashboard'
   },
   {
     path:'signout',
     component:SignoutComponent,
-    title:'Angular Sign Out | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Sign Out'
   },
   {
     path:'logout',
     component:LogoutComponent,
-    title:'Angular Logout | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Logout'
   },
   {
     path:'signup',
     component:SignUpComponent,
     canActivate: [GuestGuard],
-    title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Sign Up Dashboard'
   },
   {
     path:'reset-password',
     component:ResetPasswordComponent,
     canActivate: [GuestGuard],
-    title:'Angular Reset Password Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Reset Password Dashboard'
   },
   {
     path:'two-step-verification',
     component:TwoStepVerificationComponent,
     canActivate: [GuestGuard],
-    title:'Angular Two Step Verification Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Two Step Verification Dashboard'
   },
   // error pages
   {
     path:'error-500',
     component:Error500Component,
-    title:'Angular Error 500 Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Error 500 Dashboard'
   },
   {
     path:'error-503',
     component:Error503Component,
-    title:'Angular Error 503 Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular Error 503 Dashboard'
   },
   {
     path:'**',
     component:NotFoundComponent,
-    title:'Angular NotFound Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Angular NotFound Dashboard'
   },
 ];
