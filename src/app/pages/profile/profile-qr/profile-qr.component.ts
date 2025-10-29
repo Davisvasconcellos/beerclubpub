@@ -71,6 +71,8 @@ export class ProfileQrComponent implements OnInit {
       next: (response) => {
         if (response.success && response.data) {
           this.user = response.data.user;
+          console.log('📥 Dados do usuário carregados da API:', this.user);
+          console.log('🔗 user.avatar_url após carregamento:', this.user?.avatar_url);
         }
         this.isLoading = false;
       },
@@ -221,8 +223,8 @@ export class ProfileQrComponent implements OnInit {
       const result = await this.imageUploadService.uploadAvatar(file);
       
       if (result.success) {
-        // Limpar o preview para forçar carregamento do servidor
-        this.avatarPreview = null;
+        // Setar preview para a URL retornada imediatamente
+        this.avatarPreview = result.filePath ?? null;
         
         // Recarregar dados do usuário para atualizar o avatar
         this.loadUserData();

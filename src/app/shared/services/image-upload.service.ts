@@ -67,11 +67,8 @@ export class ImageUploadService {
       // Salvar arquivo localmente
       const filePath = await this.saveToLocal(processedBlob, fileName);
       
-      // Extrair o nome real do arquivo do caminho retornado pelo servidor
-      const actualFileName = filePath.split('/').pop() || fileName;
-      
-      // Atualizar avatar do usuário via API
-      const updateResult = await this.updateUserAvatar(actualFileName);
+      // Atualizar avatar do usuário via API com a URL completa
+      const updateResult = await this.updateUserAvatar(filePath);
       if (!updateResult.success) {
         console.warn('⚠️ Aviso: Arquivo salvo mas API não foi atualizada:', updateResult.error);
       }
@@ -81,7 +78,7 @@ export class ImageUploadService {
       
       return {
         success: true,
-        fileName: actualFileName,
+        fileName: fileName,
         filePath
       };
 
@@ -218,8 +215,8 @@ export class ImageUploadService {
       const response = await this.http.post<any>(`${this.utilityServerUrl}/upload-avatar`, formData).toPromise();
 
       if (response.success) {
-        console.log('✅ Arquivo salvo com sucesso no servidor:', response.path);
-        return response.path;
+        console.log('✅ Arquivo salvo com sucesso no servidor:', response.url);
+        return response.url;
       } else {
         throw new Error(response.message || 'Erro no upload');
       }
@@ -259,9 +256,9 @@ export class ImageUploadService {
   /**
    * Atualiza avatar via API
    */
-  private async updateUserAvatar(fileName: string): Promise<{ success: boolean; error?: string }> {
+  private async updateUserAvatar(filePath: string): Promise<{ success: boolean; error?: string }> {
     try {
-      const avatarUrl = `images/user/${fileName}`;
+      const avatarUrl = filePath;
       
       console.log('🔄 Atualizando avatar via API:', avatarUrl);
       
