@@ -1,8 +1,6 @@
 import { Component, OnInit, HostListener, OnDestroy } from '@angular/core';
-import { DropdownComponent } from '../../ui/dropdown/dropdown.component';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
-import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdown-item.component-two';
 import { ThemeService } from '../../../services/theme.service';
 import { AuthService, User } from '../../../services/auth.service';
 import { Subscription } from 'rxjs';
@@ -10,7 +8,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-user-dropdown',
   templateUrl: './user-dropdown.component.html',
-  imports:[CommonModule,RouterModule,DropdownComponent,DropdownItemTwoComponent]
+  imports:[CommonModule,RouterModule]
 })
 export class UserDropdownComponent implements OnInit, OnDestroy {
   isOpen = false;
