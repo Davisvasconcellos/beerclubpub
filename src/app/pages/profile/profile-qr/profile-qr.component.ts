@@ -63,33 +63,29 @@ export class ProfileQrComponent implements OnInit {
     this.isLoading = true;
     this.error = null;
 
-    // Primeiro, tenta carregar do cache
+    // Primeiro, tenta obter o usuário do cache para uma exibição rápida
     const cachedUser = this.authService.getCurrentUser();
     if (cachedUser) {
       this.user = cachedUser;
       console.log('📥 Dados do usuário carregados do CACHE:', this.user);
-      console.log('🎯 Plano do usuário (cache):', this.user?.plan);
-      console.log('🎯 Nome do plano (cache):', this.user?.plan?.name);
-      this.isLoading = false;
-      return;
     }
 
-    // Se não há cache, carrega da API
+    // Em seguida, sempre busca os dados mais recentes da API
     this.authService.getUserMe().subscribe({
       next: (response) => {
         if (response.success && response.data) {
           this.user = response.data.user;
           console.log('📥 Dados do usuário carregados da API:', this.user);
-          console.log('🔗 user.avatar_url após carregamento:', this.user?.avatar_url);
-          console.log('🎯 Plano do usuário (API):', this.user?.plan);
-          console.log('🎯 Nome do plano (API):', this.user?.plan?.name);
         }
         this.isLoading = false;
       },
       error: (error) => {
         console.error('Erro ao carregar dados do usuário:', error);
         this.error = 'Erro ao carregar dados do usuário';
-        this.user = this.getDefaultUser();
+        // Se a busca na API falhar e não houver cache, usa o usuário padrão
+        if (!this.user) {
+          this.user = this.getDefaultUser();
+        }
         this.isLoading = false;
       }
     });
