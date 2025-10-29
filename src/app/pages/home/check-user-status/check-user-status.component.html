@@ -34,33 +34,48 @@
         </div>
       </div>
 
-      <!-- Cards de Status -->
-      <div class="mt-6 space-y-4">
-        <!-- Status Válido -->
-        <div [ngClass]="getPlanBorderStyle(user.plan?.name)" class="rounded-2xl border-2 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+      <!-- Card de Status Dinâmico -->
+      <div class="mt-6" [ngSwitch]="user.status">
+
+        <!-- Status: ATIVO -->
+        <div *ngSwitchCase="'active'" class="rounded-2xl border-2 border-green-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
           <div class="flex items-center justify-between">
             <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Válido</h4>
-            <span class="text-green-500 font-bold">ATIVO</span>
+            <span class="font-bold text-green-500">ATIVO</span>
           </div>
-          <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente possui um plano ativo e está em dia com suas obrigações.</p>
+          <p class="mt-2 text-sm text-gray-600 dark:text-white/70">O cliente possui um plano ativo e está em dia com suas obrigações.</p>
         </div>
 
-        <!-- Status Inadimplente -->
-        <div class="rounded-2xl border-2 border-yellow-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+        <!-- Status: INATIVO (Inadimplente) -->
+        <div *ngSwitchCase="'inactive'" class="rounded-2xl border-2 border-yellow-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
           <div class="flex items-center justify-between">
             <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Inadimplente</h4>
-            <span class="text-yellow-500 font-bold">PENDENTE</span>
+            <span class="font-bold text-yellow-500">PENDENTE</span>
           </div>
-          <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente possui pendências financeiras que precisam ser regularizadas.</p>
+          <p class="mt-2 text-sm text-gray-600 dark:text-white/70">O cliente possui pendências financeiras que precisam ser regularizadas.</p>
         </div>
 
-        <!-- Status Bloqueado -->
-        <div class="rounded-2xl border-2 border-red-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+        <!-- Status: VERIFICAÇÃO PENDENTE -->
+        <div *ngSwitchCase="'pending_verification'" class="rounded-2xl border-2 border-blue-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+          <div class="flex items-center justify-between">
+            <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Verificação Pendente</h4>
+            <span class="font-bold text-blue-500">AGUARDANDO</span>
+          </div>
+          <p class="mt-2 text-sm text-gray-600 dark:text-white/70">O cadastro do cliente aguarda verificação e aprovação.</p>
+        </div>
+
+        <!-- Status: BANIDO -->
+        <div *ngSwitchCase="'banned'" class="rounded-2xl border-2 border-red-500 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
           <div class="flex items-center justify-between">
             <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">Status: Bloqueado</h4>
-            <span class="text-red-500 font-bold">BLOQUEADO</span>
+            <span class="font-bold text-red-500">BLOQUEADO</span>
           </div>
-          <p class="text-sm text-gray-600 dark:text-white/70 mt-2">O cliente teve o acesso suspenso devido a violações ou inadimplência prolongada.</p>
+          <p class="mt-2 text-sm text-gray-600 dark:text-white/70">O cliente teve o acesso suspenso devido a violações ou inadimplência prolongada.</p>
+        </div>
+
+        <!-- Status Padrão (Fallback) -->
+        <div *ngSwitchDefault class="rounded-2xl border-2 border-gray-400 bg-white p-5 shadow-theme-sm dark:bg-white/[0.03]">
+          <p class="text-center text-sm text-gray-600 dark:text-white/70">Status desconhecido: {{ user.status }}</p>
         </div>
       </div>
     </div>

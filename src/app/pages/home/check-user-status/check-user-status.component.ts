@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService, User } from '../../../shared/services/auth.service';
+import { ActivatedRoute } from '@angular/router';
+import { User } from '../../../shared/services/auth.service';
+import { UserService } from '../../../shared/services/user.service';
 
 @Component({
   selector: 'app-check-user-status',
@@ -14,36 +16,37 @@ export class CheckUserStatusComponent implements OnInit {
   isLoading = true;
   error: string | null = null;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private userService: UserService
+  ) {}
 
   ngOnInit(): void {
-    this.loadUserData();
+    this.route.queryParams.subscribe(params => {
+      const idCode = params['id_code'];
+      if (idCode) {
+        this.verifyUser(idCode);
+      } else {
+        this.isLoading = false;
+        this.error = 'Nenhum código de cliente foi fornecido para verificação.';
+        this.user = this.getDefaultUser();
+      }
+    });
   }
 
-  loadUserData(): void {
-    this.isLoading = true;
-    this.error = null;
-
-    // Primeiro, tenta obter o usuário do cache
-    this.user = this.authService.getCurrentUser();
-
-    // Depois, busca dados atualizados da API
-    this.authService.getUserMe().subscribe({
-      next: (response) => {
-        if (response.success && response.data) {
-          this.user = response.data.user;
+  verifyUser(idCode: string): void {
+    this.userService.verifyUserStatus(idCode).subscribe({
+      next: (res) => {
+        if (res.success && res.data) {
+          this.user = res.data;
         }
         this.isLoading = false;
       },
-      error: (error) => {
-        console.error('Erro ao carregar dados do usuário:', error);
-        this.error = 'Erro ao carregar dados do usuário';
+      error: (err) => {
+        console.error('Erro ao verificar status do usuário:', err);
+        this.error = err.error?.message || 'Cliente não encontrado ou código inválido.';
         this.isLoading = false;
-        
-        // Se falhar, mantém os dados do cache se existirem
-        if (!this.user) {
-          this.user = this.getDefaultUser();
-        }
+        this.user = this.getDefaultUser();
       }
     });
   }
@@ -52,8 +55,8 @@ export class CheckUserStatusComponent implements OnInit {
     return {
       id: 0,
       id_code: '0',
-      name: 'Usuário',
-      email: 'usuario@email.com',
+      name: 'Cliente não encontrado',
+      email: '...',
       role: 'customer',
       email_verified: false,
       status: 'active',

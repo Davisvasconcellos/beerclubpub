@@ -87,6 +87,7 @@ import { HomeMasterComponent } from './pages/pub/master/home-master/home-master.
 import { HomeUserComponent } from './pages/pub/user/home-user/home-user.component';
 import { HomeWaiterComponent } from './pages/pub/waiter/home-waiter/home-waiter.component';
 import { OrdersComponent } from './pages/pub/waiter/orders/orders.component';
+import { QrScannerComponent } from './shared/components/qr-scanner/qr-scanner.component';
 import { MenuComponent } from './pages/pub/waiter/menu/menu.component';
 import { TablesComponent } from './pages/pub/waiter/tables/tables.component';
 import { PaymentsComponent } from './pages/pub/waiter/payments/payments.component';
@@ -292,6 +293,13 @@ export const routes: Routes = [
         canActivate: [AuthGuard, RoleGuard],
         data: { expectedRoles: ['waiter'] },
         title:'Angular Pub Waiter | BeerClubPub - Angular Admin Dashboard Template'
+      },
+      {
+        path:'pub/waiter/scan-qr',
+        component:QrScannerComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
+        title:'Leitor QR | BeerClubPub'
       },
       {
         path:'pub/waiter/orders',
