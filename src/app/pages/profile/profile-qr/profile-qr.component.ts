@@ -126,20 +126,24 @@ export class ProfileQrComponent implements OnInit {
   getPlanGradientStyle(): string {
     const planName = this.user?.plan?.name || 'Bronze';
     
-    // Usando if/else para evitar erro de TypeScript com strings não tipadas
+    // Usando comparações diretas para evitar erro de TypeScript
     if (planName === 'Bronze') {
       // Gradiente bronze mais rico e quente
       return 'linear-gradient(135deg, #CD7F32 0%, #B8860B 50%, #8B4513 100%)';
-    } else if (planName === 'Silver' || planName === 'Prata') {
+    }
+    
+    if (planName === 'Silver' || planName === 'Prata') {
       // Gradiente prata mais brilhante e elegante
       return 'linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 30%, #A8A8A8 70%, #808080 100%)';
-    } else if (planName === 'Gold' || planName === 'Ouro') {
+    }
+    
+    if (planName === 'Gold' || planName === 'Ouro') {
       // Gradiente ouro mais luxuoso e vibrante
       return 'linear-gradient(135deg, #FFD700 0%, #FFC107 25%, #FF8F00 75%, #E65100 100%)';
-    } else {
-      // Plano padrão roxo
-      return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
     }
+    
+    // Plano padrão roxo
+    return 'linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%)';
   }
 
   openTeamModal(): void {
