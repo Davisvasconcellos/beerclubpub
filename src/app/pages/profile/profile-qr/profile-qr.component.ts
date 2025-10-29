@@ -39,34 +39,21 @@ export class ProfileQrComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserData();
     this.loadTeams();
-    
-    // Debug logs para verificar carregamento
-    setTimeout(() => {
-      console.log('🔍 Debug ngOnInit:');
-      console.log('👤 user:', this.user);
-      console.log('🖼️ user.avatar:', this.user?.avatar);
-      console.log('🔗 user.avatar_url:', this.user?.avatar_url);
-      console.log('👁️ avatarPreview:', this.avatarPreview);
-    }, 100);
   }
 
   private loadTeams(): void {
     this.isLoadingTeams = true;
-    console.log('🔄 Debug loadTeams - Iniciando carregamento de times...');
     this.teamService.getAllTeams().subscribe({
       next: (response) => {
-        console.log('📋 Debug loadTeams - Resposta da API de times:', response);
         if (response.success) {
           this.availableTeams = response.data;
-          console.log('⚽ Debug loadTeams - Times carregados:', this.availableTeams);
-          console.log('📊 Debug loadTeams - Quantidade de times:', this.availableTeams.length);
         } else {
-          console.error('❌ Erro ao carregar times:', response.message);
+          console.error('Erro ao carregar times:', response.message);
         }
         this.isLoadingTeams = false;
       },
       error: (error) => {
-        console.error('💥 Erro na requisição de times:', error);
+        console.error('Erro ao carregar times:', error);
         this.isLoadingTeams = false;
       }
     });
@@ -82,13 +69,8 @@ export class ProfileQrComponent implements OnInit {
     // Depois, busca dados atualizados da API
     this.authService.getUserMe().subscribe({
       next: (response) => {
-        console.log('🔍 Debug loadUserData - Resposta completa da API:', response);
         if (response.success && response.data) {
           this.user = response.data.user;
-          console.log('👤 Debug loadUserData - Dados do usuário carregados:', this.user);
-          console.log('🔗 Debug loadUserData - user.avatar_url após carregamento:', this.user?.avatar_url);
-          console.log('⚽ Debug loadUserData - user.team:', this.user?.team);
-          console.log('🏆 Debug loadUserData - user.team_user:', this.user?.team_user);
         }
         this.isLoading = false;
       },
@@ -235,16 +217,10 @@ export class ProfileQrComponent implements OnInit {
 
   async uploadAvatar(file: File): Promise<void> {
     try {
-      console.log('🚀 Iniciando upload com ImageUploadService...');
-      
       // Usar o novo serviço de upload
       const result = await this.imageUploadService.uploadAvatar(file);
       
       if (result.success) {
-        console.log('✅ Upload realizado com sucesso!');
-        console.log('📄 Arquivo:', result.fileName);
-        console.log('📂 Caminho:', result.filePath);
-        
         // Limpar o preview para forçar carregamento do servidor
         this.avatarPreview = null;
         
