@@ -90,6 +90,17 @@
   <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
     Time de Coração
   </h3>
+  
+  <!-- Debug: Mostrar informações do usuário -->
+  <!-- <div class="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+    <p class="text-xs text-yellow-800 dark:text-yellow-200">
+      <strong>Debug:</strong> user?.team = {{ user?.team | json }}<br>
+      <strong>Debug:</strong> user?.team_user = {{ user?.team_user }}<br>
+      <strong>Debug:</strong> Condição *ngIf="user?.team" = {{ !!user?.team }}
+    </p>
+  </div> -->
+  
+  <!-- Time selecionado -->
   <div class="flex items-center space-x-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow duration-200" 
        *ngIf="user?.team" 
        (click)="openTeamModal()">
@@ -111,6 +122,21 @@
           Torcedor Fiel
         </span>
       </div>
+    </div>
+  </div>
+  
+  <!-- Mensagem quando não há time selecionado -->
+  <div class="flex items-center justify-center p-8 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors duration-200" 
+       *ngIf="!user?.team" 
+       (click)="openTeamModal()">
+    <div class="text-center">
+      <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+        <svg class="w-8 h-8 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+      </div>
+      <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Selecione seu Time do Coração</h4>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Clique aqui para escolher seu time favorito</p>
     </div>
   </div>
 </div>
