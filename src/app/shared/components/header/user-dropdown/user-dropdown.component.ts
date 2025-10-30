@@ -102,6 +102,11 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
     return this.user?.email || 'usuario@email.com';
   }
 
+  onAvatarError(event: Event): void {
+    const element = event.target as HTMLImageElement;
+    element.src = '/images/user/default-avatar.jpg';
+  }
+
   toggleDropdown() {
     this.isOpen = !this.isOpen;
   }

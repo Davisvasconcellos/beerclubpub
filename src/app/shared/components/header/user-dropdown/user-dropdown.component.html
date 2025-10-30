@@ -8,7 +8,7 @@
       [src]="userAvatar"
       [alt]="userName"
       class="w-full h-full object-cover"
-      (error)="$event.target.src='/images/user/default-avatar.jpg'"
+      (error)="onAvatarError($event)"
     />
   </button>
 
@@ -24,7 +24,7 @@
           [src]="userAvatar"
           [alt]="userName"
           class="w-12 h-12 rounded-full object-cover"
-          (error)="$event.target.src='/images/user/default-avatar.jpg'"
+          (error)="onAvatarError($event)"
         />
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-900 dark:text-white truncate">
