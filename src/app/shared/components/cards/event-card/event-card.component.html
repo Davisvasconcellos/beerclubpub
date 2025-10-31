@@ -1,0 +1,29 @@
+<app-card>
+  <div class="flex flex-col h-full">
+    <div class="mb-2 overflow-hidden rounded-lg">
+      <img
+        src="/images/cards/card-01.png"
+        alt="card"
+        class="overflow-hidden rounded-lg w-full object-cover h-48"
+      />
+    </div>
+    <div class="flex flex-col flex-grow p-2">
+      <app-card-title class="line-clamp-1">{{ eventName }}</app-card-title>
+      <app-card-description class="flex-grow line-clamp-1">{{ description }}</app-card-description>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <app-badge color="success" size="sm">{{ startDate }}</app-badge>
+        <app-badge color="info" size="sm">{{ endDate }}</app-badge>
+      </div>
+        <div class="mt-4 flex gap-2 justify-end">
+          <button (click)="onViewLinksClick()"
+                  class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">
+            Links
+          </button>
+          <button (click)="onEditClick()"
+                  class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-yellow-500 text-white hover:bg-yellow-600">
+            Editar
+          </button>
+        </div>
+    </div>
+  </div>
+</app-card>

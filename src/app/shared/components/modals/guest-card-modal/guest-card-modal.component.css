@@ -1,0 +1,19 @@
+/* Estilos específicos para o modal do cartão do usuário */
+.card-preview {
+  transition: transform 0.2s ease-in-out;
+}
+
+.card-preview:hover {
+  transform: scale(1.02);
+}
+
+/* Estilos para impressão */
+@media print {
+  .modal-body {
+    background: white !important;
+  }
+  
+  .card-preview {
+    box-shadow: none !important;
+  }
+}

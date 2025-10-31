@@ -1,0 +1,105 @@
+<app-modal 
+  [isOpen]="isOpen" 
+  (close)="onClose()"
+  className="max-w-md">
+  
+  <div class="text-center">
+    <h2 class="text-xl font-semibold text-gray-800 mb-6">Editar Convidado</h2>
+    
+    <!-- Guest Image -->
+     <div class="mb-6">
+       <div class="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white text-xl font-bold">
+         <img 
+           *ngIf="guest?.image" 
+           [src]="guest!.image" 
+           [alt]="guest!.name"
+           class="w-full h-full rounded-full object-cover">
+         <span *ngIf="!guest?.image">{{ getInitials(guest?.name) }}</span>
+       </div>
+     </div>
+
+    <!-- Edit Form -->
+    <form [formGroup]="editForm" (ngSubmit)="onSave()" class="space-y-4">
+      <!-- Name Field -->
+      <div class="text-left">
+        <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="Digite o nome">
+        <div *ngIf="editForm.get('name')?.invalid && editForm.get('name')?.touched" 
+             class="text-red-500 text-xs mt-1">
+          Nome é obrigatório
+        </div>
+      </div>
+
+      <!-- Email Field -->
+      <div class="text-left">
+        <label for="email" class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          placeholder="Digite o email">
+        <div *ngIf="editForm.get('email')?.invalid && editForm.get('email')?.touched" 
+             class="text-red-500 text-xs mt-1">
+          <span *ngIf="editForm.get('email')?.errors?.['required']">Email é obrigatório</span>
+          <span *ngIf="editForm.get('email')?.errors?.['email']">Email deve ter um formato válido</span>
+        </div>
+      </div>
+
+      <!-- Phone Field -->
+       <div class="text-left">
+         <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">Telefone</label>
+         <input
+           id="phone"
+           type="tel"
+           formControlName="phone"
+           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+           placeholder="Digite o telefone">
+         <div *ngIf="editForm.get('phone')?.invalid && editForm.get('phone')?.touched" 
+              class="text-red-500 text-xs mt-1">
+           Telefone é obrigatório
+         </div>
+       </div>
+
+       <!-- Social Media Section -->
+       <div class="text-left">
+         <h3 class="text-sm font-medium text-gray-700 mb-3">Instagram (opcional)</h3>
+         
+         <!-- Instagram -->
+         <div class="mb-3">
+           <label for="instagram" class="block text-xs font-medium text-gray-600 mb-1">Instagram</label>
+           <div class="relative">
+             <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">@</span>
+             <input
+               id="instagram"
+               type="text"
+               formControlName="instagram"
+               class="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+               placeholder="usuario">
+           </div>
+         </div>
+       </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3 pt-4">
+        <button
+          type="button"
+          (click)="onClose()"
+          class="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="editForm.invalid"
+          class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors">
+          Salvar
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

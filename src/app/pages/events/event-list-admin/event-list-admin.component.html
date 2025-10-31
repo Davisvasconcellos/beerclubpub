@@ -1,0 +1,30 @@
+<div>
+  <h3 class="font-medium text-black dark:text-white">Event List</h3>
+  <div class="flex justify-end mb-4">
+    <button (click)="openAddEventModal()" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">Add Event</button>
+  </div>
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <app-event-card
+      *ngFor="let event of events"
+      [eventName]="event.eventName"
+      [description]="event.description"
+      [startDate]="event.startDate"
+      [endDate]="event.endDate"
+      [links]="event.links"
+      (viewLinks)="openLinksModal(event)"
+      (editEvent)="onEditEvent(event)"
+    ></app-event-card>
+  </div>
+
+  <app-event-links-modal
+    [isOpen]="isModalOpen"
+    [eventLinks]="selectedEventLinks"
+    (close)="closeLinksModal()"
+  ></app-event-links-modal>
+
+  <app-add-event-modal
+    [isOpen]="isAddEventModalOpen"
+    (close)="closeAddEventModal()"
+    (saveEvent)="onSaveNewEvent($event)"
+  ></app-add-event-modal>
+</div>

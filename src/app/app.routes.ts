@@ -96,6 +96,8 @@ import { ConfigComponent } from './pages/pub/admin/config/config.component';
 import { ClientsComponent } from './pages/pub/admin/clients/clients.component';
 import { WaitersComponent } from './pages/pub/admin/waiters/waiters.component';
 import { TablesComponent as AdminTablesComponent } from './pages/pub/admin/tables/tables.component';
+import { EventListAdminComponent } from './pages/events/event-list-admin/event-list-admin.component';
+import { EventViewComponent } from './pages/events/event-view/event-view.component';
 
 // Import guards
 import { AuthGuard } from './shared/guards/auth.guard';
@@ -538,6 +540,14 @@ export const routes: Routes = [
         path:'videos',
         component:VideosComponent,
         title:'Angular Videos Dashboard'
+      },
+      {
+        path: 'events/event-list-admin',
+        component: EventListAdminComponent,
+      },
+      {
+        path: 'events/event-view',
+        component: EventViewComponent,
       },
     ]
   },

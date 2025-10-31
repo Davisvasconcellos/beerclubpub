@@ -1,0 +1,209 @@
+/* Estilos específicos para o componente event-view */
+
+.event-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.event-image-container img {
+  transition: transform 0.3s ease;
+}
+
+.event-image-container:hover img {
+  transform: scale(1.02);
+}
+
+.tab-button {
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  transform: translateY(-1px);
+}
+
+.card-preview {
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.card-preview:hover {
+  transform: translateY(-2px);
+}
+
+.guest-table-row {
+  transition: background-color 0.2s ease;
+}
+
+.color-picker {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  cursor: pointer;
+}
+
+.color-picker::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker::-webkit-color-swatch {
+  border: none;
+  border-radius: 4px;
+}
+
+/* Animações para transições de abas */
+.tab-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estilos para status dos convidados */
+.status-confirmado {
+  background-color: rgb(220 252 231);
+  color: rgb(22 101 52);
+}
+
+.status-confirmado.dark {
+  background-color: rgb(22 101 52);
+  color: rgb(220 252 231);
+}
+
+.status-pendente {
+  background-color: rgb(254 249 195);
+  color: rgb(133 77 14);
+}
+
+.status-pendente.dark {
+  background-color: rgb(133 77 14);
+  color: rgb(254 249 195);
+}
+
+.status-cancelado {
+  background-color: rgb(254 226 226);
+  color: rgb(153 27 27);
+}
+
+.status-cancelado.dark {
+  background-color: rgb(153 27 27);
+  color: rgb(254 226 226);
+}
+
+/* Estilos para botões de ação */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action {
+  padding: 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-view {
+  color: #3b82f6;
+  background-color: transparent;
+}
+
+.btn-view:hover {
+  background-color: #eff6ff;
+  color: #1d4ed8;
+}
+
+.btn-edit {
+  color: #6b7280;
+  background-color: transparent;
+}
+
+.btn-edit:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+/* Estilos para informações do usuário */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-name {
+  font-weight: 500;
+}
+
+/* Estilos para a tabela */
+.table-responsive {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.table th {
+  background-color: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Dark mode para tabela */
+.dark .table th {
+  background-color: #374151;
+  color: #d1d5db;
+  border-bottom-color: #4b5563;
+}
+
+.dark .table td {
+  border-bottom-color: #4b5563;
+}
+
+.dark .table tbody tr:hover {
+  background-color: #374151;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  .lg\\:grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}

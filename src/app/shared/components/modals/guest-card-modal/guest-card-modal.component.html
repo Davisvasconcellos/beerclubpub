@@ -1,0 +1,183 @@
+<app-modal 
+  [isOpen]="isOpen" 
+  (close)="onClose()" 
+  [className]="'max-w-md p-6'">
+  
+  <div class="modal-body">
+    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+      Cartão do Convidado
+    </h3>
+    
+    <!-- Card Preview - Vertical Layout -->
+    <div class="flex justify-center">
+      <div 
+        class="rounded-2xl text-white relative shadow-lg flex flex-col items-center justify-between p-6"
+        style="width: 280px; height: 400px;"
+        [style.background]="getCardBackground()">
+        
+        <!-- Top Clip Simulation -->
+        <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-8 h-4 bg-gray-300 rounded-b-lg shadow-md"></div>
+        
+        <!-- Event Name at Top -->
+        <div class="text-center mt-4">
+          <div class="text-lg font-bold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+            {{ event?.name || 'NOME DO EVENTO' }}
+          </div>
+        </div>
+        
+        <!-- Guest Image (replacing VIP circle) -->
+        <div class="flex flex-col items-center justify-center flex-1">
+          <div class="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white/20 flex items-center justify-center">
+            <img 
+              *ngIf="guest?.image" 
+              [src]="guest!.image" 
+              [alt]="guest?.name"
+              class="w-full h-full object-cover">
+            <div 
+              *ngIf="!guest?.image" 
+              class="text-white text-2xl font-bold">
+              {{ getInitials(guest?.name) }}
+            </div>
+          </div>
+          
+          <!-- Guest Name below image -->
+          <div class="text-center mt-4">
+            <div class="text-base font-semibold" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.5);">
+              {{ guest?.name || 'Nome do Convidado' }}
+            </div>
+          </div>
+        </div>
+        
+        <!-- QR Code at Bottom -->
+        <div class="mt-4">
+          <div class="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- QR Code Pattern - Generic -->
+              <rect width="56" height="56" fill="white"/>
+              
+              <!-- Corner squares -->
+              <rect x="2" y="2" width="14" height="14" fill="black"/>
+              <rect x="4" y="4" width="10" height="10" fill="white"/>
+              <rect x="6" y="6" width="6" height="6" fill="black"/>
+              
+              <rect x="40" y="2" width="14" height="14" fill="black"/>
+              <rect x="42" y="4" width="10" height="10" fill="white"/>
+              <rect x="44" y="6" width="6" height="6" fill="black"/>
+              
+              <rect x="2" y="40" width="14" height="14" fill="black"/>
+              <rect x="4" y="42" width="10" height="10" fill="white"/>
+              <rect x="6" y="44" width="6" height="6" fill="black"/>
+              
+              <!-- Timing patterns -->
+              <rect x="18" y="6" width="2" height="2" fill="black"/>
+              <rect x="22" y="6" width="2" height="2" fill="black"/>
+              <rect x="26" y="6" width="2" height="2" fill="black"/>
+              <rect x="30" y="6" width="2" height="2" fill="black"/>
+              <rect x="34" y="6" width="2" height="2" fill="black"/>
+              <rect x="38" y="6" width="2" height="2" fill="black"/>
+              
+              <rect x="6" y="18" width="2" height="2" fill="black"/>
+              <rect x="6" y="22" width="2" height="2" fill="black"/>
+              <rect x="6" y="26" width="2" height="2" fill="black"/>
+              <rect x="6" y="30" width="2" height="2" fill="black"/>
+              <rect x="6" y="34" width="2" height="2" fill="black"/>
+              <rect x="6" y="38" width="2" height="2" fill="black"/>
+              
+              <!-- Data modules (random pattern) -->
+              <rect x="18" y="18" width="2" height="2" fill="black"/>
+              <rect x="22" y="18" width="2" height="2" fill="black"/>
+              <rect x="26" y="20" width="2" height="2" fill="black"/>
+              <rect x="30" y="18" width="2" height="2" fill="black"/>
+              <rect x="34" y="20" width="2" height="2" fill="black"/>
+              <rect x="38" y="18" width="2" height="2" fill="black"/>
+              <rect x="42" y="20" width="2" height="2" fill="black"/>
+              <rect x="46" y="18" width="2" height="2" fill="black"/>
+              <rect x="50" y="20" width="2" height="2" fill="black"/>
+              
+              <rect x="18" y="22" width="2" height="2" fill="black"/>
+              <rect x="20" y="24" width="2" height="2" fill="black"/>
+              <rect x="24" y="22" width="2" height="2" fill="black"/>
+              <rect x="28" y="24" width="2" height="2" fill="black"/>
+              <rect x="32" y="22" width="2" height="2" fill="black"/>
+              <rect x="36" y="24" width="2" height="2" fill="black"/>
+              <rect x="40" y="22" width="2" height="2" fill="black"/>
+              <rect x="44" y="24" width="2" height="2" fill="black"/>
+              <rect x="48" y="22" width="2" height="2" fill="black"/>
+              <rect x="52" y="24" width="2" height="2" fill="black"/>
+              
+              <!-- More data modules -->
+              <rect x="18" y="26" width="2" height="2" fill="black"/>
+              <rect x="22" y="28" width="2" height="2" fill="black"/>
+              <rect x="26" y="26" width="2" height="2" fill="black"/>
+              <rect x="30" y="28" width="2" height="2" fill="black"/>
+              <rect x="34" y="26" width="2" height="2" fill="black"/>
+              <rect x="38" y="28" width="2" height="2" fill="black"/>
+              <rect x="42" y="26" width="2" height="2" fill="black"/>
+              <rect x="46" y="28" width="2" height="2" fill="black"/>
+              <rect x="50" y="26" width="2" height="2" fill="black"/>
+              
+              <rect x="20" y="30" width="2" height="2" fill="black"/>
+              <rect x="24" y="32" width="2" height="2" fill="black"/>
+              <rect x="28" y="30" width="2" height="2" fill="black"/>
+              <rect x="32" y="32" width="2" height="2" fill="black"/>
+              <rect x="36" y="30" width="2" height="2" fill="black"/>
+              <rect x="40" y="32" width="2" height="2" fill="black"/>
+              <rect x="44" y="30" width="2" height="2" fill="black"/>
+              <rect x="48" y="32" width="2" height="2" fill="black"/>
+              <rect x="52" y="30" width="2" height="2" fill="black"/>
+              
+              <!-- Bottom section -->
+              <rect x="18" y="40" width="2" height="2" fill="black"/>
+              <rect x="22" y="42" width="2" height="2" fill="black"/>
+              <rect x="26" y="40" width="2" height="2" fill="black"/>
+              <rect x="30" y="42" width="2" height="2" fill="black"/>
+              <rect x="34" y="40" width="2" height="2" fill="black"/>
+              <rect x="38" y="42" width="2" height="2" fill="black"/>
+              <rect x="42" y="44" width="2" height="2" fill="black"/>
+              <rect x="46" y="46" width="2" height="2" fill="black"/>
+              <rect x="50" y="44" width="2" height="2" fill="black"/>
+              
+              <rect x="20" y="44" width="2" height="2" fill="black"/>
+              <rect x="24" y="46" width="2" height="2" fill="black"/>
+              <rect x="28" y="44" width="2" height="2" fill="black"/>
+              <rect x="32" y="46" width="2" height="2" fill="black"/>
+              <rect x="36" y="44" width="2" height="2" fill="black"/>
+              <rect x="40" y="46" width="2" height="2" fill="black"/>
+              <rect x="44" y="48" width="2" height="2" fill="black"/>
+              <rect x="48" y="50" width="2" height="2" fill="black"/>
+              <rect x="52" y="48" width="2" height="2" fill="black"/>
+              
+              <rect x="18" y="48" width="2" height="2" fill="black"/>
+              <rect x="22" y="50" width="2" height="2" fill="black"/>
+              <rect x="26" y="48" width="2" height="2" fill="black"/>
+              <rect x="30" y="50" width="2" height="2" fill="black"/>
+              <rect x="34" y="48" width="2" height="2" fill="black"/>
+              <rect x="38" y="50" width="2" height="2" fill="black"/>
+              
+              <rect x="20" y="52" width="2" height="2" fill="black"/>
+              <rect x="24" y="54" width="2" height="2" fill="black"/>
+              <rect x="28" y="52" width="2" height="2" fill="black"/>
+              <rect x="32" y="54" width="2" height="2" fill="black"/>
+              <rect x="36" y="52" width="2" height="2" fill="black"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Print Button -->
+    <div class="flex justify-center mt-6">
+      <button 
+        type="button"
+        (click)="printCard()"
+        class="px-6 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:border-blue-500 dark:hover:bg-blue-600 flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6 9V2H18V9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M6 18H4C3.46957 18 2.96086 17.7893 2.58579 17.4142C2.21071 17.0391 2 16.5304 2 16V11C2 10.4696 2.21071 9.96086 2.58579 9.58579C2.96086 9.21071 3.46957 9 4 9H20C20.5304 9 21.0391 9.21071 21.4142 9.58579C21.7893 9.96086 22 10.4696 22 11V16C22 16.5304 21.7893 17.0391 21.4142 17.4142C21.0391 17.7893 20.5304 18 20 18H18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M18 14H6V22H18V14Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Imprimir
+      </button>
+    </div>
+  </div>
+</app-modal>
