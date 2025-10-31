@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { BehaviorSubject, Observable, throwError, of, timeout } from 'rxjs';
+import { BehaviorSubject, Observable, throwError, of, timeout, finalize } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { LocalStorageService } from './local-storage.service';
+import { Router } from '@angular/router';
 
 // Interfaces para tipagem
 export interface User {
@@ -90,7 +91,8 @@ export class AuthService {
 
   constructor(
     private http: HttpClient,
-    private localStorageService: LocalStorageService
+    private localStorageService: LocalStorageService,
+    private router: Router
   ) {
     this.initializeAuth();
   }
@@ -141,12 +143,14 @@ export class AuthService {
     
     return this.http.post(`${this.API_BASE_URL}/auth/signout`, {}, { headers })
       .pipe(
-        timeout(5000), // Timeout de 5 segundos
-        catchError(() => of(null)), // Continue mesmo se a API falhar
-        tap(() => {
+        timeout(3000), // Timeout de 3 segundos
+        catchError(() => of(null)), // Continua mesmo se a API falhar
+        finalize(() => {
+          // Este bloco `finalize` garante que o logout no cliente sempre aconteça.
           this.localStorageService.clearAuthData();
           this.currentUserSubject.next(null);
           this.isAuthenticatedSubject.next(false);
+          this.router.navigate(['/signin']);
         })
       );
   }
@@ -241,8 +245,16 @@ export class AuthService {
       // Erro do lado do cliente
       errorMessage = `Erro: ${error.error.message}`;
     } else {
+      // Se o erro for de conexão ou token inválido, desloga o usuário.
+      if (error.status === 0 || error.status === 401) {
+        this.localStorageService.clearAuthData();
+        this.currentUserSubject.next(null);
+        this.isAuthenticatedSubject.next(false);
+        this.router.navigate(['/signin']);
+        errorMessage = `Sessão expirada ou servidor indisponível. Faça login novamente. (Erro: ${error.status})`;
+      }
       // Erro do lado do servidor
-      if (error.error && error.error.message) {
+      else if (error.error && error.error.message) {
         errorMessage = error.error.message;
       } else {
         errorMessage = `Erro ${error.status}: ${error.message}`;
