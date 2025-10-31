@@ -16,7 +16,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
     <div class="relative">
       <input
         [type]="type"
-        [id]="id"
+        [attr.id]="id"
         [name]="name"
         [placeholder]="placeholder"
         [value]="value"
@@ -46,7 +46,7 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 export class InputFieldComponent implements ControlValueAccessor {
 
   @Input() type: string = 'text';
-  @Input() id?: string = '';
+  @Input() id: string | null = null;
   @Input() name?: string = '';
   @Input() placeholder?: string = '';
   @Input() value: string | number = '';
