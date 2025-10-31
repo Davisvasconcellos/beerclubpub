@@ -3,7 +3,7 @@ import { PageBreadcrumbComponent } from '../../../../shared/components/common/pa
 import { ProductListTableComponent } from '../../../../shared/components/ecommerce/product-list-table/product-list-table.component';
 
 @Component({
-  selector: 'app-product-list',
+  selector: 'app-pub-admin-product-list',
   imports: [
     PageBreadcrumbComponent,
     ProductListTableComponent,

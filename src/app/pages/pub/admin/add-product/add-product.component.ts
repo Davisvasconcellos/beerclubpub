@@ -3,7 +3,7 @@ import { PageBreadcrumbComponent } from '../../../../shared/components/common/pa
 import { AddProductFormComponent } from '../../../../shared/components/ecommerce/add-product-form/add-product-form.component';
 
 @Component({
-  selector: 'app-add-product',
+  selector: 'app-pub-admin-add-product',
   imports: [
     PageBreadcrumbComponent,
     AddProductFormComponent,
