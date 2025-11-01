@@ -65,6 +65,34 @@ export class LocalStorageService {
     }
   }
 
+  /**
+   * Salva dados genéricos no localStorage.
+   * @param key A chave para salvar os dados.
+   * @param data Os dados a serem salvos (serão convertidos para JSON).
+   */
+  saveData(key: string, data: any): void {
+    try {
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (error) {
+      console.error(`Erro ao salvar dados para a chave '${key}':`, error);
+    }
+  }
+
+  /**
+   * Recupera dados genéricos do localStorage.
+   * @param key A chave dos dados a serem recuperados.
+   * @returns Os dados recuperados ou null se não existirem.
+   */
+  getData<T>(key: string): T | null {
+    try {
+      const data = localStorage.getItem(key);
+      return data ? (JSON.parse(data) as T) : null;
+    } catch (error) {
+      console.error(`Erro ao recuperar dados para a chave '${key}':`, error);
+      return null;
+    }
+  }
+
   // Limpar todos os dados de autenticação
   clearAuthData(): void {
     try {
