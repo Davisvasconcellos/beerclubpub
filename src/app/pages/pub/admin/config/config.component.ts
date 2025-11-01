@@ -7,6 +7,7 @@ import { SelectComponent } from '../../../../shared/components/form/select/selec
 import { TextAreaComponent } from '../../../../shared/components/form/input/text-area.component';
 import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
 import { CheckboxComponent } from '../../../../shared/components/form/input/checkbox.component';
+import { SwitchComponent } from '../../../../shared/components/form/input/switch.component';
 
 @Component({
   selector: 'app-config',
@@ -20,6 +21,7 @@ import { CheckboxComponent } from '../../../../shared/components/form/input/chec
     TextAreaComponent,
     ButtonComponent,
     CheckboxComponent,
+    SwitchComponent,
   ],
   templateUrl: './config.component.html',
   styleUrls: []
@@ -50,6 +52,13 @@ export class ConfigComponent {
   // Horários de funcionamento
   mondayOpen: string = '';
   mondayClose: string = '';
+  mondayEnabled: boolean = false;
+  tuesdayEnabled: boolean = false;
+  wednesdayEnabled: boolean = false;
+  thursdayEnabled: boolean = false;
+  fridayEnabled: boolean = false;
+  saturdayEnabled: boolean = false;
+  sundayEnabled: boolean = false;
   tuesdayOpen: string = '';
   tuesdayClose: string = '';
   wednesdayOpen: string = '';

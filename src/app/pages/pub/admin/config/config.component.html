@@ -140,183 +140,218 @@
       
       <div class="space-y-4">
         <!-- Segunda-feira -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Segunda-feira</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Seg
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Segunda-feira</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Seg
+              </div>
             </div>
+            <app-switch [defaultChecked]="mondayEnabled" (valueChange)="mondayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!mondayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="mondayOpen"
-              (valueChange)="mondayOpen = $event.toString()">
+              (valueChange)="mondayOpen = $event.toString()"
+              [disabled]="!mondayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!mondayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="mondayClose"
-              (valueChange)="mondayClose = $event.toString()">
+              (valueChange)="mondayClose = $event.toString()"
+              [disabled]="!mondayEnabled">
             </app-input-field>
           </div>
         </div>
 
         <!-- Terça-feira -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Terça-feira</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Ter
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Terça-feira</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Ter
+              </div>
             </div>
+            <app-switch [defaultChecked]="tuesdayEnabled" (valueChange)="tuesdayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!tuesdayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="tuesdayOpen"
-              (valueChange)="tuesdayOpen = $event.toString()">
+              (valueChange)="tuesdayOpen = $event.toString()"
+              [disabled]="!tuesdayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!tuesdayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="tuesdayClose"
-              (valueChange)="tuesdayClose = $event.toString()">
+              (valueChange)="tuesdayClose = $event.toString()"
+              [disabled]="!tuesdayEnabled">
             </app-input-field>
           </div>
         </div>
 
         <!-- Quarta-feira -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Quarta-feira</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Qua
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Quarta-feira</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Qua
+              </div>
             </div>
+            <app-switch [defaultChecked]="wednesdayEnabled" (valueChange)="wednesdayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!wednesdayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="wednesdayOpen"
-              (valueChange)="wednesdayOpen = $event.toString()">
+              (valueChange)="wednesdayOpen = $event.toString()"
+              [disabled]="!wednesdayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!wednesdayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="wednesdayClose"
-              (valueChange)="wednesdayClose = $event.toString()">
+              (valueChange)="wednesdayClose = $event.toString()"
+              [disabled]="!wednesdayEnabled">
             </app-input-field>
           </div>
         </div>
 
         <!-- Quinta-feira -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Quinta-feira</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Qui
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Quinta-feira</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Qui
+              </div>
             </div>
+            <app-switch [defaultChecked]="thursdayEnabled" (valueChange)="thursdayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!thursdayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="thursdayOpen"
-              (valueChange)="thursdayOpen = $event.toString()">
+              (valueChange)="thursdayOpen = $event.toString()"
+              [disabled]="!thursdayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!thursdayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="thursdayClose"
-              (valueChange)="thursdayClose = $event.toString()">
+              (valueChange)="thursdayClose = $event.toString()"
+              [disabled]="!thursdayEnabled">
             </app-input-field>
           </div>
         </div>
 
         <!-- Sexta-feira -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Sexta-feira</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Sex
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Sexta-feira</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Sex
+              </div>
             </div>
+            <app-switch [defaultChecked]="fridayEnabled" (valueChange)="fridayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!fridayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="fridayOpen"
-              (valueChange)="fridayOpen = $event.toString()">
+              (valueChange)="fridayOpen = $event.toString()"
+              [disabled]="!fridayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!fridayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="fridayClose"
-              (valueChange)="fridayClose = $event.toString()">
+              (valueChange)="fridayClose = $event.toString()"
+              [disabled]="!fridayEnabled">
             </app-input-field>
           </div>
         </div>
 
         <!-- Sábado -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Sábado</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Sáb
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Sábado</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Sáb
+              </div>
             </div>
+            <app-switch [defaultChecked]="saturdayEnabled" (valueChange)="saturdayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!saturdayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="saturdayOpen"
-              (valueChange)="saturdayOpen = $event.toString()">
+              (valueChange)="saturdayOpen = $event.toString()"
+              [disabled]="!saturdayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!saturdayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="saturdayClose"
-              (valueChange)="saturdayClose = $event.toString()">
+              (valueChange)="saturdayClose = $event.toString()"
+              [disabled]="!saturdayEnabled">
             </app-input-field>
           </div>
         </div>
 
         <!-- Domingo -->
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 items-end">
-          <div>
-            <app-label>Domingo</app-label>
-            <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
-              Dom
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-4 items-end">
+          <div class="sm:col-span-2 flex items-end gap-4">
+            <div class="flex-1">
+              <app-label>Domingo</app-label>
+              <div class="h-11 flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg px-4">
+                Dom
+              </div>
             </div>
+            <app-switch [defaultChecked]="sundayEnabled" (valueChange)="sundayEnabled = $event"></app-switch>
           </div>
-          <div>
+          <div [class.opacity-50]="!sundayEnabled">
             <app-label>Abertura</app-label>
             <app-input-field 
               type="time" 
               [value]="sundayOpen"
-              (valueChange)="sundayOpen = $event.toString()">
+              (valueChange)="sundayOpen = $event.toString()"
+              [disabled]="!sundayEnabled">
             </app-input-field>
           </div>
-          <div>
+          <div [class.opacity-50]="!sundayEnabled">
             <app-label>Fechamento</app-label>
             <app-input-field 
               type="time" 
               [value]="sundayClose"
-              (valueChange)="sundayClose = $event.toString()">
+              (valueChange)="sundayClose = $event.toString()"
+              [disabled]="!sundayEnabled">
             </app-input-field>
           </div>
         </div>

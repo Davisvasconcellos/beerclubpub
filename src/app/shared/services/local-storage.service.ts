@@ -72,7 +72,8 @@ export class LocalStorageService {
    */
   saveData(key: string, data: any): void {
     try {
-      localStorage.setItem(key, JSON.stringify(data));
+      const dataToSave = typeof data === 'string' ? data : JSON.stringify(data);
+      localStorage.setItem(key, dataToSave);
     } catch (error) {
       console.error(`Erro ao salvar dados para a chave '${key}':`, error);
     }

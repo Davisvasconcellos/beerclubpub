@@ -38,16 +38,20 @@ export class HomeAdminComponent implements OnInit {
     this.storeService.getStores().subscribe({
       next: (stores: Store[]) => {
         this.availableStores = stores;
+        this.loadSelectedStore(); // Mover para cá garante que as lojas estejam disponíveis
         this.isLoadingStores = false;
       },
       error: () => this.isLoadingStores = false
     });
   }
 
+  /**
+   * Carrega a loja selecionada do localStorage.
+   */
   private loadSelectedStore(): void {
-    const storeId = this.localStorageService.getData(this.STORE_KEY);
-    if (storeId && this.availableStores.length > 0) {
-      this.selectedStore = this.availableStores.find(s => s.id === +storeId) || null;
+    const savedStore = this.localStorageService.getData<Store>(this.STORE_KEY);
+    if (savedStore) {
+      this.selectedStore = savedStore;
     }
   }
 
@@ -56,7 +60,7 @@ export class HomeAdminComponent implements OnInit {
 
   selectStore(store: Store): void {
     this.selectedStore = store;
-    this.localStorageService.saveData(this.STORE_KEY, store.id.toString());
+    this.localStorageService.saveData(this.STORE_KEY, store);
     this.closeStoreModal();
   }
 }
