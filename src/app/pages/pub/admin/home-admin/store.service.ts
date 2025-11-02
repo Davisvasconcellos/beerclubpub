@@ -6,6 +6,7 @@ import { AuthService } from '../../../../shared/services/auth.service';
 
 // Interfaces para tipagem forte
 export interface Store {
+  id_code: string;
   id: number;
   name: string;
   logo_url: string | null;

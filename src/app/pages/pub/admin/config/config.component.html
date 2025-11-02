@@ -46,8 +46,7 @@
       <div class="mb-4.5">
         <app-label>Nome do Estabelecimento <span class="text-error-500">*</span></app-label>
         <app-input-field 
-          [value]="establishmentName"
-          (valueChange)="establishmentName = $event.toString()"
+          name="establishmentName"
           placeholder="Digite o nome do estabelecimento">
         </app-input-field>
       </div>
@@ -55,8 +54,7 @@
       <div class="mb-4.5">
         <app-label>Capacidade <span class="text-error-500">*</span></app-label>
         <app-input-field 
-          [value]="capacity"
-          (valueChange)="capacity = $event.toString()"
+          name="capacity"
           placeholder="Ex: 50 pessoas">
         </app-input-field>
       </div>
@@ -65,16 +63,14 @@
         <app-label>Tipo de Estabelecimento <span class="text-error-500">*</span></app-label>
         <app-select 
           [options]="establishmentTypes"
-          [value]="establishmentType"
-          (valueChange)="establishmentType = $event">
+          name="establishmentType">
         </app-select>
       </div>
 
       <div class="mb-6">
         <app-label>Descrição</app-label>
         <app-text-area 
-          [value]="establishmentDescription"
-          (valueChange)="establishmentDescription = $event.toString()"
+          name="establishmentDescription"
           placeholder="Descreva seu estabelecimento">
         </app-text-area>
       </div>
@@ -89,8 +85,7 @@
       <div class="mb-4.5">
         <app-label>Razão Social <span class="text-error-500">*</span></app-label>
         <app-input-field 
-          [value]="companyName"
-          (valueChange)="companyName = $event.toString()"
+          name="companyName"
           placeholder="Digite a razão social">
         </app-input-field>
       </div>
@@ -98,8 +93,7 @@
       <div class="mb-4.5">
         <app-label>CNPJ <span class="text-error-500">*</span></app-label>
         <app-input-field 
-          [value]="cnpj"
-          (valueChange)="cnpj = $event.toString()"
+          name="cnpj"
           placeholder="00.000.000/0000-00">
         </app-input-field>
       </div>
@@ -107,8 +101,7 @@
       <div class="mb-4.5">
         <app-label>Telefone <span class="text-error-500">*</span></app-label>
         <app-input-field 
-          [value]="phone"
-          (valueChange)="phone = $event.toString()"
+          name="phone"
           placeholder="(00) 00000-0000">
         </app-input-field>
       </div>
@@ -116,8 +109,7 @@
       <div class="mb-4.5">
         <app-label>E-mail <span class="text-error-500">*</span></app-label>
         <app-input-field 
-          [value]="email"
-          (valueChange)="email = $event.toString()"
+          name="email"
           placeholder="contato@empresa.com">
         </app-input-field>
       </div>
@@ -125,8 +117,7 @@
       <div class="mb-6">
         <app-label>Endereço <span class="text-error-500">*</span></app-label>
         <app-text-area 
-          [value]="address"
-          (valueChange)="address = $event.toString()"
+          name="address"
           placeholder="Digite o endereço completo">
         </app-text-area>
       </div>
@@ -155,6 +146,7 @@
             <app-input-field 
               type="time" 
               [value]="mondayOpen"
+              name="mondayOpen"
               (valueChange)="mondayOpen = $event.toString()"
               [disabled]="!mondayEnabled">
             </app-input-field>
@@ -164,6 +156,7 @@
             <app-input-field 
               type="time" 
               [value]="mondayClose"
+              name="mondayClose"
               (valueChange)="mondayClose = $event.toString()"
               [disabled]="!mondayEnabled">
             </app-input-field>
@@ -186,6 +179,7 @@
             <app-input-field 
               type="time" 
               [value]="tuesdayOpen"
+              name="tuesdayOpen"
               (valueChange)="tuesdayOpen = $event.toString()"
               [disabled]="!tuesdayEnabled">
             </app-input-field>
@@ -195,6 +189,7 @@
             <app-input-field 
               type="time" 
               [value]="tuesdayClose"
+              name="tuesdayClose"
               (valueChange)="tuesdayClose = $event.toString()"
               [disabled]="!tuesdayEnabled">
             </app-input-field>
@@ -217,6 +212,7 @@
             <app-input-field 
               type="time" 
               [value]="wednesdayOpen"
+              name="wednesdayOpen"
               (valueChange)="wednesdayOpen = $event.toString()"
               [disabled]="!wednesdayEnabled">
             </app-input-field>
@@ -226,6 +222,7 @@
             <app-input-field 
               type="time" 
               [value]="wednesdayClose"
+              name="wednesdayClose"
               (valueChange)="wednesdayClose = $event.toString()"
               [disabled]="!wednesdayEnabled">
             </app-input-field>
@@ -248,6 +245,7 @@
             <app-input-field 
               type="time" 
               [value]="thursdayOpen"
+              name="thursdayOpen"
               (valueChange)="thursdayOpen = $event.toString()"
               [disabled]="!thursdayEnabled">
             </app-input-field>
@@ -257,6 +255,7 @@
             <app-input-field 
               type="time" 
               [value]="thursdayClose"
+              name="thursdayClose"
               (valueChange)="thursdayClose = $event.toString()"
               [disabled]="!thursdayEnabled">
             </app-input-field>
@@ -279,6 +278,7 @@
             <app-input-field 
               type="time" 
               [value]="fridayOpen"
+              name="fridayOpen"
               (valueChange)="fridayOpen = $event.toString()"
               [disabled]="!fridayEnabled">
             </app-input-field>
@@ -288,6 +288,7 @@
             <app-input-field 
               type="time" 
               [value]="fridayClose"
+              name="fridayClose"
               (valueChange)="fridayClose = $event.toString()"
               [disabled]="!fridayEnabled">
             </app-input-field>
@@ -310,6 +311,7 @@
             <app-input-field 
               type="time" 
               [value]="saturdayOpen"
+              name="saturdayOpen"
               (valueChange)="saturdayOpen = $event.toString()"
               [disabled]="!saturdayEnabled">
             </app-input-field>
@@ -319,6 +321,7 @@
             <app-input-field 
               type="time" 
               [value]="saturdayClose"
+              name="saturdayClose"
               (valueChange)="saturdayClose = $event.toString()"
               [disabled]="!saturdayEnabled">
             </app-input-field>
@@ -341,6 +344,7 @@
             <app-input-field 
               type="time" 
               [value]="sundayOpen"
+              name="sundayOpen"
               (valueChange)="sundayOpen = $event.toString()"
               [disabled]="!sundayEnabled">
             </app-input-field>
@@ -350,6 +354,7 @@
             <app-input-field 
               type="time" 
               [value]="sundayClose"
+              name="sundayClose"
               (valueChange)="sundayClose = $event.toString()"
               [disabled]="!sundayEnabled">
             </app-input-field>
@@ -412,6 +417,7 @@
           <app-label>Raio de Entrega (km)</app-label>
           <app-input-field 
             placeholder="Digite o raio de entrega"
+            name="deliveryRadius"
             [value]="deliveryRadius"
             (valueChange)="deliveryRadius = $event.toString()">
           </app-input-field>
@@ -421,6 +427,7 @@
           <app-label>Taxa de Entrega (R$)</app-label>
           <app-input-field 
             placeholder="Digite a taxa de entrega"
+            name="deliveryFee"
             [value]="deliveryFee"
             (valueChange)="deliveryFee = $event.toString()">
           </app-input-field>
@@ -430,6 +437,7 @@
           <app-label>Valor Mínimo do Pedido (R$)</app-label>
           <app-input-field 
             placeholder="Digite o valor mínimo"
+            name="minOrderValue"
             [value]="minOrderValue"
             (valueChange)="minOrderValue = $event.toString()">
           </app-input-field>
