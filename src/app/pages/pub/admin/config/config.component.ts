@@ -65,6 +65,8 @@ export class ConfigComponent implements OnInit {
   address_neighborhood: string = '';
   address_city: string = '';
   address_state: string = '';
+  latitude: string = '';
+  longitude: string = '';
 
   // Horários de funcionamento
   mondayOpen: string = '';
@@ -158,6 +160,8 @@ export class ConfigComponent implements OnInit {
     this.address_neighborhood = data.address_neighborhood || '';
     this.address_city = data.address_city || '';
     this.address_state = data.address_state || '';
+    this.latitude = data.latitude?.toString() || '';
+    this.longitude = data.longitude?.toString() || '';
 
     // Outras abas podem ser populadas aqui (horários, pagamentos, delivery)
   }
@@ -191,7 +195,9 @@ export class ConfigComponent implements OnInit {
         address_complement: this.address_complement,
         address_neighborhood: this.address_neighborhood,
         address_city: this.address_city,
-        address_state: this.address_state
+        address_state: this.address_state,
+        latitude: this.latitude,
+        longitude: this.longitude
       },
       hours: {
         monday: { open: this.mondayOpen, close: this.mondayClose },
@@ -244,5 +250,30 @@ export class ConfigComponent implements OnInit {
     }, error => {
       console.error('Erro ao buscar CEP', error);
     });
+  }
+
+  geocodeAddress(): void {
+    const address = `${this.address_street}, ${this.address_number}, ${this.address_city}, ${this.address_state}`;
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+
+    if (!this.address_street || !this.address_city) {
+      console.error('Endereço insuficiente para geocodificação.');
+      // Opcional: Adicionar um alerta para o usuário
+      return;
+    }
+
+    this.http.get<any[]>(url).subscribe(
+      (data) => {
+        if (data && data.length > 0) {
+          this.latitude = data[0].lat;
+          this.longitude = data[0].lon;
+          console.log(`Coordenadas encontradas: Lat ${this.latitude}, Lon ${this.longitude}`);
+        } else {
+          console.error('Não foi possível encontrar as coordenadas para o endereço fornecido.');
+          // Opcional: Adicionar um alerta para o usuário
+        }
+      },
+      (error) => console.error('Erro na geocodificação:', error)
+    );
   }
 }
