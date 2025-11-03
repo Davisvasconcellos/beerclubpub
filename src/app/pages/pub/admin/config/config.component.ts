@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, ViewChild, inject } from '@angular/core';
 import { CommonModule, NgIf } from '@angular/common';
 import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,7 @@ import { SwitchComponent } from '../../../../shared/components/form/input/switch
 import { ConfigService, StoreDetails } from './config.service'; // Certifique-se que StoreDetails está exportado
 import { LocalStorageService } from '../../../../shared/services/local-storage.service';
 import { Store } from '../home-admin/store.service';
-import * as L from 'leaflet';
+import { ImageUploadService } from '../../../../shared/services/image-upload.service';
 
 // Corrige os caminhos dos ícones padrão do Leaflet
 const iconRetinaUrl = 'images/leaflet/marker-icon-2x.png';
@@ -49,7 +49,7 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
   capacity: string = '';
   establishmentType: string = '';
   banner_url: string = '';
-  logo_url: string = '';
+  logo_url: string | null = '';
   facebook_handle: string = '';
   instagram_handle: string = '';
   website: string = '';
@@ -78,6 +78,9 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
   longitude: string = '-43.1729'; // Coordenadas padrão (Rio de Janeiro)
   private map!: L.Map;
   private marker!: L.Marker;
+
+  @ViewChild('logoFileInput') logoFileInput!: ElementRef<HTMLInputElement>;
+  originalLogoUrl: string | null = null;
 
   // Horários de funcionamento
   mondayOpen: string = '';
@@ -117,6 +120,7 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
   private configService = inject(ConfigService);
   private localStorageService = inject(LocalStorageService);
   private http = inject(HttpClient);
+  private imageUploadService = inject(ImageUploadService);
 
   ngOnInit(): void {
     this.loadStoreDetails();
@@ -162,10 +166,11 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
     this.establishmentType = data.type || '';
     this.banner_url = data.banner_url || '';
     this.logo_url = data.logo_url || '';
+    this.originalLogoUrl = data.logo_url || null; // Salva a URL original
     this.facebook_handle = data.facebook_handle || '';
     this.instagram_handle = data.instagram_handle || '';
     this.website = data.website || '';
-    // this.establishmentDescription = data.establishmentDescription || '';
+    this.establishmentDescription = data.description || '';
 
     // Aba: Dados da Empresa
     this.companyName = data.legal_name || '';
@@ -201,54 +206,46 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onSave(): void {
-    // Save configuration
-    console.log('Saving configuration...');
-    console.log({
-      establishment: {
-        name: this.establishmentName,
-        capacity: this.capacity,
-        type: this.establishmentType,
-        description: this.establishmentDescription,
-        facebook: this.facebook_handle,
-        instagram: this.instagram_handle,
-        website: this.website,
+    const selectedStore = this.localStorageService.getData<Store>(this.STORE_KEY);
+    if (!selectedStore) {
+      console.error('Nenhum ID de loja encontrado para salvar.');
+      // Adicionar um alerta para o usuário aqui, se desejar
+      return;
+    }
 
+    const storeData: Partial<StoreDetails> = {
+      name: this.establishmentName,
+      email: this.email,
+      cnpj: this.cnpj,
+      instagram_handle: this.instagram_handle,
+      facebook_handle: this.facebook_handle,
+      capacity: parseInt(this.capacity, 10),
+      type: this.establishmentType,
+      legal_name: this.companyName,
+      phone: this.phone,
+      zip_code: this.zip_code,
+      address_street: this.address_street,
+      address_neighborhood: this.address_neighborhood,
+      address_city: this.address_city,
+      address_state: this.address_state,
+      address_number: this.address_number,
+      address_complement: this.address_complement,
+      website: this.website,
+      latitude: parseFloat(this.latitude),
+      longitude: parseFloat(this.longitude),
+      description: this.establishmentDescription,
+    };
+
+    console.log('Enviando dados para atualização:', storeData);
+
+    this.configService.updateStore(selectedStore.id_code, storeData).subscribe({
+      next: (response) => {
+        console.log('Loja atualizada com sucesso!', response);
+        // Adicionar um toast/alerta de sucesso para o usuário
       },
-      company: {
-        name: this.companyName,
-        cnpj: this.cnpj,
-        phone: this.phone,
-        email: this.email,
-        zip_code: this.zip_code,
-        address_street: this.address_street,
-        address_number: this.address_number,
-        address_complement: this.address_complement,
-        address_neighborhood: this.address_neighborhood,
-        address_city: this.address_city,
-        address_state: this.address_state,
-        latitude: this.latitude,
-        longitude: this.longitude
-      },
-      hours: {
-        monday: { open: this.mondayOpen, close: this.mondayClose },
-        tuesday: { open: this.tuesdayOpen, close: this.tuesdayClose },
-        wednesday: { open: this.wednesdayOpen, close: this.wednesdayClose },
-        thursday: { open: this.thursdayOpen, close: this.thursdayClose },
-        friday: { open: this.fridayOpen, close: this.fridayClose },
-        saturday: { open: this.saturdayOpen, close: this.saturdayClose },
-        sunday: { open: this.sundayOpen, close: this.sundayClose }
-      },
-      payments: {
-        cash: this.acceptCash,
-        card: this.acceptCard,
-        pix: this.acceptPix,
-        voucher: this.acceptVoucher
-      },
-      delivery: {
-        enabled: this.deliveryEnabled,
-        radius: this.deliveryRadius,
-        fee: this.deliveryFee,
-        minOrder: this.minOrderValue
+      error: (error) => {
+        console.error('Falha ao atualizar a loja:', error);
+        // Adicionar um toast/alerta de erro para o usuário
       }
     });
   }
@@ -334,5 +331,64 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
     this.map.setView([lat, lon], 15);
     this.marker.setLatLng([lat, lon]);
     setTimeout(() => this.map.invalidateSize(), 10);
+  }
+
+  // Métodos para upload do logo
+  triggerLogoInput(): void {
+    this.logoFileInput.nativeElement.click();
+  }
+
+  onLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      console.log('📁 Arquivo de logo selecionado:', file.name);
+
+      // Feedback visual imediato
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        this.logo_url = e.target?.result as string;
+        console.log('👁️ Preview do logo carregado');
+      };
+      reader.readAsDataURL(file);
+
+      this.uploadLogo(file);
+    }
+  }
+
+  uploadLogo(file: File): void {
+    const selectedStore = this.localStorageService.getData<Store>(this.STORE_KEY);
+    if (!selectedStore) {
+      console.error('Nenhuma loja selecionada para o upload.');
+      this.revertLogoPreview();
+      return;
+    }
+
+    // Usando o ImageUploadService que já funciona para o avatar do usuário.
+    // Assumindo que ele tem um método genérico ou que podemos adaptar.
+    // Se o método for específico como `uploadAvatar`, podemos precisar de um
+    // método mais genérico como `uploadStoreImage` nele.
+    // Vou assumir que o `ImageUploadService` tem um método `uploadStoreLogo`.
+    // Se não tiver, precisaremos criá-lo com base no `uploadAvatar`.
+    this.imageUploadService.uploadStoreLogo(selectedStore.id_code, file).then(result => {
+      if (result.success && result.filePath) {
+        console.log('✅ Upload do logo bem-sucedido, novo caminho:', result.filePath);
+        this.logo_url = result.filePath;
+        this.originalLogoUrl = result.filePath;
+        // Opcional: Salvar a nova URL no banco de dados imediatamente
+        this.configService.updateStore(selectedStore.id_code, { logo_url: result.filePath }).subscribe();
+      } else {
+        console.error('❌ Erro no upload retornado pela API:', result.error);
+        this.revertLogoPreview();
+      }
+    }).catch(error => {
+      console.error('💥 Erro inesperado no upload do logo:', error);
+      this.revertLogoPreview();
+    });
+  }
+
+  private revertLogoPreview(): void {
+    this.logo_url = this.originalLogoUrl;
+    console.log('🔄 Preview do logo revertido para a imagem original.');
   }
 }

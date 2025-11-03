@@ -26,6 +26,7 @@ export interface StoreDetails {
   website: string;
   latitude: number;
   longitude: number;
+  description?: string;
 }
 
 @Injectable({
@@ -45,6 +46,18 @@ export class ConfigService {
       catchError(error => {
         console.error('Erro ao buscar detalhes da loja:', error);
         return throwError(() => new Error('Não foi possível carregar os dados da loja.'));
+      })
+    );
+  }
+
+  updateStore(storeId: string, storeData: Partial<StoreDetails>): Observable<any> {
+    const token = this.authService.getAuthToken();
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.put(`${this.API_BASE_URL}/stores/${storeId}`, storeData, { headers }).pipe(
+      catchError(error => {
+        console.error('Erro ao atualizar dados da loja:', error);
+        return throwError(() => new Error('Não foi possível atualizar os dados da loja.'));
       })
     );
   }
