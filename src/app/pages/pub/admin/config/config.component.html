@@ -1,6 +1,20 @@
 <div class="rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-white/[0.03]">
+  <!-- Banner e Logo -->
+  <div class="relative h-35 md:h-45 rounded-t-2xl bg-gray-200 dark:bg-gray-800">
+    <img [src]="banner_url || '/images/placeholder/banner-placeholder.jpg'" alt="Banner" class="w-full h-full object-cover rounded-t-2xl">
+    <div class="absolute bottom-0 left-6 transform translate-y-1/2">
+      <div class="relative h-20 w-20 rounded-full border-4 border-white dark:border-gray-900 md:h-25 md:w-25">
+        <img [src]="logo_url || '/images/placeholder/logo-placeholder.png'" alt="Logo" class="w-full h-full object-cover rounded-full">
+        <button class="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 6H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+
   <!-- Nav Tabs -->
-  <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+  <div class="border-b border-gray-200 px-6 pt-12 pb-4 dark:border-gray-800">
     <nav class="flex space-x-8">
       <button 
         (click)="setActiveTab('establishment')"
@@ -45,35 +59,55 @@
       
       <div class="mb-4.5">
         <app-label>Nome do Estabelecimento <span class="text-error-500">*</span></app-label>
-        <app-input-field 
-          name="establishmentName"
-          placeholder="Digite o nome do estabelecimento">
-        </app-input-field>
+        <input type="text" [(ngModel)]="establishmentName" name="establishmentName" placeholder="Digite o nome do estabelecimento"
+               class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
       </div>
 
-      <div class="mb-4.5">
-        <app-label>Capacidade <span class="text-error-500">*</span></app-label>
-        <app-input-field 
-          name="capacity"
-          placeholder="Ex: 50 pessoas">
-        </app-input-field>
-      </div>
-
-      <div class="mb-4.5">
-        <app-label>Tipo de Estabelecimento <span class="text-error-500">*</span></app-label>
-        <app-select 
-          [options]="establishmentTypes"
-          name="establishmentType">
-        </app-select>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 mb-4.5">
+        <div>
+          <app-label>Capacidade <span class="text-error-500">*</span></app-label>
+          <input type="number" [(ngModel)]="capacity" name="capacity" placeholder="Ex: 50 pessoas"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+  
+        <div>
+          <app-label>Tipo de Estabelecimento <span class="text-error-500">*</span></app-label>
+          <select [(ngModel)]="establishmentType" name="establishmentType"
+                  class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary appearance-none">
+            <option *ngFor="let type of establishmentTypes" [value]="type.value">{{ type.label }}</option>
+          </select>
+        </div>
       </div>
 
       <div class="mb-6">
         <app-label>Descrição</app-label>
-        <app-text-area 
-          name="establishmentDescription"
-          placeholder="Descreva seu estabelecimento">
-        </app-text-area>
+        <textarea rows="4" [(ngModel)]="establishmentDescription" name="establishmentDescription" placeholder="Descreva seu estabelecimento"
+          class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"></textarea>
       </div>
+
+      <h4 class="text-lg font-medium text-gray-800 dark:text-white mb-4">
+        Redes Sociais
+      </h4>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-6">
+        <div>
+          <app-label>Facebook</app-label>
+          <input type="text" [(ngModel)]="facebook_handle" name="facebook_handle" placeholder="Ex: bardofranca"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+  
+        <div>
+          <app-label>Instagram</app-label>
+          <input type="text" [(ngModel)]="instagram_handle" name="instagram_handle" placeholder="Ex: @francabar"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+
+        <div>
+          <app-label>Site</app-label>
+          <input type="text" [(ngModel)]="website" name="website" placeholder="Ex: https://bardofranca.com.br"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+      </div>
+
     </div>
 
     <!-- Dados da Empresa Tab -->
@@ -84,42 +118,34 @@
       
       <div class="mb-4.5">
         <app-label>Razão Social <span class="text-error-500">*</span></app-label>
-        <app-input-field 
-          name="companyName"
-          placeholder="Digite a razão social">
-        </app-input-field>
+        <input type="text" [(ngModel)]="companyName" name="companyName" placeholder="Digite a razão social"
+          class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
       </div>
 
-      <div class="mb-4.5">
-        <app-label>CNPJ <span class="text-error-500">*</span></app-label>
-        <app-input-field 
-          name="cnpj"
-          placeholder="00.000.000/0000-00">
-        </app-input-field>
-      </div>
-
-      <div class="mb-4.5">
-        <app-label>Telefone <span class="text-error-500">*</span></app-label>
-        <app-input-field 
-          name="phone"
-          placeholder="(00) 00000-0000">
-        </app-input-field>
-      </div>
-
-      <div class="mb-4.5">
-        <app-label>E-mail <span class="text-error-500">*</span></app-label>
-        <app-input-field 
-          name="email"
-          placeholder="contato@empresa.com">
-        </app-input-field>
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-3 mb-4.5">
+        <div>
+          <app-label>CNPJ <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="cnpj" name="cnpj" placeholder="00.000.000/0000-00"
+            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+  
+        <div>
+          <app-label>Telefone <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="phone" name="phone" placeholder="(00) 00000-0000"
+            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+  
+        <div>
+          <app-label>E-mail <span class="text-error-500">*</span></app-label>
+          <input type="email" [(ngModel)]="email" name="email" placeholder="contato@empresa.com"
+            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
       </div>
 
       <div class="mb-6">
         <app-label>Endereço <span class="text-error-500">*</span></app-label>
-        <app-text-area 
-          name="address"
-          placeholder="Digite o endereço completo">
-        </app-text-area>
+        <textarea rows="4" [(ngModel)]="address" name="address" placeholder="Digite o endereço completo"
+          class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"></textarea>
       </div>
     </div>
 
@@ -143,23 +169,19 @@
           </div>
           <div [class.opacity-50]="!mondayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="mondayOpen"
-              name="mondayOpen"
-              (valueChange)="mondayOpen = $event.toString()"
+              [(ngModel)]="mondayOpen" name="mondayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!mondayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!mondayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="mondayClose"
-              name="mondayClose"
-              (valueChange)="mondayClose = $event.toString()"
+              [(ngModel)]="mondayClose" name="mondayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!mondayEnabled">
-            </app-input-field>
           </div>
         </div>
 
@@ -176,23 +198,19 @@
           </div>
           <div [class.opacity-50]="!tuesdayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="tuesdayOpen"
-              name="tuesdayOpen"
-              (valueChange)="tuesdayOpen = $event.toString()"
+              [(ngModel)]="tuesdayOpen" name="tuesdayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!tuesdayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!tuesdayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
-              type="time" 
-              [value]="tuesdayClose"
-              name="tuesdayClose"
-              (valueChange)="tuesdayClose = $event.toString()"
+            <input 
+              type="time"               
+              [(ngModel)]="tuesdayClose" name="tuesdayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!tuesdayEnabled">
-            </app-input-field>
           </div>
         </div>
 
@@ -209,23 +227,19 @@
           </div>
           <div [class.opacity-50]="!wednesdayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="wednesdayOpen"
-              name="wednesdayOpen"
-              (valueChange)="wednesdayOpen = $event.toString()"
+              [(ngModel)]="wednesdayOpen" name="wednesdayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!wednesdayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!wednesdayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
-              type="time" 
-              [value]="wednesdayClose"
-              name="wednesdayClose"
-              (valueChange)="wednesdayClose = $event.toString()"
+            <input 
+              type="time"               
+              [(ngModel)]="wednesdayClose" name="wednesdayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!wednesdayEnabled">
-            </app-input-field>
           </div>
         </div>
 
@@ -242,23 +256,19 @@
           </div>
           <div [class.opacity-50]="!thursdayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="thursdayOpen"
-              name="thursdayOpen"
-              (valueChange)="thursdayOpen = $event.toString()"
+              [(ngModel)]="thursdayOpen" name="thursdayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!thursdayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!thursdayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
-              type="time" 
-              [value]="thursdayClose"
-              name="thursdayClose"
-              (valueChange)="thursdayClose = $event.toString()"
+            <input 
+              type="time"               
+              [(ngModel)]="thursdayClose" name="thursdayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!thursdayEnabled">
-            </app-input-field>
           </div>
         </div>
 
@@ -275,23 +285,19 @@
           </div>
           <div [class.opacity-50]="!fridayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="fridayOpen"
-              name="fridayOpen"
-              (valueChange)="fridayOpen = $event.toString()"
+              [(ngModel)]="fridayOpen" name="fridayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!fridayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!fridayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
-              type="time" 
-              [value]="fridayClose"
-              name="fridayClose"
-              (valueChange)="fridayClose = $event.toString()"
+            <input 
+              type="time"               
+              [(ngModel)]="fridayClose" name="fridayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!fridayEnabled">
-            </app-input-field>
           </div>
         </div>
 
@@ -308,23 +314,19 @@
           </div>
           <div [class.opacity-50]="!saturdayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="saturdayOpen"
-              name="saturdayOpen"
-              (valueChange)="saturdayOpen = $event.toString()"
+              [(ngModel)]="saturdayOpen" name="saturdayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!saturdayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!saturdayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
-              type="time" 
-              [value]="saturdayClose"
-              name="saturdayClose"
-              (valueChange)="saturdayClose = $event.toString()"
+            <input 
+              type="time"               
+              [(ngModel)]="saturdayClose" name="saturdayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!saturdayEnabled">
-            </app-input-field>
           </div>
         </div>
 
@@ -341,23 +343,19 @@
           </div>
           <div [class.opacity-50]="!sundayEnabled">
             <app-label>Abertura</app-label>
-            <app-input-field 
+            <input 
               type="time" 
-              [value]="sundayOpen"
-              name="sundayOpen"
-              (valueChange)="sundayOpen = $event.toString()"
+              [(ngModel)]="sundayOpen" name="sundayOpen"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!sundayEnabled">
-            </app-input-field>
           </div>
           <div [class.opacity-50]="!sundayEnabled">
             <app-label>Fechamento</app-label>
-            <app-input-field 
-              type="time" 
-              [value]="sundayClose"
-              name="sundayClose"
-              (valueChange)="sundayClose = $event.toString()"
+            <input 
+              type="time"               
+              [(ngModel)]="sundayClose" name="sundayClose"              
+              class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"
               [disabled]="!sundayEnabled">
-            </app-input-field>
           </div>
         </div>
       </div>
@@ -415,32 +413,26 @@
       <div *ngIf="deliveryEnabled" class="space-y-4">
         <div class="mb-4.5">
           <app-label>Raio de Entrega (km)</app-label>
-          <app-input-field 
+          <input type="number"
             placeholder="Digite o raio de entrega"
-            name="deliveryRadius"
-            [value]="deliveryRadius"
-            (valueChange)="deliveryRadius = $event.toString()">
-          </app-input-field>
+            name="deliveryRadius" [(ngModel)]="deliveryRadius"
+            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
         </div>
 
         <div class="mb-4.5">
           <app-label>Taxa de Entrega (R$)</app-label>
-          <app-input-field 
+          <input type="number"
             placeholder="Digite a taxa de entrega"
-            name="deliveryFee"
-            [value]="deliveryFee"
-            (valueChange)="deliveryFee = $event.toString()">
-          </app-input-field>
+            name="deliveryFee" [(ngModel)]="deliveryFee"
+            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
         </div>
 
         <div class="mb-4.5">
           <app-label>Valor Mínimo do Pedido (R$)</app-label>
-          <app-input-field 
+          <input type="number"
             placeholder="Digite o valor mínimo"
-            name="minOrderValue"
-            [value]="minOrderValue"
-            (valueChange)="minOrderValue = $event.toString()">
-          </app-input-field>
+            name="minOrderValue" [(ngModel)]="minOrderValue"
+            class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
         </div>
       </div>
     </div>

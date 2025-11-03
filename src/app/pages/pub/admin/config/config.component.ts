@@ -19,10 +19,7 @@ import { Store } from '../home-admin/store.service';
   imports: [
     CommonModule,
     FormsModule,
-    LabelComponent,
-    InputFieldComponent,
-    SelectComponent,
-    TextAreaComponent,
+    LabelComponent, // Mantendo os labels
     ButtonComponent,
     CheckboxComponent,
     SwitchComponent,
@@ -42,6 +39,11 @@ export class ConfigComponent implements OnInit {
   establishmentName: string = '';
   capacity: string = '';
   establishmentType: string = '';
+  banner_url: string = '';
+  logo_url: string = '';
+  facebook_handle: string = '';
+  instagram_handle: string = '';
+  website: string = '';
   establishmentDescription: string = '';
   establishmentTypes = [
     { value: 'bar', label: 'Bar' },
@@ -115,7 +117,7 @@ export class ConfigComponent implements OnInit {
     this.configService.getStoreById(selectedStore.id_code).subscribe({
       next: (storeDetails: StoreDetails) => {
         console.log('Dados da loja recebidos da API:', storeDetails);
-        // this.populateForm(storeDetails); // Desabilitado para depuração
+        this.populateForm(storeDetails);
         this.isLoading = false;
       },
       error: (err: HttpErrorResponse) => {
@@ -130,7 +132,12 @@ export class ConfigComponent implements OnInit {
     this.establishmentName = data.name || '';
     this.capacity = data.capacity?.toString() || '';
     this.establishmentType = data.type || '';
-    // this.establishmentDescription = data.description; // Adicionar 'description' na interface se necessário
+    this.banner_url = data.banner_url || '';
+    this.logo_url = data.logo_url || '';
+    this.facebook_handle = data.facebook_handle || '';
+    this.instagram_handle = data.instagram_handle || '';
+    this.website = data.website || '';
+    // this.establishmentDescription = data.establishmentDescription || '';
 
     // Aba: Dados da Empresa
     this.companyName = data.legal_name || '';
@@ -154,7 +161,11 @@ export class ConfigComponent implements OnInit {
         name: this.establishmentName,
         capacity: this.capacity,
         type: this.establishmentType,
-        description: this.establishmentDescription
+        description: this.establishmentDescription,
+        facebook: this.facebook_handle,
+        instagram: this.instagram_handle,
+        website: this.website,
+
       },
       company: {
         name: this.companyName,
