@@ -159,7 +159,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 mb-4.5">
         <div class="sm:col-span-2">
           <app-label>Número <span class="text-error-500">*</span></app-label>
-          <input type="text" [(ngModel)]="address_number" name="address_number" placeholder="Ex: 123"
+          <input type="text" [(ngModel)]="address_number" name="address_number" (ngModelChange)="onAddressNumberChange()" placeholder="Ex: 123"
                  class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
         </div>
         <div class="sm:col-span-4">
@@ -187,12 +187,6 @@
         </div>
       </div>
 
-      <div class="mb-4.5">
-        <app-button variant="primary" (btnClick)="geocodeAddress()">
-          Buscar Coordenadas pelo Endereço
-        </app-button>
-      </div>
-
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div>
           <app-label>Latitude</app-label>
@@ -205,6 +199,11 @@
                  class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active-border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
         </div>
       </div>
+
+      <!-- Mapa -->
+      <div id="map" class="h-64 w-full rounded-lg mt-4">
+      </div>
+
     </div>
 
     <!-- Horários Tab -->

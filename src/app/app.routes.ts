@@ -99,6 +99,7 @@ import { TablesComponent as AdminTablesComponent } from './pages/pub/admin/table
 import { EventListAdminComponent } from './pages/events/event-list-admin/event-list-admin.component';
 import { EventViewComponent } from './pages/events/event-view/event-view.component';
 
+import { MapTestComponent } from './pages/pub/admin/config/map-test.component';
 // Import guards
 import { AuthGuard } from './shared/guards/auth.guard';
 import { RoleGuard } from './shared/guards/role.guard';
@@ -549,6 +550,11 @@ export const routes: Routes = [
         path: 'events/event-view',
         component: EventViewComponent,
       },
+  {
+    path: 'map-test',
+    component: MapTestComponent,
+    title: 'Mapa de Teste',
+  },
     ]
   },
   {
