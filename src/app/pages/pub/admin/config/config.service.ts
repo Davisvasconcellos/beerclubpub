@@ -18,6 +18,7 @@ export interface StoreDetails {
   zip_code?: string;
   address_street?: string;
   address_neighborhood?: string;
+  address_city?: string;
   address_state?: string;
   address_number?: string;
   address_complement?: string;

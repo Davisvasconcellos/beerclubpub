@@ -142,10 +142,49 @@
         </div>
       </div>
 
-      <div class="mb-6">
-        <app-label>Endereço <span class="text-error-500">*</span></app-label>
-        <textarea rows="4" [(ngModel)]="address" name="address" placeholder="Digite o endereço completo"
-          class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary"></textarea>
+      <!-- Address Fields -->
+      <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 mb-4.5">
+        <div class="sm:col-span-2">
+          <app-label>CEP <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="zip_code" name="zip_code" (blur)="onCepBlur()" placeholder="00000-000"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+        <div class="sm:col-span-4">
+          <app-label>Logradouro <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="address_street" name="address_street" placeholder="Rua, Avenida, etc." [disabled]="true"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-6 gap-4 mb-4.5">
+        <div class="sm:col-span-2">
+          <app-label>Número <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="address_number" name="address_number" placeholder="Ex: 123"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+        <div class="sm:col-span-4">
+          <app-label>Complemento</app-label>
+          <input type="text" [(ngModel)]="address_complement" name="address_complement" placeholder="Apto, Bloco, etc."
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div>
+          <app-label>Bairro <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="address_neighborhood" name="address_neighborhood" placeholder="Bairro" [disabled]="true"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+        <div>
+          <app-label>Cidade <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="address_city" name="address_city" placeholder="Cidade" [disabled]="true"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
+        <div>
+          <app-label>Estado <span class="text-error-500">*</span></app-label>
+          <input type="text" [(ngModel)]="address_state" name="address_state" placeholder="UF" [disabled]="true"
+                 class="w-full rounded-lg border-[1.5px] border-gray-300 bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-gray-200 dark:border-gray-800 dark:bg-gray-800 dark:text-white dark:focus:border-primary">
+        </div>
       </div>
     </div>
 

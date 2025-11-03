@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClientModule, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpClientModule, HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { LabelComponent } from '../../../../shared/components/form/label/label.component';
 import { InputFieldComponent } from '../../../../shared/components/form/input/input-field.component';
@@ -58,7 +58,13 @@ export class ConfigComponent implements OnInit {
   cnpj: string = '';
   phone: string = '';
   email: string = '';
-  address: string = '';
+  zip_code: string = '';
+  address_street: string = '';
+  address_number: string = '';
+  address_complement: string = '';
+  address_neighborhood: string = '';
+  address_city: string = '';
+  address_state: string = '';
 
   // Horários de funcionamento
   mondayOpen: string = '';
@@ -97,6 +103,7 @@ export class ConfigComponent implements OnInit {
 
   private configService = inject(ConfigService);
   private localStorageService = inject(LocalStorageService);
+  private http = inject(HttpClient);
 
   ngOnInit(): void {
     this.loadStoreDetails();
@@ -144,7 +151,13 @@ export class ConfigComponent implements OnInit {
     this.cnpj = data.cnpj || '';
     this.phone = data.phone || '';
     this.email = data.email || '';
-    this.address = `${data.address_street || ''}, ${data.address_number || ''} - ${data.address_neighborhood || ''}, ${data.address_state || ''}`;
+    this.zip_code = data.zip_code || '';
+    this.address_street = data.address_street || '';
+    this.address_number = data.address_number || '';
+    this.address_complement = data.address_complement || '';
+    this.address_neighborhood = data.address_neighborhood || '';
+    this.address_city = data.address_city || '';
+    this.address_state = data.address_state || '';
 
     // Outras abas podem ser populadas aqui (horários, pagamentos, delivery)
   }
@@ -172,7 +185,13 @@ export class ConfigComponent implements OnInit {
         cnpj: this.cnpj,
         phone: this.phone,
         email: this.email,
-        address: this.address
+        zip_code: this.zip_code,
+        address_street: this.address_street,
+        address_number: this.address_number,
+        address_complement: this.address_complement,
+        address_neighborhood: this.address_neighborhood,
+        address_city: this.address_city,
+        address_state: this.address_state
       },
       hours: {
         monday: { open: this.mondayOpen, close: this.mondayClose },
@@ -201,5 +220,29 @@ export class ConfigComponent implements OnInit {
   onCancel(): void {
     // Cancel changes
     console.log('Cancelling changes...');
+  }
+
+  onCepBlur(): void {
+    const cep = this.zip_code.replace(/\D/g, '');
+
+    if (cep.length !== 8) {
+      return;
+    }
+
+    this.http.get(`https://viacep.com.br/ws/${cep}/json/`).subscribe((data: any) => {
+      if (data.erro) {
+        console.error('CEP não encontrado');
+        // Limpar campos ou mostrar erro
+        return;
+      }
+      this.address_street = data.logradouro;
+      this.address_neighborhood = data.bairro;
+      this.address_city = data.localidade;
+      this.address_state = data.uf;
+      // Opcional: focar no campo de número após a busca
+      // document.querySelector('[name="address_number"]')?.focus();
+    }, error => {
+      console.error('Erro ao buscar CEP', error);
+    });
   }
 }
