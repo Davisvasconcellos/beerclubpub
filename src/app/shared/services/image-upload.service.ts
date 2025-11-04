@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
 
 export interface ImageProcessingOptions {
@@ -35,52 +35,39 @@ export class ImageUploadService {
   ) {}
 
   /**
-   * Processa e faz upload de uma imagem de avatar
+   * Método genérico para processar e fazer upload de uma imagem.
+   * @param file O arquivo de imagem a ser enviado.
+   * @param type O tipo de imagem (ex: 'user-avatar', 'store-logo', 'store-banner').
+   * @param entityId O ID da entidade à qual a imagem pertence (usuário, loja, etc.).
+   * @param options Opções de processamento da imagem.
    */
-  async uploadAvatar(file: File): Promise<UploadResult> {
+  async uploadImage(
+    file: File,
+    type: string,
+    entityId: string,
+    options?: ImageProcessingOptions
+  ): Promise<UploadResult> {
     try {
-      console.log('🚀 Iniciando upload do avatar:', file.name);
+      console.log(`🚀 Iniciando upload do tipo "${type}":`, file.name);
       
       // Validar arquivo
       const validation = this.validateFile(file);
       if (!validation.valid) {
         return { success: false, error: validation.error };
       }
-
-      // Obter dados do usuário
-      const user = this.authService.getCurrentUser();
-      if (!user || !user.id_code) {
-        return { success: false, error: 'Usuário não encontrado' };
-      }
-
+      
+      const processingOptions = { ...this.defaultOptions, ...options };
+      
       // Processar imagem
-      const processedBlob = await this.processImage(file, this.defaultOptions);
+      const processedBlob = await this.processImage(file, processingOptions);
       
-      // Gerar nome do arquivo
-      const fileName = this.generateFileName(user.id_code, this.defaultOptions.format!);
+      // Fazer upload para o servidor
+      const result = await this._uploadToServer(processedBlob, file.name, type, entityId);
       
-      // Remover avatar antigo se existir
-      if (user.avatar_url) {
-        await this.removeOldAvatar(user.avatar_url);
-      }
-
-      // Salvar arquivo localmente
-      const filePath = await this.saveToLocal(processedBlob, fileName);
+      console.log('✅ Upload concluído com sucesso:', result.fileName);
+      console.log('📁 Arquivo salvo em:', result.filePath);
       
-      // Atualizar avatar do usuário via API com a URL completa
-      const updateResult = await this.updateUserAvatar(filePath);
-      if (!updateResult.success) {
-        console.warn('⚠️ Aviso: Arquivo salvo mas API não foi atualizada:', updateResult.error);
-      }
-      
-      console.log('✅ Upload concluído com sucesso:', fileName);
-      console.log('📁 Arquivo salvo em:', filePath);
-      
-      return {
-        success: true,
-        fileName: fileName,
-        filePath
-      };
+      return result;
 
     } catch (error) {
       console.error('❌ Erro no upload:', error);
@@ -89,6 +76,30 @@ export class ImageUploadService {
         error: error instanceof Error ? error.message : 'Erro desconhecido' 
       };
     }
+  }
+
+  /**
+   * Processa e faz upload de uma imagem de avatar (mantido para compatibilidade).
+   */
+  async uploadAvatar(file: File): Promise<UploadResult> {
+    const user = this.authService.getCurrentUser();
+    if (!user || !user.id_code) {
+      return { success: false, error: 'Usuário não encontrado' };
+    }
+
+    // Remover avatar antigo se existir
+    if (user.avatar_url) {
+      await this.removeOldAvatar(user.avatar_url);
+    }
+
+    // Chama o método genérico
+    const result = await this.uploadImage(file, 'user-avatar', user.id_code, this.defaultOptions);
+
+    if (result.success && result.filePath) {
+      // Atualiza o avatar do usuário na API principal
+      await this.updateUserAvatar(result.filePath);
+    }
+    return result;
   }
 
   /**
@@ -192,33 +203,30 @@ export class ImageUploadService {
   }
 
   /**
-   * Gera nome único para o arquivo
+   * Envia o arquivo processado para o servidor de utilidades.
    */
-  private generateFileName(idCode: string, format: string): string {
-    const timestamp = Date.now();
-    return `${idCode}_${timestamp}.${format}`;
-  }
-
-  /**
-   * Salva arquivo na pasta local
-   */
-  private async saveToLocal(blob: Blob, fileName: string): Promise<string> {
+  private async _uploadToServer(
+    blob: Blob,
+    fileName: string,
+    type: string,
+    entityId: string
+  ): Promise<UploadResult> {
     try {
       // Criar FormData para enviar o arquivo
       const formData = new FormData();
       const file = new File([blob], fileName, { type: blob.type });
-      formData.append('avatar', file);
+      formData.append('image', file); // Campo genérico 'image'
+      formData.append('type', type);
+      formData.append('entityId', entityId);
 
-      console.log('📤 Enviando arquivo para servidor local:', fileName);
+      console.log(`📤 Enviando arquivo para o servidor (tipo: ${type}):`, fileName);
 
-      // Fazer upload para o servidor utilitário
-      const response = await this.http.post<any>(`${this.utilityServerUrl}/upload-avatar`, formData).toPromise();
+      const response = await this.http.post<any>(`${this.utilityServerUrl}/upload/image`, formData).toPromise();
 
       if (response.success) {
-        console.log('✅ Arquivo salvo com sucesso no servidor:', response.url);
-        return response.url;
+        return { success: true, fileName: response.filename, filePath: response.url };
       } else {
-        throw new Error(response.message || 'Erro no upload');
+        return { success: false, error: response.message || 'Erro no upload' };
       }
 
     } catch (error) {
@@ -264,7 +272,7 @@ export class ImageUploadService {
       
       const result = await this.authService.updateUser({ avatar_url: avatarUrl }).toPromise();
       
-      if (result) {
+      if (result?.success) {
         console.log('✅ API atualizada com sucesso');
         return { success: true };
       } else {
@@ -276,6 +284,36 @@ export class ImageUploadService {
         success: false, 
         error: error instanceof Error ? error.message : 'Erro na API' 
       };
+    }
+  }
+
+  /**
+   * Atualiza o logo da loja via API
+   */
+  private async updateStoreLogo(storeId: string, filePath: string): Promise<{ success: boolean; error?: string }> {
+    try {
+      console.log('🔄 Atualizando logo da loja via API:', filePath);
+      
+      // O endpoint de atualização da loja já existe no ConfigService, mas para manter
+      // a lógica de upload encapsulada, replicamos a chamada aqui.
+      // Adicionar o token de autenticação à requisição
+      const token = this.authService.getAuthToken();
+      let headers = new HttpHeaders();
+      if (token) {
+        headers = headers.set('Authorization', `Bearer ${token}`);
+      }
+
+      const result = await this.http.put<any>(`http://localhost:4000/api/v1/stores/${storeId}`, { logo_url: filePath }, { headers, responseType: 'json' }).toPromise();
+      
+      if (result?.success) {
+        console.log('✅ API da loja atualizada com sucesso');
+        return { success: true };
+      } else {
+        return { success: false, error: 'Resposta inválida da API da loja' };
+      }
+    } catch (error) {
+      console.error('❌ Erro na API da loja:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Erro na API da loja' };
     }
   }
 

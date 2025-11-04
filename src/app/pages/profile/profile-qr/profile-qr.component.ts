@@ -231,7 +231,7 @@ export class ProfileQrComponent implements OnInit {
       
       if (result.success) {
         // Setar preview para a URL retornada imediatamente
-        this.avatarPreview = result.filePath ?? null;
+        this.avatarPreview = result.filePath || null;
         
         // Recarregar dados do usuário para atualizar o avatar
         this.loadUserData();

@@ -40,6 +40,7 @@ app.use('/images', express.static(path.join(__dirname, 'public/images'), {
 const DIRECTORIES = {
   images: path.join(__dirname, 'public', 'images'),
   user: path.join(__dirname, 'public', 'images', 'user'),
+  stores: path.join(__dirname, 'public', 'images', 'stores'),
   temp: path.join(__dirname, 'temp'),
   cache: path.join(__dirname, 'cache')
 };
@@ -57,22 +58,10 @@ console.log('📁 Diretórios configurados:', DIRECTORIES);
 // MÓDULO: UPLOAD DE IMAGENS
 // ============================================
 
-// Configurar o multer para salvar arquivos
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, DIRECTORIES.user);
-  },
-  filename: function (req, file, cb) {
-    // Gerar nome único para o arquivo
-    const timestamp = Date.now();
-    const randomNum = Math.floor(Math.random() * 1000);
-    const extension = path.extname(file.originalname);
-    const filename = `user-${timestamp}-${randomNum}${extension}`;
-    cb(null, filename);
-  }
-});
+// Usar armazenamento em memória para ter acesso ao req.body antes de salvar
+const storage = multer.memoryStorage();
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   limits: {
     fileSize: 5 * 1024 * 1024 // 5MB limite
@@ -94,7 +83,7 @@ const upload = multer({
 // ============================================
 
 // Endpoint para upload de avatar
-app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
+const handleUpload = (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ 
@@ -103,11 +92,34 @@ app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
       });
     }
 
-    const fileUrl = `${req.protocol}://${req.get('host')}/images/user/${req.file.filename}`;
+    // Agora req.body está disponível e podemos determinar o destino e o nome do arquivo
+    const uploadType = req.body.type || 'user';
+    const { entityId } = req.body;
+
+    let destDir = DIRECTORIES.user;
+    let subfolder = 'user';
+
+    if (uploadType.startsWith('store-')) {
+      destDir = DIRECTORIES.stores;
+      subfolder = 'stores';
+    }
+
+    // Gerar nome de arquivo único
+    const timestamp = Date.now();
+    const randomNum = Math.floor(Math.random() * 1000);
+    const extension = path.extname(req.file.originalname);
+    const prefix = entityId ? `${uploadType}-${entityId}` : uploadType;
+    const filename = `${prefix}-${timestamp}-${randomNum}${extension}`.replace(/[^a-zA-Z0-9-.]/g, '-');
+
+    const finalPath = path.join(destDir, filename);
+    const fileUrl = `${req.protocol}://${req.get('host')}/images/${subfolder}/${filename}`;
+
+    // Salvar o buffer do arquivo no disco
+    fs.writeFileSync(finalPath, req.file.buffer);
     
     console.log('✅ Upload realizado com sucesso:', {
       originalName: req.file.originalname,
-      filename: req.file.filename,
+      filename: filename,
       size: req.file.size,
       url: fileUrl
     });
@@ -115,7 +127,7 @@ app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
     res.json({
       success: true,
       message: 'Upload realizado com sucesso!',
-      filename: req.file.filename,
+      filename: filename,
       url: fileUrl,
       size: req.file.size
     });
@@ -128,7 +140,13 @@ app.post('/upload-avatar', upload.single('avatar'), (req, res) => {
       error: error.message 
     });
   }
-});
+};
+
+// Novo endpoint genérico
+app.post('/upload/image', upload.single('image'), handleUpload);
+
+// Endpoint antigo para compatibilidade (redireciona internamente)
+app.post('/upload-avatar', upload.single('avatar'), handleUpload);
 
 // Endpoint para deletar avatar
 app.delete('/delete-avatar/:filename', (req, res) => {
@@ -251,7 +269,7 @@ app.listen(PORT, () => {
   console.log('');
   console.log('📋 Funcionalidades ativas:');
   console.log('   ✅ Upload de imagens (/upload-avatar)');
-  console.log('   ✅ Exclusão de imagens (/delete-avatar/:filename)');
+  console.log('   ✅ Upload genérico de imagens (/upload/image)');
   console.log('   ✅ Status do servidor (/status)');
   console.log('   ✅ Listagem de arquivos (/files/user)');
   console.log('');

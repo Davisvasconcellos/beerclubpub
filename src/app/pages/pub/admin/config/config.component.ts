@@ -13,6 +13,7 @@ import { ConfigService, StoreDetails } from './config.service'; // Certifique-se
 import { LocalStorageService } from '../../../../shared/services/local-storage.service';
 import { Store } from '../home-admin/store.service';
 import { ImageUploadService } from '../../../../shared/services/image-upload.service';
+import * as L from 'leaflet';
 
 // Corrige os caminhos dos ícones padrão do Leaflet
 const iconRetinaUrl = 'images/leaflet/marker-icon-2x.png';
@@ -364,19 +365,18 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    // Usando o ImageUploadService que já funciona para o avatar do usuário.
-    // Assumindo que ele tem um método genérico ou que podemos adaptar.
-    // Se o método for específico como `uploadAvatar`, podemos precisar de um
-    // método mais genérico como `uploadStoreImage` nele.
-    // Vou assumir que o `ImageUploadService` tem um método `uploadStoreLogo`.
-    // Se não tiver, precisaremos criá-lo com base no `uploadAvatar`.
-    this.imageUploadService.uploadStoreLogo(selectedStore.id_code, file).then(result => {
+    // Usando o novo método genérico do ImageUploadService
+    this.imageUploadService.uploadImage(file, 'store-logo', selectedStore.id_code, {
+      maxWidth: 300, // Exemplo de opções customizadas
+      maxHeight: 300,
+      quality: 0.9
+    }).then(result => {
       if (result.success && result.filePath) {
         console.log('✅ Upload do logo bem-sucedido, novo caminho:', result.filePath);
-        this.logo_url = result.filePath;
-        this.originalLogoUrl = result.filePath;
-        // Opcional: Salvar a nova URL no banco de dados imediatamente
-        this.configService.updateStore(selectedStore.id_code, { logo_url: result.filePath }).subscribe();
+        // A URL da imagem foi salva no banco pelo ImageUploadService.
+        // Agora, apenas recarregamos os detalhes da loja para atualizar a UI.
+        this.loadStoreDetails();
+
       } else {
         console.error('❌ Erro no upload retornado pela API:', result.error);
         this.revertLogoPreview();
