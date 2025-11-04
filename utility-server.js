@@ -18,7 +18,18 @@ console.log('🚀 Iniciando Frontend Utility Server...');
 
 // Configurar CORS para permitir requisições do Angular
 app.use(cors({
-  origin: 'http://localhost:4200',
+  origin: (origin, callback) => {
+    const allowed = [
+      'http://localhost:4200',
+      'http://localhost:4300'
+    ];
+    // Permitir chamadas sem origin (ex.: ferramentas locais) e as portas permitidas
+    if (!origin || allowed.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
@@ -104,12 +115,10 @@ const handleUpload = (req, res) => {
       subfolder = 'stores';
     }
 
-    // Gerar nome de arquivo único
-    const timestamp = Date.now();
-    const randomNum = Math.floor(Math.random() * 1000);
-    const extension = path.extname(req.file.originalname);
-    const prefix = entityId ? `${uploadType}-${entityId}` : uploadType;
-    const filename = `${prefix}-${timestamp}-${randomNum}${extension}`.replace(/[^a-zA-Z0-9-.]/g, '-');
+    // Gerar nome de arquivo simples: (user|store)-timestamp.ext
+    const extension = path.extname(req.file.originalname).toLowerCase();
+    const baseType = subfolder === 'stores' ? 'store' : 'user';
+    const filename = `${baseType}-${Date.now()}${extension}`;
 
     const finalPath = path.join(destDir, filename);
     const fileUrl = `${req.protocol}://${req.get('host')}/images/${subfolder}/${filename}`;

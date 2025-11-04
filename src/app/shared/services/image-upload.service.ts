@@ -67,6 +67,29 @@ export class ImageUploadService {
       console.log('✅ Upload concluído com sucesso:', result.fileName);
       console.log('📁 Arquivo salvo em:', result.filePath);
       
+      // Após upload, atualizar a entidade correspondente na API, quando aplicável
+      if (result.success && result.filePath) {
+        // Atualiza avatar se for o tipo correspondente (suporta quem usa uploadImage diretamente)
+        if (type === 'user-avatar') {
+          await this.updateUserAvatar(result.filePath);
+        }
+
+        // Atualiza logo da store quando o tipo for 'store-logo'
+        if (type === 'store-logo') {
+          if (!entityId) {
+            console.warn('⚠️ Nenhum storeId fornecido para atualização do logo. Pulei a atualização da API.');
+          } else {
+            const update = await this.updateStoreLogo(entityId, result.filePath);
+            if (!update.success) {
+              console.error('❌ Falha ao atualizar logo da loja na API:', update.error);
+              // Mantém o resultado do upload, mas sinaliza erro de atualização (opcional)
+            } else {
+              console.log('🟢 Logo da loja atualizado na API com sucesso.');
+            }
+          }
+        }
+      }
+
       return result;
 
     } catch (error) {
@@ -292,7 +315,11 @@ export class ImageUploadService {
    */
   private async updateStoreLogo(storeId: string, filePath: string): Promise<{ success: boolean; error?: string }> {
     try {
-      console.log('🔄 Atualizando logo da loja via API:', filePath);
+      console.log('🔄 Atualizando logo da loja via API (URL completa):', filePath);
+
+      // Agora armazenamos a URL completa servida pelo servidor utilitário
+      const logoUrl = filePath;
+      console.log('📦 Payload de atualização do logo (full URL):', { storeId, logo_url: logoUrl });
       
       // O endpoint de atualização da loja já existe no ConfigService, mas para manter
       // a lógica de upload encapsulada, replicamos a chamada aqui.
@@ -303,7 +330,7 @@ export class ImageUploadService {
         headers = headers.set('Authorization', `Bearer ${token}`);
       }
 
-      const result = await this.http.put<any>(`http://localhost:4000/api/v1/stores/${storeId}`, { logo_url: filePath }, { headers, responseType: 'json' }).toPromise();
+      const result = await this.http.put<any>(`http://localhost:4000/api/v1/stores/${storeId}`, { logo_url: logoUrl }, { headers, responseType: 'json' }).toPromise();
       
       if (result?.success) {
         console.log('✅ API da loja atualizada com sucesso');

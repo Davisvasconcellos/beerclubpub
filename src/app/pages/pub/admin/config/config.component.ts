@@ -391,4 +391,6 @@ export class ConfigComponent implements OnInit, AfterViewInit, OnDestroy {
     this.logo_url = this.originalLogoUrl;
     console.log('🔄 Preview do logo revertido para a imagem original.');
   }
+
+  // Sem helper: UI usa diretamente logo_url que agora é URL completa
 }

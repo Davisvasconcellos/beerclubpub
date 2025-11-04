@@ -63,4 +63,6 @@ export class HomeAdminComponent implements OnInit {
     this.localStorageService.saveData(this.STORE_KEY, store);
     this.closeStoreModal();
   }
+
+  // Sem helper: o template usa diretamente store.logo_url (URL completa)
 }
