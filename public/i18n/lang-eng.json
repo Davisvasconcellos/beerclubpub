@@ -1,0 +1,13 @@
+{
+  "header": {
+    "searchPlaceholder": "Search or type command...",
+    "notifications": "Notifications",
+    "language": "Language",
+    "pt": "Portuguese",
+    "en": "English"
+  },
+  "homeAdmin": {
+    "title": "Admin Dashboard",
+    "welcome": "Welcome"
+  }
+}

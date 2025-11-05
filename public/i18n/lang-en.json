@@ -1,0 +1,40 @@
+{
+  "header": {
+    "toggleSidebar": "Toggle sidebar",
+    "logoAlt": "Logo",
+    "languageSelector": "Select language",
+    "searchPlaceholder": "Search..."
+  },
+  "userDropdown": {
+    "accountSettings": "Account Settings",
+    "support": "Support",
+    "logout": "Logout",
+    "theme": {
+      "dark": "Dark Mode",
+      "light": "Light Mode"
+    }
+  },
+  "homeAdmin": {
+    "title": "Admin Dashboard",
+    "welcome": "Welcome"
+  },
+  "profileQr": {
+    "favoriteTeam": {
+      "title": "Favorite Team",
+      "sinceAlways": "Since forever!",
+      "badge": "Faithful Supporter",
+      "selectPrompt": "Select your Favorite Team",
+      "selectHint": "Click here to choose your favorite team",
+      "modalTitle": "Choose Your Team",
+      "loading": "Loading teams..."
+    },
+    "profileInfo": {
+      "title": "Profile Information"
+    },
+    "planLabel": "Plan",
+    "defaults": {
+      "userName": "User",
+      "teamPlaceholder": "Team"
+    }
+  }
+}

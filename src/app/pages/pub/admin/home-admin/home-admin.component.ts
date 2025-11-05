@@ -4,10 +4,11 @@ import { CommonModule } from '@angular/common';
 import { AuthService, User } from '../../../../shared/services/auth.service';
 import { Store, StoreService } from './store.service';
 import { LocalStorageService } from '../../../../shared/services/local-storage.service';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home-admin',
-  imports: [RouterModule, CommonModule],
+  imports: [RouterModule, CommonModule, TranslateModule],
   templateUrl: './home-admin.component.html',
   styleUrl: './home-admin.component.css'
 })

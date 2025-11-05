@@ -4,11 +4,13 @@ import { RouterModule, Router } from '@angular/router';
 import { ThemeService } from '../../../services/theme.service';
 import { AuthService, User } from '../../../services/auth.service';
 import { Subscription } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-user-dropdown',
   templateUrl: './user-dropdown.component.html',
-  imports:[CommonModule,RouterModule]
+  standalone: true,
+  imports:[CommonModule,RouterModule,TranslateModule]
 })
 export class UserDropdownComponent implements OnInit, OnDestroy {
   isOpen = false;
@@ -43,14 +45,13 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
   }
 
   subscribeToUserChanges(): void {
-    // Se inscrever no Observable do AuthService para receber atualizações automáticas
     this.userSubscription.add(
       this.authService.currentUser$.subscribe({
-        next: (user) => {
+        next: (user: User | null) => {
           this.user = user;
           console.log('🔄 Header avatar atualizado:', user?.avatar_url);
         },
-        error: (error) => {
+        error: (error: unknown) => {
           console.error('Erro ao receber atualização do usuário:', error);
         }
       })
@@ -58,19 +59,16 @@ export class UserDropdownComponent implements OnInit, OnDestroy {
   }
 
   loadUserData(): void {
-    // Primeiro, tenta obter o usuário do cache
     this.user = this.authService.getCurrentUser();
 
-    // Depois, busca dados atualizados da API
     this.authService.getUserMe().subscribe({
-      next: (response) => {
+      next: (response: any) => {
         if (response.success && response.data) {
-          this.user = response.data.user;
+          this.user = response.data.user as User;
         }
       },
-      error: (error) => {
+      error: (error: unknown) => {
         console.error('Erro ao carregar dados do usuário:', error);
-        // Se falhar, mantém os dados do cache se existirem
         if (!this.user) {
           this.user = this.getDefaultUser();
         }

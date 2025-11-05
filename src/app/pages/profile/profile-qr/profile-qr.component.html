@@ -15,7 +15,7 @@
           <div class="flex flex-col items-start">
             <div class="relative -mt-14 rounded-full p-1 bg-white shadow-theme-md mb-3 cursor-pointer group" (click)="triggerFileInput()">
               <img [src]="avatarPreview || user?.avatar_url || 'images/user/default-avatar.jpg'" alt="Avatar" class="h-20 w-20 rounded-full object-cover" />
-              
+
               <!-- Ícone de câmera flutuante -->
               <div class="absolute -bottom-1 -right-1 bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 shadow-lg transition-all duration-200 group-hover:scale-110">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -23,24 +23,24 @@
                   <circle cx="12" cy="13" r="3"/>
                 </svg>
               </div>
-              
+
               <!-- Input file oculto -->
-              <input 
-                #fileInput 
-                type="file" 
-                accept="image/jpeg,image/jpg,image/png" 
+              <input
+                #fileInput
+                type="file"
+                accept="image/jpeg,image/jpg,image/png"
                 capture="environment"
-                class="hidden" 
+                class="hidden"
                 (change)="onFileSelected($event)"
               />
             </div>
             <div class="text-left">
-              <div class="text-base font-semibold text-white">{{ user?.name || 'User' }}</div>
+              <div class="text-base font-semibold text-white">{{ user?.name || ('profileQr.defaults.userName' | translate) }}</div>
               <div class="text-sm text-white/70">{{ user?.email || 'email@example.com' }}</div>
-              <div class="text-sm text-white/70">Plano: {{ user?.plan?.name || 'Premium' }}</div>
+              <div class="text-sm text-white/70">{{ 'profileQr.planLabel' | translate }}: {{ user?.plan?.name || 'Premium' }}</div>
             </div>
           </div>
-          
+
           <!-- Coluna direita: QR Code pequeno -->
           <div class="flex-shrink-0 mt-2">
             <div class="relative">
@@ -67,9 +67,9 @@
               </div>
               <!-- ALTERAÇÃO DO TAMANHO DO QR CODE: Aumentado de h-16 w-16 para h-20 w-20 -->
               <div class="h-25 w-25 bg-white p-1 rounded">
-                <qrcode 
-                  [qrdata]="qrData" 
-                  [width]="96" 
+                <qrcode
+                  [qrdata]="qrData"
+                  [width]="96"
                   [errorCorrectionLevel]="'M'"
                   [colorDark]="'#000000'"
                   [colorLight]="'#ffffff'"
@@ -88,17 +88,17 @@
 <!-- Informação do Time de Coração -->
 <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-10">
   <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
-    Time de Coração
+    {{ 'profileQr.favoriteTeam.title' | translate }}
   </h3>
-  
+
   <!-- Time selecionado -->
-  <div class="flex items-center space-x-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow duration-200" 
-       *ngIf="user?.team" 
+  <div class="flex items-center space-x-4 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800/20 border border-blue-200 dark:border-blue-800 cursor-pointer hover:shadow-lg transition-shadow duration-200"
+       *ngIf="user?.team"
        (click)="openTeamModal()">
     <div class="flex-shrink-0">
       <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-gray-200 dark:border-gray-600 dark:bg-gray-800">
-        <img 
-          [src]="user?.team?.shield || ''" 
+        <img
+          [src]="user?.team?.shield || ''"
           [alt]="(user?.team?.name || 'Team') + ' escudo'"
           class="w-12 h-12 object-contain"
           onerror="this.style.display='none'"
@@ -106,19 +106,19 @@
       </div>
     </div>
     <div class="flex-1">
-      <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">{{ user?.team?.short_name || 'Team' }}</h4>
-      <p class="text-sm text-blue-600 dark:text-blue-300">Desde sempre!</p>
+      <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-200">{{ user?.team?.short_name || ('profileQr.defaults.teamPlaceholder' | translate) }}</h4>
+      <p class="text-sm text-blue-600 dark:text-blue-300">{{ 'profileQr.favoriteTeam.sinceAlways' | translate }}</p>
       <div class="mt-2 flex items-center space-x-2">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200">
-          Torcedor Fiel
+          {{ 'profileQr.favoriteTeam.badge' | translate }}
         </span>
       </div>
     </div>
   </div>
-  
+
   <!-- Mensagem quando não há time selecionado -->
-  <div class="flex items-center justify-center p-8 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors duration-200" 
-       *ngIf="!user?.team" 
+  <div class="flex items-center justify-center p-8 rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-dashed border-gray-300 dark:border-gray-600 cursor-pointer hover:border-blue-400 dark:hover:border-blue-500 transition-colors duration-200"
+       *ngIf="!user?.team"
        (click)="openTeamModal()">
     <div class="text-center">
       <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -126,8 +126,8 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
         </svg>
       </div>
-      <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Selecione seu Time do Coração</h4>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Clique aqui para escolher seu time favorito</p>
+      <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-2">{{ 'profileQr.favoriteTeam.selectPrompt' | translate }}</h4>
+      <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'profileQr.favoriteTeam.selectHint' | translate }}</p>
     </div>
   </div>
 </div>
@@ -135,29 +135,29 @@
 <!-- Modal do Time -->
 <app-modal [isOpen]="showTeamModal" (close)="closeTeamModal()" className="max-w-2xl p-5 lg:p-8">
   <h4 class="font-semibold text-gray-800 mb-7 text-title-sm dark:text-white/90">
-    Selecione seu Time
+    {{ 'profileQr.favoriteTeam.modalTitle' | translate }}
   </h4>
-  
+
   <div class="max-h-96 overflow-y-auto">
     <div class="grid grid-cols-2 gap-4 sm:grid-cols-3">
       <div *ngIf="isLoadingTeams" class="col-span-2 sm:col-span-3 text-center py-8">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto"></div>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">Carregando times...</p>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-3">{{ 'profileQr.favoriteTeam.loading' | translate }}</p>
       </div>
-      <div 
-        *ngFor="let team of availableTeams" 
+      <div
+        *ngFor="let team of availableTeams"
         (click)="selectTeam(team)"
         class="flex flex-col items-center p-4 border border-gray-200 dark:border-gray-700 rounded-xl hover:border-brand-300 dark:hover:border-brand-600 cursor-pointer transition-all duration-200 hover:shadow-theme-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-95 active:scale-90"
       >
         <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-theme-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-800 mb-3">
-          <img 
-            [src]="team.shield" 
+          <img
+            [src]="team.shield"
             [alt]="team.name + ' escudo'"
             class="w-12 h-12 object-contain"
             onerror="this.style.display='none'"
           />
         </div>
-        
+
         <h3 class="text-sm font-medium text-gray-900 dark:text-white text-center leading-tight">{{ team.short_name }}</h3>
       </div>
     </div>
@@ -170,7 +170,7 @@
 <!-- Informações do Usuário (como no perfil atual) -->
 <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] lg:p-6 mb-20">
   <h3 class="mb-5 text-lg font-semibold text-gray-800 dark:text-white/90 lg:mb-7">
-    Informações do Perfil
+    {{ 'profileQr.profileInfo.title' | translate }}
   </h3>
   <div class="space-y-6">
 

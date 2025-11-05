@@ -1,0 +1,40 @@
+{
+  "header": {
+    "toggleSidebar": "Alternar barra lateral",
+    "logoAlt": "Logo",
+    "languageSelector": "Selecionar idioma",
+    "searchPlaceholder": "Pesquisar..."
+  },
+  "userDropdown": {
+    "accountSettings": "Configurações da Conta",
+    "support": "Suporte",
+    "logout": "Sair",
+    "theme": {
+      "dark": "Modo Escuro",
+      "light": "Modo Claro"
+    }
+  },
+  "homeAdmin": {
+    "title": "Painel do Admin",
+    "welcome": "Bem-vindo(a)"
+  },
+  "profileQr": {
+    "favoriteTeam": {
+      "title": "Time de Coração",
+      "sinceAlways": "Desde sempre!",
+      "badge": "Torcedor Fiel",
+      "selectPrompt": "Selecione seu Time do Coração",
+      "selectHint": "Clique aqui para escolher seu time favorito",
+      "modalTitle": "Selecione seu Time",
+      "loading": "Carregando times..."
+    },
+    "profileInfo": {
+      "title": "Informações do Perfil"
+    },
+    "planLabel": "Plano",
+    "defaults": {
+      "userName": "Usuário",
+      "teamPlaceholder": "Time"
+    }
+  }
+}
