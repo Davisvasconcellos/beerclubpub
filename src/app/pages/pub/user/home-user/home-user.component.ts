@@ -7,10 +7,11 @@ import { EstablishmentCardComponent } from '../../../../shared/components/club/e
 import { ProductCardComponent } from '../../../../shared/components/club/product-card/product-card.component';
 import { BrandCardComponent } from '../../../../shared/components/club/brand-card/brand-card.component';
 import { PromotionCardComponent } from '../../../../shared/components/club/promotion-card/promotion-card.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-home-user',
-  imports: [RouterModule, CommonModule, InputFieldComponent, EstablishmentCardComponent, ProductCardComponent, BrandCardComponent, PromotionCardComponent],
+  imports: [RouterModule, CommonModule, TranslateModule, InputFieldComponent, EstablishmentCardComponent, ProductCardComponent, BrandCardComponent, PromotionCardComponent],
   templateUrl: './home-user.component.html',
   styleUrl: './home-user.component.css'
 })

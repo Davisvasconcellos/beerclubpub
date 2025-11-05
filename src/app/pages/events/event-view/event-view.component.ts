@@ -6,6 +6,7 @@ import { GuestCardModalComponent } from '../../../shared/components/modals/guest
 import { EditGuestModalComponent } from '../../../shared/components/modals/edit-guest-modal/edit-guest-modal.component';
 import { CardSettingsComponent, CardSettings } from '../../../shared/components/cards/card-settings/card-settings.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
+import { TranslateModule } from '@ngx-translate/core';
 
 interface TableRowData {
   id: number;
@@ -34,13 +35,13 @@ interface EventData {
 @Component({
   selector: 'app-event-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, PaginationWithIconComponent, GuestCardModalComponent, EditGuestModalComponent, CardSettingsComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, PaginationWithIconComponent, GuestCardModalComponent, EditGuestModalComponent, CardSettingsComponent],
   templateUrl: './event-view.component.html',
   styleUrl: './event-view.component.css'
 })
 export class EventViewComponent {
   activeTab: string = 'detalhes';
-  
+
   event: EventData = {
     id: 1,
     name: 'Festival de Música Vibehood',
@@ -77,7 +78,7 @@ export class EventViewComponent {
       )
       .sort((a, b) => {
         let valueA: any, valueB: any;
-        
+
         if (this.sortKey === 'name') {
           valueA = a.user.name;
           valueB = b.user.name;
@@ -85,13 +86,13 @@ export class EventViewComponent {
           valueA = a[this.sortKey as keyof TableRowData];
           valueB = b[this.sortKey as keyof TableRowData];
         }
-        
+
         if (typeof valueA === 'string' && typeof valueB === 'string') {
-          return this.sortOrder === 'asc' 
+          return this.sortOrder === 'asc'
             ? valueA.localeCompare(valueB)
             : valueB.localeCompare(valueA);
         }
-        
+
         return this.sortOrder === 'asc' ? valueA - valueB : valueB - valueA;
       });
   }
@@ -141,45 +142,45 @@ export class EventViewComponent {
   tableData: TableRowData[] = [];
 
   guests: Guest[] = [
-    { 
-      id: 1, 
+    {
+      id: 1,
       image: '/images/user/user-20.jpg',
-      name: 'João Silva', 
-      email: 'joao.silva@email.com', 
+      name: 'João Silva',
+      email: 'joao.silva@email.com',
       phone: '(11) 99999-9999',
-      status: 'Confirmado' 
+      status: 'Confirmado'
     },
-    { 
-      id: 2, 
+    {
+      id: 2,
       image: '/images/user/user-21.jpg',
-      name: 'Maria Santos', 
-      email: 'maria.santos@email.com', 
+      name: 'Maria Santos',
+      email: 'maria.santos@email.com',
       phone: '(11) 88888-8888',
-      status: 'Pendente' 
+      status: 'Pendente'
     },
-    { 
-      id: 3, 
+    {
+      id: 3,
       image: '/images/user/user-22.jpg',
-      name: 'Pedro Costa', 
-      email: 'pedro.costa@email.com', 
+      name: 'Pedro Costa',
+      email: 'pedro.costa@email.com',
       phone: '(11) 77777-7777',
-      status: 'Confirmado' 
+      status: 'Confirmado'
     },
-    { 
-      id: 4, 
+    {
+      id: 4,
       image: '/images/user/user-23.jpg',
-      name: 'Ana Oliveira', 
-      email: 'ana.oliveira@email.com', 
+      name: 'Ana Oliveira',
+      email: 'ana.oliveira@email.com',
       phone: '(11) 66666-6666',
-      status: 'Cancelado' 
+      status: 'Cancelado'
     },
-    { 
-      id: 5, 
+    {
+      id: 5,
       image: '/images/user/user-24.jpg',
-      name: 'Carlos Ferreira', 
-      email: 'carlos.ferreira@email.com', 
+      name: 'Carlos Ferreira',
+      email: 'carlos.ferreira@email.com',
       phone: '(11) 55555-5555',
-      status: 'Confirmado' 
+      status: 'Confirmado'
     }
   ];
 
@@ -250,7 +251,7 @@ export class EventViewComponent {
   onDateChange(field: string, event: Event) {
     const target = event.target as HTMLInputElement;
     const newDate = target.value;
-    
+
     if (field === 'start') {
       // Se a data de início mudou e é maior que a data de fim, limpar a data de fim
       if (this.event.endDate && newDate > this.event.endDate) {
@@ -283,11 +284,11 @@ export class EventViewComponent {
 
     // Converter para CSV
     const csvContent = this.convertToCSV(csvData);
-    
+
     // Criar e baixar arquivo
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
-    
+
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
@@ -301,13 +302,13 @@ export class EventViewComponent {
 
   private convertToCSV(data: any[]): string {
     if (data.length === 0) return '';
-    
+
     const headers = Object.keys(data[0]);
     const csvRows = [];
-    
+
     // Adicionar cabeçalhos
     csvRows.push(headers.join(','));
-    
+
     // Adicionar dados
     for (const row of data) {
       const values = headers.map(header => {
@@ -319,7 +320,7 @@ export class EventViewComponent {
       });
       csvRows.push(values.join(','));
     }
-    
+
     return csvRows.join('\n');
   }
 
@@ -364,7 +365,7 @@ export class EventViewComponent {
     if (index !== -1) {
       // Atualizar o convidado na lista
       this.guests[index] = updatedGuest;
-      
+
       // Atualizar também os dados da tabela
       const tableIndex = this.tableData.findIndex(t => t.id === updatedGuest.id);
       if (tableIndex !== -1) {
@@ -380,7 +381,7 @@ export class EventViewComponent {
         };
       }
     }
-    
+
     // Fechar o modal
     this.closeEditGuestModal();
   }

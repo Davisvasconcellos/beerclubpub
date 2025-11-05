@@ -1,7 +1,9 @@
 <div>
-  <h3 class="font-medium text-black dark:text-white">Event List</h3>
+  <h3 class="font-medium text-black dark:text-white">{{ 'events.admin.list.title' | translate }}</h3>
   <div class="flex justify-end mb-4">
-    <button (click)="openAddEventModal()" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">Add Event</button>
+    <button (click)="openAddEventModal()" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">
+      {{ 'events.admin.list.addButton' | translate }}
+    </button>
   </div>
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
     <app-event-card

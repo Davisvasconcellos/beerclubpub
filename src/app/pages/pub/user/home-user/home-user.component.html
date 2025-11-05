@@ -6,7 +6,7 @@
         <div class="relative">
           <app-input-field
             type="text"
-            placeholder="Pesquise sua bebida favorita"
+            [placeholder]="'pub.user.home.search.placeholder' | translate"
             className="w-full bg-white rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
           ></app-input-field>
           <svg class="absolute left-3 top-2.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,19 +24,19 @@
       <div class="flex items-center justify-between">
         <div>
           <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90" *ngIf="currentUser; else defaultGreeting">
-            Olá {{ currentUser.name }},
+            {{ 'pub.user.home.greeting.helloWithName' | translate:{ name: currentUser.name } }}
           </h1>
           <ng-template #defaultGreeting>
-            <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Olá,</h1>
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">{{ 'pub.user.home.greeting.helloDefault' | translate }}</h1>
           </ng-template>
-          <p class="text-gray-500 dark:text-gray-400 mt-1">O que vamos pedir hoje?</p>
+          <p class="text-gray-500 dark:text-gray-400 mt-1">{{ 'pub.user.home.greeting.prompt' | translate }}</p>
         </div>
         <div class="w-16 h-16 rounded-full overflow-hidden border-2 border-orange-200 dark:border-orange-500/30">
-          <img 
-            [src]="currentUser?.avatar_url || '/images/user/default-avatar.jpg'" 
-            [alt]="currentUser?.name || 'Avatar do usuário'"
+          <img
+            [src]="currentUser?.avatar_url || '/images/user/default-avatar.jpg'"
+            [alt]="currentUser?.name || ('pub.user.home.avatar.alt' | translate)"
             class="w-full h-full object-cover"
-            (error)="$event.target.src='/images/user/default-avatar.jpg'"
+(error)="$any($event.target).src='/images/user/default-avatar.jpg'"
           />
         </div>
       </div>
@@ -45,14 +45,14 @@
     <!-- Promoções -->
     <div class="mb-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Promoções</h2>
-        <a href="#" class="text-primary-500">Ver todas</a>
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">{{ 'pub.user.home.sections.promotions.title' | translate }}</h2>
+        <a href="#" class="text-primary-500">{{ 'pub.user.home.sections.promotions.viewAll' | translate }}</a>
       </div>
-      
+
       <!-- Carrossel com scroll automático -->
       <div class="relative">
-        <div 
-          class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
+        <div
+          class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none"
           id="promo-carousel"
           (mousedown)="startDrag($event, 'promo-carousel')"
           (touchstart)="startDragTouch($event, 'promo-carousel')"
@@ -60,7 +60,7 @@
           <div class="flex flex-row space-x-4 w-max">
             @for (promo of promotions; track $index) {
               <div class="w-64 flex-shrink-0 snap-start">
-                <app-promotion-card 
+                <app-promotion-card
                   [title]="promo.title"
                   [subtitle]="promo.subtitle"
                   [discount]="promo.discount"
@@ -71,12 +71,12 @@
             }
           </div>
         </div>
-        
+
         <!-- Indicadores de página com efeito de deslize -->
         <div class="flex justify-center mt-4 space-x-2">
           @for (promo of promotions; let i = $index; track i) {
             @if (i % 2 === 0) {
-              <button 
+              <button
                 (click)="scrollToItem('promo-carousel', i)"
                 class="h-2 rounded-full transition-all duration-300 bg-gray-300 hover:bg-primary-500"
                 [class.bg-primary-500]="currentPromoPage === i / 2"
@@ -91,14 +91,14 @@
     <!-- As Consagradas -->
     <div class="mb-6">
       <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">As Consagradas</h2>
-        <a href="#" class="text-primary-500">Ver todas</a>
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">{{ 'pub.user.home.sections.classics.title' | translate }}</h2>
+        <a href="#" class="text-primary-500">{{ 'pub.user.home.sections.classics.viewAll' | translate }}</a>
       </div>
-      
+
       <!-- Carrossel com scroll automático para marcas -->
       <div class="relative">
-        <div 
-          class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
+        <div
+          class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none"
           id="brand-carousel"
           (mousedown)="startDrag($event, 'brand-carousel')"
           (touchstart)="startDragTouch($event, 'brand-carousel')"
@@ -106,7 +106,7 @@
           <div class="flex flex-row space-x-4 w-max">
             @for (brand of brands; track $index) {
               <div class="w-40 flex-shrink-0 snap-start">
-                <app-brand-card 
+                <app-brand-card
                   [name]="brand.name"
                   [backgroundColor]="brand.backgroundColor"
                   [textColor]="brand.textColor"
@@ -116,12 +116,12 @@
             }
           </div>
         </div>
-        
+
         <!-- Indicadores de página com efeito de deslize -->
         <div class="flex justify-center mt-4 space-x-2">
           @for (brand of brands; let i = $index; track i) {
             @if (i % 3 === 0) {
-              <button 
+              <button
                 (click)="scrollToItem('brand-carousel', i)"
                 class="h-2 rounded-full transition-all duration-300 bg-gray-300 hover:bg-primary-500"
                 [class.bg-primary-500]="currentBrandPage === i / 3"
@@ -135,11 +135,11 @@
 
     <!-- As Prestigiadas -->
     <div>
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">As Prestigiadas</h2>
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">{{ 'pub.user.home.sections.prestigious.title' | translate }}</h2>
       <!-- Carrossel com scroll automático para marcas prestigiadas -->
       <div class="relative">
-        <div 
-          class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none" 
+        <div
+          class="overflow-x-auto pb-4 snap-x snap-mandatory scroll-smooth touch-pan-x cursor-grab active:cursor-grabbing select-none"
           id="prestigious-carousel"
           (mousedown)="startDrag($event, 'prestigious-carousel')"
           (touchstart)="startDragTouch($event, 'prestigious-carousel')"
@@ -147,7 +147,7 @@
           <div class="flex flex-row space-x-4 w-max">
             @for (brand of prestigiousBrands; track $index) {
               <div class="w-40 flex-shrink-0 snap-start">
-                <app-brand-card 
+                <app-brand-card
                   [name]="brand.name"
                   [backgroundColor]="brand.backgroundColor"
                   [textColor]="brand.textColor"
@@ -157,12 +157,12 @@
             }
           </div>
         </div>
-        
+
         <!-- Indicadores de página com efeito de deslize -->
         <div class="flex justify-center mt-4 space-x-2">
           @for (brand of prestigiousBrands; let i = $index; track i) {
             @if (i % 3 === 0) {
-              <button 
+              <button
                 (click)="scrollToItem('prestigious-carousel', i)"
                 class="h-2 rounded-full transition-all duration-300 bg-gray-300 hover:bg-primary-500"
                 [class.bg-primary-500]="currentPrestigiousPage === i / 3"
@@ -176,10 +176,10 @@
 
     <!-- Packs de Cerveja -->
     <div>
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Packs de Cerveja</h2>
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">{{ 'pub.user.home.sections.beerPacks.title' | translate }}</h2>
       <div class="grid grid-cols-1 gap-4">
         @for (pack of beerPacks; track $index) {
-          <app-product-card 
+          <app-product-card
             [name]="pack.name"
             [description]="pack.description"
             [originalPrice]="pack.originalPrice"
@@ -193,10 +193,10 @@
 
     <!-- Estabelecimentos -->
     <div>
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Estabelecimentos</h2>
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">{{ 'pub.user.home.sections.establishments.title' | translate }}</h2>
       <div class="space-y-4 mb-4">
         @for (establishment of establishments; track $index) {
-          <app-establishment-card 
+          <app-establishment-card
             [name]="establishment.name"
             [category]="establishment.category"
             [distance]="establishment.distance"
@@ -212,7 +212,7 @@
 
     <!-- Retornáveis -->
     <div>
-      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Retornáveis</h2>
+      <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">{{ 'pub.user.home.sections.returnables.title' | translate }}</h2>
       <div class="bg-white rounded-2xl p-6 shadow-theme-sm">
         <div class="text-center">
           <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -220,8 +220,8 @@
               <path d="M20 7L9 18L4 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </div>
-          <h3 class="font-semibold text-gray-800 dark:text-white/90 mb-2">Sistema de Retornáveis</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400">Troque suas garrafas vazias por desconto na próxima compra</p>
+          <h3 class="font-semibold text-gray-800 dark:text-white/90 mb-2">{{ 'pub.user.home.sections.returnables.systemTitle' | translate }}</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400">{{ 'pub.user.home.sections.returnables.systemDescription' | translate }}</p>
         </div>
       </div>
     </div>

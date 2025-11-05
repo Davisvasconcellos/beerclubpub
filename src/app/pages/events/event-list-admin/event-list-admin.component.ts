@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { EventCardComponent } from '../../../shared/components/cards/event-card/event-card.component';
 import { EventLinksModalComponent } from '../../../shared/components/modals/event-links-modal/event-links-modal.component';
 import { AddEventModalComponent } from '../../../shared/components/modals/add-event-modal/add-event-modal/add-event-modal.component';
+import { TranslateModule } from '@ngx-translate/core';
 
 export interface EventLink {
   text: string;
@@ -24,6 +25,7 @@ interface Event {
   standalone: true,
   imports: [
     CommonModule,
+    TranslateModule,
     EventCardComponent,
     EventLinksModalComponent,
     AddEventModalComponent
