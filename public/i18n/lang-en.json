@@ -36,5 +36,122 @@
       "userName": "User",
       "teamPlaceholder": "Team"
     }
+  },
+  "pub": {
+    "user": {
+      "home": {
+        "search": {
+          "placeholder": "Search for your favorite drink"
+        },
+        "greeting": {
+          "helloWithName": "Hello {{name}},",
+          "helloDefault": "Hello,",
+          "prompt": "What shall we order today?"
+        },
+        "avatar": {
+          "alt": "User avatar"
+        },
+        "sections": {
+          "promotions": {
+            "title": "Promotions",
+            "viewAll": "View all"
+          },
+          "classics": {
+            "title": "The Classics",
+            "viewAll": "View all"
+          },
+          "prestigious": {
+            "title": "The Prestigious"
+          },
+          "beerPacks": {
+            "title": "Beer Packs"
+          },
+          "establishments": {
+            "title": "Establishments"
+          },
+          "returnables": {
+            "title": "Returnables",
+            "systemTitle": "Returnable System",
+            "systemDescription": "Exchange your empty bottles for a discount on your next purchase"
+          }
+        }
+      }
+    }
+  },
+  "events": {
+    "admin": {
+      "list": {
+        "title": "Event List",
+        "addButton": "Add Event"
+      }
+    },
+    "view": {
+      "image": {
+        "changeLabel": "Change Image"
+      },
+      "tabs": {
+        "details": "Details",
+        "accessCard": "Access Card"
+      },
+      "details": {
+        "title": "Event Information",
+        "fields": {
+          "eventName": {
+            "label": "Event Name",
+            "placeholder": "Event name"
+          },
+          "description": {
+            "label": "Description",
+            "placeholder": "Event description..."
+          },
+          "location": {
+            "label": "Location"
+          }
+        },
+        "datetimeSection": {
+          "title": "Dates and Actions",
+          "startDate": {
+            "label": "Start"
+          },
+          "endDate": {
+            "label": "End"
+          }
+        }
+      },
+      "card": {
+        "title": "Card Configuration",
+        "preview": {
+          "title": "Card Preview",
+          "badge": {
+            "vip": "VIP",
+            "access": "ACCESS"
+          },
+          "info": {
+            "dimensions": "Dimensions: 180px × 280px (Vertical Format)",
+            "applyNote": "Settings will be applied to all guest cards"
+          }
+        }
+      },
+      "actions": {
+        "save": "Save Settings"
+      },
+      "guests": {
+        "title": "Guest List",
+        "actions": {
+          "export": "Export List"
+        },
+        "datatable": {
+          "show": "Show",
+          "entries": "entries",
+          "searchPlaceholder": "Search..."
+        },
+        "table": {
+          "action": {
+            "view": "View",
+            "edit": "Edit"
+          }
+        }
+      }
+    }
   }
 }

@@ -359,14 +359,14 @@ export class AppSidebarComponent {
         this.sidebarService.setMobileOpen(false);
       }
     }).unsubscribe();
-  }  
+  }
 
 
   onSingleMenuClick() {
     // Close any open submenu
     this.openSubmenu = null;
     this.subMenuHeights = {};
-  
+
     // Also close sidebar if mobile
     this.isMobileOpen$.subscribe(isMobile => {
       if (isMobile) {
@@ -374,6 +374,6 @@ export class AppSidebarComponent {
       }
     }).unsubscribe();
   }
-  
-  
+
+
 }

@@ -36,5 +36,122 @@
       "userName": "Usuário",
       "teamPlaceholder": "Time"
     }
+  },
+  "pub": {
+    "user": {
+      "home": {
+        "search": {
+          "placeholder": "Pesquise sua bebida favorita"
+        },
+        "greeting": {
+          "helloWithName": "Olá {{name}},",
+          "helloDefault": "Olá,",
+          "prompt": "O que vamos pedir hoje?"
+        },
+        "avatar": {
+          "alt": "Avatar do usuário"
+        },
+        "sections": {
+          "promotions": {
+            "title": "Promoções",
+            "viewAll": "Ver todas"
+          },
+          "classics": {
+            "title": "As Consagradas",
+            "viewAll": "Ver todas"
+          },
+          "prestigious": {
+            "title": "As Prestigiadas"
+          },
+          "beerPacks": {
+            "title": "Packs de Cerveja"
+          },
+          "establishments": {
+            "title": "Estabelecimentos"
+          },
+          "returnables": {
+            "title": "Retornáveis",
+            "systemTitle": "Sistema de Retornáveis",
+            "systemDescription": "Troque suas garrafas vazias por desconto na próxima compra"
+          }
+        }
+      }
+    }
+  },
+  "events": {
+    "admin": {
+      "list": {
+        "title": "Lista de Eventos",
+        "addButton": "Adicionar Evento"
+      }
+    },
+    "view": {
+      "image": {
+        "changeLabel": "Alterar Imagem"
+      },
+      "tabs": {
+        "details": "Detalhes",
+        "accessCard": "Cartão Acesso"
+      },
+      "details": {
+        "title": "Informações do Evento",
+        "fields": {
+          "eventName": {
+            "label": "Nome do Evento",
+            "placeholder": "Nome do evento"
+          },
+          "description": {
+            "label": "Descrição",
+            "placeholder": "Descrição do evento..."
+          },
+          "location": {
+            "label": "Local"
+          }
+        },
+        "datetimeSection": {
+          "title": "Datas e Ações",
+          "startDate": {
+            "label": "Início"
+          },
+          "endDate": {
+            "label": "Fim"
+          }
+        }
+      },
+      "card": {
+        "title": "Configuração do Cartão",
+        "preview": {
+          "title": "Preview do Cartão",
+          "badge": {
+            "vip": "VIP",
+            "access": "ACESSO"
+          },
+          "info": {
+            "dimensions": "Dimensões: 180px × 280px (Formato Vertical)",
+            "applyNote": "As configurações serão aplicadas a todos os cartões de convidados"
+          }
+        }
+      },
+      "actions": {
+        "save": "Salvar Configurações"
+      },
+      "guests": {
+        "title": "Lista de Convidados",
+        "actions": {
+          "export": "Exportar Lista"
+        },
+        "datatable": {
+          "show": "Mostrar",
+          "entries": "entradas",
+          "searchPlaceholder": "Buscar..."
+        },
+        "table": {
+          "action": {
+            "view": "Visualizar",
+            "edit": "Editar"
+          }
+        }
+      }
+    }
   }
 }
