@@ -18,8 +18,8 @@ export class RoleGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): Observable<boolean> | Promise<boolean> | boolean {
-    
-    const requiredRoles = route.data['roles'] as string[];
+    // Suporta ambas as chaves: 'roles' e 'expectedRoles'
+    const requiredRoles = (route.data['roles'] || route.data['expectedRoles']) as string[];
     
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
@@ -33,7 +33,28 @@ export class RoleGuard implements CanActivate {
           return false;
         }
 
-        const hasRequiredRole = requiredRoles.includes(user.role);
+        // Tratar equivalências: 'customer' => 'user'
+        const normalizedRole = user.role === 'customer' ? 'user' : user.role;
+
+        // Hierarquia de acesso: roles superiores acessam áreas de roles inferiores
+        const hierarchyMap: Record<string, string[]> = {
+          user: ['user', 'manager', 'waiter', 'admin', 'master'],
+          waiter: ['waiter', 'admin', 'master'],
+          admin: ['admin', 'master'],
+          master: ['master'],
+          manager: ['manager']
+        };
+
+        const normalize = (r: string) => (r === 'customer' ? 'user' : r);
+        const requiredNormalized = requiredRoles.map(normalize);
+
+        const allowedSet = new Set<string>();
+        requiredNormalized.forEach(r => {
+          const allowed = hierarchyMap[r] || [r];
+          allowed.forEach(ar => allowedSet.add(ar));
+        });
+
+        const hasRequiredRole = allowedSet.has(normalizedRole);
         
         if (!hasRequiredRole) {
           // Redireciona para página apropriada baseada no role do usuário
@@ -48,14 +69,14 @@ export class RoleGuard implements CanActivate {
 
   private redirectToUserHome(role: string): void {
     const roleRoutes: { [key: string]: string } = {
-      'admin': '/home-admin',
-      'master': '/home-master',
-      'manager': '/home-manager',
-      'waiter': '/home-waiter',
-      'customer': '/home-customer'
+      admin: '/pub/admin',
+      master: '/pub/master',
+      manager: '/pub/user',
+      waiter: '/pub/waiter',
+      customer: '/pub/user'
     };
 
-    const redirectRoute = roleRoutes[role] || '/dashboard';
+    const redirectRoute = roleRoutes[role] || '/';
     this.router.navigate([redirectRoute]);
   }
 }

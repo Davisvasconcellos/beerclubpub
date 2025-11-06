@@ -1,6 +1,7 @@
 // AppHeaderComponent
 import { Component, ElementRef, ViewChild } from '@angular/core';
 import { SidebarService } from '../../services/sidebar.service';
+import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NotificationDropdownComponent } from '../../components/header/notification-dropdown/notification-dropdown.component';
@@ -26,6 +27,8 @@ import { DropdownItemComponent } from '../../components/ui/dropdown/dropdown-ite
 export class AppHeaderComponent {
   readonly isMobileOpen$;
 
+  roleHomeLink: string = '/';
+
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   currentLang: 'pt-br' | 'en' = 'pt-br';
@@ -41,9 +44,36 @@ export class AppHeaderComponent {
     return this.languages.find(l => l.code === this.currentLang)?.flag ?? '/images/flags/brazil.svg';
   }
 
-  constructor(public sidebarService: SidebarService, private translate: TranslateService) {
+  constructor(
+    public sidebarService: SidebarService,
+    private translate: TranslateService,
+    private authService: AuthService,
+  ) {
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
     this.currentLang = (localStorage.getItem('lang') as 'pt-br' | 'en') || 'pt-br';
+
+    // Definir link de home conforme a role atual
+    this.authService.currentUser$.subscribe(user => {
+      const role = user?.role ?? null;
+      const normalized = role === 'customer' ? 'user' : role;
+      switch (normalized) {
+        case 'admin':
+          this.roleHomeLink = '/pub/admin';
+          break;
+        case 'master':
+          this.roleHomeLink = '/pub/master';
+          break;
+        case 'waiter':
+          this.roleHomeLink = '/pub/waiter';
+          break;
+        case 'manager':
+        case 'user':
+          this.roleHomeLink = '/pub/user';
+          break;
+        default:
+          this.roleHomeLink = '/';
+      }
+    });
   }
 
   handleToggle() {

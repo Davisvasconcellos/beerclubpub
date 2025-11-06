@@ -2,6 +2,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { AppComponent } from './app/app.component';
 import { register as registerSwiperElements } from 'swiper/element/bundle';
+import { initializeApp } from 'firebase/app';
+import { environment } from './environments/environment';
 
 // Save original method
 // const originalAddEventListener = EventTarget.prototype.addEventListener;
@@ -27,6 +29,9 @@ import { register as registerSwiperElements } from 'swiper/element/bundle';
 // };
 
 registerSwiperElements();
+
+// Initialize Firebase default app
+initializeApp(environment.firebase);
 
 bootstrapApplication(AppComponent, appConfig)
   .catch((err) => console.error(err));

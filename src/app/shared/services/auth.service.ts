@@ -137,6 +137,22 @@ export class AuthService {
       );
   }
 
+  // Login via Google OAuth (Firebase): envia idToken para API
+  loginWithGoogle(idToken: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.API_BASE_URL}/auth/google`, { idToken })
+      .pipe(
+        tap((response: AuthResponse) => {
+          if (response.success && response.data) {
+            this.localStorageService.setAuthToken(response.data.token);
+            this.localStorageService.setCurrentUser(response.data.user);
+            this.currentUserSubject.next(response.data.user);
+            this.isAuthenticatedSubject.next(true);
+          }
+        }),
+        catchError(this.handleError)
+      );
+  }
+
   logout(): Observable<any> {
     const token = this.getAuthToken();
     const headers: { [key: string]: string } = token ? { 'Authorization': `Bearer ${token}` } : {};
