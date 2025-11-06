@@ -256,6 +256,11 @@ export const routes: Routes = [
         title:'PDF Simples (Demo)'
       },
       {
+        path:'pdf-rich-demo',
+        loadComponent: () => import('./pages/pdf/pdf-rich-demo/pdf-rich-demo.component').then(m => m.PdfRichDemoComponent),
+        title:'PDF Rico (Demo)'
+      },
+      {
         path:'pricing-tables',
         component:PricingTablesComponent,
         title:'Angular Pricing Dashboard'

@@ -399,7 +399,134 @@ app.post('/pdf/simple', async (req, res) => {
   }
 });
 
-// (Endpoint rich será adicionado em seguida)
+// ================================
+// Endpoint para PDF rico
+// ================================
+function buildRichPdfHTML({
+  origin,
+  title,
+  subtitle,
+  content,
+  footer,
+  brandColor,
+  bgImageUrl
+}) {
+  const safeTitle = sanitizeText(title, 'Relatório');
+  const safeSubtitle = sanitizeText(subtitle, 'Resumo');
+  const safeContent = sanitizeText(content, '');
+  const safeFooter = sanitizeText(footer, 'TailAdmin');
+  const color = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(brandColor || '') ? brandColor : '#3b82f6';
+  const logoUrl = `${origin}/images/logo/auth-logo.svg`;
+  const gridUrl = `${origin}/images/shape/grid-01.svg`;
+  const backgroundImage = bgImageUrl && /^https?:\/\//.test(bgImageUrl) ? bgImageUrl : `${origin}/images/grid-image/image-04.png`;
+
+  return `<!doctype html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <style>
+        @page { margin: 0; }
+        html, body { height: 100%; }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, sans-serif;
+          color: #0f172a; margin: 0; background: #0b1220;
+        }
+        .page {
+          display: flex; min-height: 100vh;
+        }
+        .left {
+          flex: 1; padding: 32px 40px; background: #ffffff;
+        }
+        .right {
+          flex: 1; position: relative; display: grid; place-items: center;
+          background: linear-gradient( to bottom right, rgba(2,6,23,0.9), rgba(2,6,23,0.85) ), url('${backgroundImage}') center/cover no-repeat;
+        }
+        .brand-chip { display:inline-block; padding: 6px 10px; border-radius: 999px; background: ${color}20; color: ${color}; font-weight: 600; font-size: 12px; }
+        .title { font-size: 26px; font-weight: 700; margin: 6px 0 8px; color: #0f172a; }
+        .subtitle { font-size: 14px; color: #334155; }
+        .divider { height: 1px; background:#e5e7eb; margin: 16px 0; }
+        .content { font-size: 13px; line-height: 1.7; color:#0f172a; white-space: pre-wrap; }
+
+        .hero {
+          text-align:center; color:#e2e8f0;
+        }
+        .hero .logo { display:block; margin: 0 auto 12px; }
+        .hero .strap { font-size: 13px; color: #cbd5e1; }
+        .shape-top,
+        .shape-bottom {
+          position:absolute; width: 340px; opacity: 0.25; z-index: 0;
+        }
+        .shape-top { right: 24px; top: 24px; }
+        .shape-bottom { left: 24px; bottom: 24px; transform: rotate(180deg); }
+
+        .footer {
+          position: fixed; bottom: 18px; left: 24px; right: 24px;
+          font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 6px; background: #fff;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="page">
+        <section class="left">
+          <span class="brand-chip">PDF Rico</span>
+          <h1 class="title">${safeTitle}</h1>
+          <p class="subtitle">${safeSubtitle}</p>
+          <div class="divider"></div>
+          <div class="content">${safeContent}</div>
+        </section>
+        <section class="right">
+          <img class="shape-top" src="${gridUrl}" alt="grid" />
+          <img class="shape-bottom" src="${gridUrl}" alt="grid" />
+          <div class="hero" style="z-index:1;">
+            <img class="logo" src="${logoUrl}" alt="Logo" width="231" height="48" />
+            <p class="strap">Free and Open-Source Tailwind CSS Admin Dashboard Template</p>
+          </div>
+        </section>
+      </div>
+      ${safeFooter ? `<div class="footer">${safeFooter}</div>` : ''}
+    </body>
+  </html>`;
+}
+
+app.post('/pdf/rich', async (req, res) => {
+  try {
+    const {
+      title = 'Relatório de Exemplo',
+      subtitle = 'Documento com layout rico',
+      content = 'Este PDF inclui imagem de fundo, formas e cores de marca.',
+      footer = 'Gerado por TailAdmin Utility Server',
+      brandColor = '#3b82f6',
+      bgImageUrl,
+      format = 'A4',
+      landscape = false,
+      fileName
+    } = req.body || {};
+
+    ensureDirExists(DIRECTORIES.pdfs);
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const html = buildRichPdfHTML({ origin, title, subtitle, content, footer, brandColor, bgImageUrl });
+    const buffer = await renderHtmlToPdf(html, { format, landscape });
+
+    const baseName = sanitizeFolderName(String(fileName || 'pdf-rich').toLowerCase()) || 'pdf-rich';
+    const finalName = `${baseName}-${Date.now()}.pdf`;
+    const finalPath = path.join(DIRECTORIES.pdfs, finalName);
+    fs.writeFileSync(finalPath, buffer);
+
+    const fileUrl = `${origin}/pdfs/${finalName}`;
+
+    res.json({
+      success: true,
+      message: 'PDF rico gerado com sucesso!',
+      filename: finalName,
+      url: fileUrl,
+      size: buffer.length
+    });
+  } catch (error) {
+    console.error('❌ Erro ao gerar PDF rico:', error);
+    res.status(500).json({ success: false, message: 'Erro ao gerar PDF rico', error: error.message });
+  }
+});
 
 // ============================================
 // ROTAS: INFORMAÇÕES DO SERVIDOR

@@ -1,0 +1,109 @@
+<div class="space-y-6">
+  <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <!-- Coluna esquerda: Formulário -->
+    <div class="rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-6">
+      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">PDF Rico (Demo)</h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">Título</label>
+          <input [(ngModel)]="title" type="text" class="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50 px-3 py-2" placeholder="Relatório de Exemplo" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">Subtítulo</label>
+          <input [(ngModel)]="subtitle" type="text" class="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50 px-3 py-2" placeholder="Documento com layout rico" />
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">Conteúdo</label>
+          <textarea [(ngModel)]="content" rows="6" class="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50 px-3 py-2" placeholder="Descreva o conteúdo principal"></textarea>
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">Rodapé</label>
+          <input [(ngModel)]="footer" type="text" class="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50 px-3 py-2" placeholder="Gerado por TailAdmin" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">Cor da marca</label>
+          <input [(ngModel)]="brandColor" type="color" class="w-full h-10 rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800" />
+        </div>
+
+        <div class="space-y-2 md:col-span-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">URL da imagem de fundo (opcional)</label>
+          <input [(ngModel)]="bgImageUrl" type="url" class="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-white/50 px-3 py-2" placeholder="https://exemplo.com/imagem.jpg" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="text-sm text-gray-700 dark:text-white/70">Formato</label>
+          <select [(ngModel)]="format" class="w-full rounded border border-gray-300 dark:border-white/10 bg-white dark:bg-gray-800 text-gray-900 dark:text-white px-3 py-2">
+            <option value="A4">A4</option>
+            <option value="A3">A3</option>
+            <option value="Letter">Letter</option>
+            <option value="Legal">Legal</option>
+          </select>
+        </div>
+
+        <div class="flex items-center gap-2 mt-6">
+          <input id="landscape" [(ngModel)]="landscape" type="checkbox" class="rounded border border-gray-300 dark:border-white/10" />
+          <label for="landscape" class="text-sm text-gray-700 dark:text-white/70">Paisagem</label>
+        </div>
+      </div>
+
+      <div class="mt-4">
+        <button (click)="generate()" [disabled]="isLoading" class="px-4 py-2 rounded bg-brand-600 hover:bg-brand-700 text-white disabled:opacity-60">
+          {{ isLoading ? 'Gerando...' : 'Gerar PDF Rico' }}
+        </button>
+        <div *ngIf="errorMessage" class="mt-3 text-sm text-red-600">{{ errorMessage }}</div>
+      </div>
+    </div>
+
+    <!-- Coluna direita: Layout estilo Auth + Resultado -->
+    <div class="space-y-6">
+      <!-- Bloco com o mesmo estilo da coluna direita do Auth -->
+      <div class="items-center hidden w-full h-[360px] lg:w-full bg-brand-950 dark:bg-white/5 lg:grid relative rounded-md overflow-hidden">
+        <div class="flex items-center justify-center z-1">
+          <app-grid-shape>
+            <div class="absolute right-0 top-0 -z-1 w-full max-w-[250px] xl:max-w-[450px]">
+              <img src="/images/shape/grid-01.svg" alt="grid" />
+            </div>
+            <div class="absolute bottom-0 left-0 -z-1 w-full max-w-[250px] rotate-180 xl:max-w-[450px]">
+              <img src="/images/shape/grid-01.svg" alt="grid" />
+            </div>
+          </app-grid-shape>
+          <div class="flex flex-col items-center max-w-xs">
+            <a class="block mb-4" href="/">
+              <img width="231" height="48" src="/images/logo/auth-logo.svg" alt="Logo" />
+            </a>
+            <p class="text-center text-gray-400 dark:text-white/60">
+              Exemplo visual do PDF rico com imagem de fundo e cores.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resultado -->
+      <div class="rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 p-4">
+        <h3 class="text-base font-medium text-gray-900 dark:text-white mb-3">Resultado</h3>
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-gray-600 dark:text-white/70">
+            <span *ngIf="result?.filename">{{ result?.filename }}</span>
+            <span *ngIf="!result">—</span>
+          </div>
+          <div>
+            <a *ngIf="result?.url" [href]="result?.url" target="_blank" rel="noopener" class="text-brand-600 hover:text-brand-700">Abrir PDF</a>
+          </div>
+        </div>
+        <div class="mt-4">
+          <div *ngIf="safePdfUrl; else noPreview" class="rounded border border-gray-200 dark:border-white/10 overflow-hidden">
+            <iframe [src]="safePdfUrl" class="w-full h-[360px]" title="PDF Preview"></iframe>
+          </div>
+          <ng-template #noPreview>
+            <div class="text-sm text-gray-500 dark:text-white/50">Gere o PDF para visualizar aqui.</div>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

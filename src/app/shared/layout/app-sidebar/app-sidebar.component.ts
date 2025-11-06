@@ -141,6 +141,7 @@ export class AppSidebarComponent {
         { name: "File Manager", path: "/file-manager", pro: false },
         { name: "Upload Demo", path: "/upload-demo", pro: false },
         { name: "PDF Simples (Demo)", path: "/pdf-demo", pro: false },
+        { name: "PDF Rico (Demo)", path: "/pdf-rich-demo", pro: false },
         { name: "Pricing Tables", path: "/pricing-tables", pro: false },
         { name: "Faqs", path: "/faq", pro: false },
         { name: "API Keys", path: "/api-keys", new: true },
