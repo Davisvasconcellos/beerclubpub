@@ -1,0 +1,69 @@
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <!-- Coluna Esquerda: Formulário -->
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/5 p-5">
+    <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Gerar PDF Simples</h2>
+
+    <div class="space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título</label>
+        <input [(ngModel)]="title" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 px-3 py-2" placeholder="Título do documento" />
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Conteúdo</label>
+        <textarea [(ngModel)]="content" rows="8" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 px-3 py-2" placeholder="Conteúdo do PDF"></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rodapé</label>
+        <input [(ngModel)]="footer" type="text" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 px-3 py-2" placeholder="Texto do rodapé (opcional)" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Formato</label>
+          <select [(ngModel)]="format" class="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder:text-gray-500 dark:placeholder:text-gray-400 px-3 py-2">
+            <option value="A4">A4</option>
+            <option value="A3">A3</option>
+            <option value="Letter">Letter</option>
+            <option value="Legal">Legal</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input type="checkbox" [(ngModel)]="landscape" class="rounded" />
+            Paisagem
+          </label>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button (click)="generate()" [disabled]="isLoading" class="inline-flex items-center gap-2 rounded-md bg-brand-600 hover:bg-brand-700 text-white px-4 py-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+          {{ isLoading ? 'Gerando...' : 'Gerar PDF' }}
+        </button>
+      </div>
+
+      <div *ngIf="errorMessage" class="mt-3 text-sm text-red-600">{{ errorMessage }}</div>
+    </div>
+  </div>
+
+  <!-- Coluna Direita: Resultado -->
+  <div class="rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-white/5 p-5">
+    <h2 class="text-lg font-semibold text-gray-800 dark:text-white/90 mb-4">Resultado</h2>
+    <div *ngIf="result?.success; else emptyState">
+      <div class="space-y-2">
+        <p class="text-sm text-gray-700 dark:text-gray-300">Arquivo: <span class="font-medium">{{ result?.filename }}</span></p>
+        <a *ngIf="result?.url" [href]="result?.url" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-brand-600 hover:text-brand-700 underline">
+          Abrir PDF
+        </a>
+      </div>
+      <div *ngIf="safePdfUrl" class="mt-4">
+        <iframe [src]="safePdfUrl" class="w-full h-[600px] rounded-md border border-gray-200 dark:border-gray-800"></iframe>
+      </div>
+    </div>
+    <ng-template #emptyState>
+      <p class="text-sm text-gray-600 dark:text-gray-400">Gere um PDF para visualizar aqui.</p>
+    </ng-template>
+  </div>
+</div>

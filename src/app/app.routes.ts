@@ -251,6 +251,11 @@ export const routes: Routes = [
         title:'Upload de Imagens (Demo)'
       },
       {
+        path:'pdf-demo',
+        loadComponent: () => import('./pages/pdf/pdf-demo/pdf-demo.component').then(m => m.PdfDemoComponent),
+        title:'PDF Simples (Demo)'
+      },
+      {
         path:'pricing-tables',
         component:PricingTablesComponent,
         title:'Angular Pricing Dashboard'

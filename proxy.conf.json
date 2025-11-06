@@ -17,4 +17,17 @@
     "changeOrigin": true,
     "logLevel": "debug"
   }
+  ,
+  "/pdf/*": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/pdfs/*": {
+    "target": "http://localhost:3001",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
 }

@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const cors = require('cors');
 const sharp = require('sharp');
+const puppeteer = require('puppeteer');
 
 const app = express();
 const PORT = 3001;
@@ -43,6 +44,12 @@ app.use('/images', express.static(path.join(__dirname, 'public/images'), {
     res.setHeader('Cache-Control', 'no-cache');
   }
 }));
+// Servir PDFs gerados
+app.use('/pdfs', express.static(path.join(__dirname, 'public/pdfs'), {
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-cache');
+  }
+}));
 
 // ============================================
 // CONFIGURAÇÕES GLOBAIS
@@ -53,6 +60,7 @@ const DIRECTORIES = {
   images: path.join(__dirname, 'public', 'images'),
   user: path.join(__dirname, 'public', 'images', 'user'),
   stores: path.join(__dirname, 'public', 'images', 'stores'),
+  pdfs: path.join(__dirname, 'public', 'pdfs'),
   temp: path.join(__dirname, 'temp'),
   cache: path.join(__dirname, 'cache')
 };
@@ -304,6 +312,96 @@ app.delete('/delete-avatar/:filename', (req, res) => {
 });
 
 // ============================================
+// MÓDULO: GERAÇÃO DE PDF
+// ============================================
+
+function sanitizeText(str, fallback = '') {
+  if (typeof str !== 'string') return fallback;
+  return str.replace(/[\u0000-\u001F\u007F]/g, '');
+}
+
+function buildSimplePdfHTML({ title, content, footer }) {
+  const safeTitle = sanitizeText(title, 'Documento');
+  const safeContent = sanitizeText(content, '');
+  const safeFooter = sanitizeText(footer, '');
+  return `<!DOCTYPE html>
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <style>
+        @page { margin: 40px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Inter, Arial, sans-serif; color: #111827; }
+        .title { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+        .content { font-size: 14px; line-height: 1.6; white-space: pre-wrap; }
+        .footer { position: fixed; bottom: 20px; left: 40px; right: 40px; font-size: 12px; color: #6B7280; border-top: 1px solid #E5E7EB; padding-top: 8px; }
+      </style>
+    </head>
+    <body>
+      <div class="title">${safeTitle}</div>
+      <div class="content">${safeContent}</div>
+      ${safeFooter ? `<div class="footer">${safeFooter}</div>` : ''}
+    </body>
+  </html>`;
+}
+
+async function renderHtmlToPdf(html, options = {}) {
+  const browser = await puppeteer.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({
+      format: options.format || 'A4',
+      printBackground: true,
+      landscape: options.landscape || false,
+      margin: { top: '20mm', right: '15mm', bottom: '20mm', left: '15mm' }
+    });
+    return pdfBuffer;
+  } finally {
+    await browser.close();
+  }
+}
+
+// Endpoint para PDF simples
+app.post('/pdf/simple', async (req, res) => {
+  try {
+    const {
+      title = 'Documento',
+      content = '',
+      footer = '',
+      format = 'A4',
+      landscape = false,
+      fileName
+    } = req.body || {};
+
+    ensureDirExists(DIRECTORIES.pdfs);
+
+    const html = buildSimplePdfHTML({ title, content, footer });
+    const buffer = await renderHtmlToPdf(html, { format, landscape });
+
+    const baseName = sanitizeFolderName(String(fileName || title).toLowerCase()) || 'documento';
+    const finalName = `${baseName}-${Date.now()}.pdf`;
+    const finalPath = path.join(DIRECTORIES.pdfs, finalName);
+    fs.writeFileSync(finalPath, buffer);
+
+    const fileUrl = `${req.protocol}://${req.get('host')}/pdfs/${finalName}`;
+
+    res.json({
+      success: true,
+      message: 'PDF gerado com sucesso!',
+      filename: finalName,
+      url: fileUrl,
+      size: buffer.length
+    });
+  } catch (error) {
+    console.error('❌ Erro ao gerar PDF:', error);
+    res.status(500).json({ success: false, message: 'Erro ao gerar PDF', error: error.message });
+  }
+});
+
+// (Endpoint rich será adicionado em seguida)
+
+// ============================================
 // ROTAS: INFORMAÇÕES DO SERVIDOR
 // ============================================
 
@@ -378,11 +476,12 @@ app.listen(PORT, () => {
   console.log('   ✅ Upload de imagens (/upload-avatar)');
   console.log('   ✅ Upload genérico de imagens (/upload/image)');
   console.log('   ✅ Listagem de arquivos (/files/user)');
+  console.log('   ✅ Geração de PDF simples (/pdf/simple)');
   console.log('');
   console.log('🔮 Funcionalidades futuras:');
   console.log('   ⏳ Redimensionamento de imagens');
   console.log('   ⏳ Geração de QR Codes');
-  console.log('   ⏳ Geração de PDF');
+  console.log('   ⏳ Geração de PDF rico');
   console.log('   ⏳ Proxy reverso');
   console.log('🎯 ============================================');
   console.log('');
