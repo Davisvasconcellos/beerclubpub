@@ -98,6 +98,7 @@ import { WaitersComponent } from './pages/pub/admin/waiters/waiters.component';
 import { TablesComponent as AdminTablesComponent } from './pages/pub/admin/tables/tables.component';
 import { EventListAdminComponent } from './pages/events/event-list-admin/event-list-admin.component';
 import { EventViewComponent } from './pages/events/event-view/event-view.component';
+import { UploadDemoComponent } from './pages/upload-demo/upload-demo.component';
 
 import { MapTestComponent } from './pages/pub/admin/config/map-test.component';
 // Import guards
@@ -243,6 +244,11 @@ export const routes: Routes = [
         path:'file-manager',
         component:FileManagerComponent,
         title:'Angular File Manager Dashboard'
+      },
+      {
+        path:'upload-demo',
+        component:UploadDemoComponent,
+        title:'Upload de Imagens (Demo)'
       },
       {
         path:'pricing-tables',

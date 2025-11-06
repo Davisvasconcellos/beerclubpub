@@ -1,0 +1,85 @@
+<app-page-breadcrumb pageTitle="Upload de Imagens (Demo)" />
+
+<div class="grid grid-cols-2 gap-6">
+  <!-- Coluna Esquerda: Seleção de arquivo + Configuração -->
+  <div class="space-y-5">
+    <!-- Card: Seleção de Arquivo -->
+    <app-component-card title="Selecione o arquivo">
+      <div class="space-y-4">
+        <app-label for="file">Arquivo</app-label>
+        <app-file-input (change)="onFileChange($event)"></app-file-input>
+        @if (selectedFileName) {
+          <p class="text-sm text-gray-500 dark:text-gray-400">Selecionado: {{ selectedFileName }}</p>
+        }
+      </div>
+    </app-component-card>
+
+    <!-- Card: Configuração do Upload -->
+    <app-component-card title="Configuração">
+      <form (submit)="$event.preventDefault(); submitUpload()">
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div>
+            <app-label for="folder">Folder</app-label>
+            <app-input-field id="folder" type="text" placeholder="ex: user, events, tasks" [(value)]="folder" />
+          </div>
+
+          <div>
+            <app-label for="quality">Qualidade (q)</app-label>
+            <app-input-field id="quality" type="number" placeholder="80" [(value)]="quality" />
+          </div>
+
+          <div>
+            <app-label for="width">Largura (w)</app-label>
+            <app-input-field id="width" type="number" placeholder="ex: 800" [(value)]="widthStr" />
+          </div>
+
+          <div>
+            <app-label for="height">Altura (h)</app-label>
+            <app-input-field id="height" type="number" placeholder="ex: 600" [(value)]="heightStr" />
+          </div>
+
+          <div>
+            <app-label for="fit">Fit</app-label>
+            <app-select id="fit" [options]="fitOptions" placeholder="cover" [value]="fit" (valueChange)="onFitChange($event)" />
+          </div>
+
+          <div>
+            <app-label for="format">Formato</app-label>
+            <app-select id="format" [options]="formatOptions" placeholder="auto" [value]="format" (valueChange)="onFormatChange($event)" />
+          </div>
+
+          <div class="col-span-full">
+            <app-button size="sm" className="w-full" [disabled]="isUploading" type="submit">
+              {{ isUploading ? 'Enviando...' : 'Enviar Upload' }}
+            </app-button>
+          </div>
+        </div>
+
+        @if (errorMessage) {
+          <p class="mt-3 text-sm text-red-600">{{ errorMessage }}</p>
+        }
+      </form>
+    </app-component-card>
+  </div>
+
+  <!-- Coluna Direita: Resposta do Upload -->
+  <div>
+    <app-component-card title="Resposta do Upload">
+      @if (lastResponse) {
+        <div class="space-y-3">
+          <div class="text-sm text-gray-700 dark:text-gray-300">
+            <div><span class="font-medium">URL:</span> <a [href]="lastResponse.url" target="_blank" class="text-brand-500 hover:text-brand-600">{{ lastResponse.url }}</a></div>
+            <div><span class="font-medium">Arquivo:</span> {{ lastResponse.filename }}</div>
+            <div><span class="font-medium">Folder:</span> {{ lastResponse.folder }}</div>
+            <div><span class="font-medium">Size:</span> {{ lastResponse.size }} bytes</div>
+          </div>
+          <div class="rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+            <img [src]="lastResponse.url" alt="Uploaded Image" class="w-full max-h-[420px] object-contain" />
+          </div>
+        </div>
+      } @else {
+        <p class="text-sm text-gray-500 dark:text-gray-400">Envie um arquivo para ver a resposta aqui.</p>
+      }
+    </app-component-card>
+  </div>
+</div>
