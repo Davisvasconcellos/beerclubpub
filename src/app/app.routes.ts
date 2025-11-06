@@ -283,6 +283,8 @@ export const routes: Routes = [
       {
         path:'check-user-status',
         component:CheckUserStatusComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { expectedRoles: ['waiter'] },
         title:'Angular Check User Status'
       },
       {

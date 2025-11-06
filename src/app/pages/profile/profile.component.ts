@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { PageBreadcrumbComponent } from '../../shared/components/common/page-breadcrumb/page-breadcrumb.component';
+import { QRCodeComponent } from 'angularx-qrcode';
 import { UserInfoCardComponent } from '../../shared/components/user-profile/user-info-card/user-info-card.component';
 import { UserAddressCardComponent } from '../../shared/components/user-profile/user-address-card/user-address-card.component';
 import { UserMetaCardComponent } from '../../shared/components/user-profile/user-meta-card/user-meta-card.component';
@@ -15,6 +16,7 @@ import { AuthService, User } from '../../shared/services/auth.service';
     UserInfoCardComponent,
     UserAddressCardComponent,
     UserMetaCardComponent,
+    QRCodeComponent,
   ],
   templateUrl: './profile.component.html',
   styles: ``
@@ -59,12 +61,7 @@ export class ProfileComponent implements OnInit {
   }
 
   get qrData() {
-    return `user:${this.user?.email || 'usuario@email.com'}`;
-  }
-
-  get qrUrl() {
-    const encoded = encodeURIComponent(this.qrData);
-    return `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encoded}`;
+    return this.user?.id_code || '0';
   }
 
   private getDefaultUser(): User {
