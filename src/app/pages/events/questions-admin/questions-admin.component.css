@@ -1,0 +1,11 @@
+.field-group {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .field-group {
+    grid-template-columns: 1fr 1fr;
+  }
+}

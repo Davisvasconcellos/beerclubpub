@@ -1,0 +1,90 @@
+<div class="space-y-6">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Cadastro de Perguntas</h2>
+      <span class="text-xs text-gray-500 dark:text-gray-400">Administração</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
+        <select [(ngModel)]="newQuestion.event_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option *ngFor="let e of events" [value]="e.id">{{ e.name }}</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ordem</label>
+        <input type="number" [(ngModel)]="newQuestion.order_index" min="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Texto da pergunta</label>
+        <input type="text" [(ngModel)]="newQuestion.text" placeholder="Ex.: Qual estilo musical você prefere?" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+        <select [(ngModel)]="newQuestion.type" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option *ngFor="let t of questionTypes" [value]="t.value">{{ t.label }}</option>
+        </select>
+      </div>
+      <div *ngIf="isMultipleChoice()" class="md:col-span-2">
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Opções</label>
+          <button type="button" (click)="addOption()" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600">+ Adicionar opção</button>
+        </div>
+        <div class="space-y-2">
+          <div *ngFor="let opt of newQuestion.options; let i = index" class="flex items-center gap-2">
+            <input type="text" [(ngModel)]="opt.text" placeholder="Texto da opção" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+            <label *ngIf="newQuestion.type !== 'poll'" class="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300">
+              <input type="checkbox" [checked]="opt.correct" (change)="toggleCorrect(i)" class="rounded border-gray-300 dark:border-gray-600">
+              Correta
+            </label>
+            <button type="button" (click)="removeOption(i)" class="px-2 py-1 text-xs rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600">Remover</button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          - Para "Múltipla escolha (uma opção)", marque apenas uma como correta. <br>
+          - Para "Múltipla escolha (várias opções)", você pode marcar mais de uma como correta. <br>
+          - Para "Enquete", a marcação de correta não se aplica; serão contabilizados os votos por opção.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <label class="flex items-center gap-2">
+        <input type="checkbox" [(ngModel)]="newQuestion.is_required" class="rounded border-gray-300 dark:border-gray-600">
+        <span class="text-sm text-gray-700 dark:text-gray-300">Obrigatória</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" [(ngModel)]="newQuestion.show_results" class="rounded border-gray-300 dark:border-gray-600">
+        <span class="text-sm text-gray-700 dark:text-gray-300">Mostrar resultados</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" [(ngModel)]="newQuestion.config.allow_multiple_answers" class="rounded border-gray-300 dark:border-gray-600">
+        <span class="text-sm text-gray-700 dark:text-gray-300">Permitir múltiplas respostas</span>
+      </label>
+    </div>
+
+    <div class="mt-4">
+      <button (click)="saveQuestion()" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg">Salvar pergunta</button>
+      <span *ngIf="savedMessage" class="ml-3 text-sm text-green-600">{{ savedMessage }}</span>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Perguntas cadastradas</h3>
+    <div class="divide-y divide-gray-200 dark:divide-gray-700">
+      <div *ngFor="let q of questions" class="py-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-900 dark:text-white font-medium">{{ q.text }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Evento: {{ getEventNameById(q.event_id) }} • Tipo: {{ q.type }} <span *ngIf="q.options?.length">• Opções: {{ q.options?.join(', ') }}</span></p>
+          </div>
+          <span class="text-xs text-gray-500 dark:text-gray-400">Ordem: {{ q.order_index }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
