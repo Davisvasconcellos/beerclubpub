@@ -476,11 +476,23 @@ export class EventViewComponent {
 
   private expandedQuestionIds = new Set<number>();
 
+  // Estado de DataTable por pergunta (filtro/paginação)
+  private questionTableState: Record<number, { currentPage: number; itemsPerPage: number; searchTerm: string }> = {};
+
+  getQuestionState(id: number) {
+    if (!this.questionTableState[id]) {
+      this.questionTableState[id] = { currentPage: 1, itemsPerPage: 8, searchTerm: '' };
+    }
+    return this.questionTableState[id];
+  }
+
   toggleQuestion(id: number) {
     if (this.expandedQuestionIds.has(id)) {
       this.expandedQuestionIds.delete(id);
     } else {
       this.expandedQuestionIds.add(id);
+      // inicializa estado ao abrir
+      this.getQuestionState(id);
     }
   }
 
@@ -535,6 +547,73 @@ export class EventViewComponent {
       link.click();
       document.body.removeChild(link);
     }
+  }
+
+  // Helpers de filtro/paginação por pergunta
+  updateQuestionSearchTerm(id: number, term: string) {
+    const state = this.getQuestionState(id);
+    state.searchTerm = term || '';
+    state.currentPage = 1;
+  }
+
+  onQuestionItemsPerPageChange(id: number) {
+    const state = this.getQuestionState(id);
+    state.currentPage = 1;
+  }
+
+  handleQuestionPageChange(id: number, page: number) {
+    const state = this.getQuestionState(id);
+    const total = this.getQuestionTotalPagesById(id);
+    if (page >= 1 && page <= total) {
+      state.currentPage = page;
+    }
+  }
+
+  private normalizeAnswerValue(value: string | string[]): string {
+    return Array.isArray(value) ? value.join(', ') : value;
+  }
+
+  getQuestionFilteredAnswers(question: QuestionItem): AnswerItem[] {
+    const state = this.getQuestionState(question.id);
+    const term = state.searchTerm.toLowerCase();
+    return question.answers.filter(ans => {
+      const nameMatch = ans.user.name.toLowerCase().includes(term);
+      const answerText = this.normalizeAnswerValue(ans.value).toLowerCase();
+      const answerMatch = answerText.includes(term);
+      return nameMatch || answerMatch;
+    });
+  }
+
+  getQuestionTotalItems(question: QuestionItem): number {
+    return this.getQuestionFilteredAnswers(question).length;
+  }
+
+  getQuestionTotalPages(question: QuestionItem): number {
+    const state = this.getQuestionState(question.id);
+    return Math.ceil(this.getQuestionTotalItems(question) / state.itemsPerPage);
+  }
+
+  // Mesma lógica porém por id (para uso em bindings que passam id)
+  private getQuestionTotalPagesById(id: number): number {
+    const q = this.questions.find(x => x.id === id);
+    if (!q) return 1;
+    return this.getQuestionTotalPages(q);
+  }
+
+  getQuestionStartIndex(question: QuestionItem): number {
+    const state = this.getQuestionState(question.id);
+    return (state.currentPage - 1) * state.itemsPerPage;
+  }
+
+  getQuestionEndIndex(question: QuestionItem): number {
+    return Math.min(this.getQuestionStartIndex(question) + this.getQuestionState(question.id).itemsPerPage, this.getQuestionTotalItems(question));
+  }
+
+  getQuestionPageAnswers(question: QuestionItem): AnswerItem[] {
+    const filtered = this.getQuestionFilteredAnswers(question);
+    const start = this.getQuestionStartIndex(question);
+    const end = this.getQuestionEndIndex(question);
+    return filtered.slice(start, end);
   }
 
   toAnswerText(value: string | string[]): string {
