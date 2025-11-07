@@ -91,7 +91,8 @@
       },
       "tabs": {
         "details": "Details",
-        "accessCard": "Access Card"
+        "accessCard": "Access Card",
+        "answers": "Responses"
       },
       "details": {
         "title": "Event Information",
@@ -133,7 +134,31 @@
         }
       },
       "actions": {
-        "save": "Save Settings"
+        "save": "Save Settings",
+        "saveCard": "Save Card"
+      },
+      "answers": {
+        "title": "Responses",
+        "actions": {
+          "export": "Export responses",
+          "exportAll": "Export all"
+        },
+        "labels": {
+          "responses": "Responses list",
+          "responsesCount": "responses"
+        },
+        "datatable": {
+          "columns": {
+            "user": "User",
+            "answer": "Answer"
+          }
+        },
+        "type": {
+          "text": "Text",
+          "single_choice": "Single choice",
+          "multiple_choice": "Multiple choice",
+          "poll": "Poll"
+        }
       },
       "guests": {
         "title": "Guest List",

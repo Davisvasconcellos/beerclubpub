@@ -91,7 +91,8 @@
       },
       "tabs": {
         "details": "Detalhes",
-        "accessCard": "Cartão Acesso"
+        "accessCard": "Cartão Acesso",
+        "answers": "Respostas"
       },
       "details": {
         "title": "Informações do Evento",
@@ -133,7 +134,31 @@
         }
       },
       "actions": {
-        "save": "Salvar Configurações"
+        "save": "Salvar Configurações",
+        "saveCard": "Salvar Cartão"
+      },
+      "answers": {
+        "title": "Respostas",
+        "actions": {
+          "export": "Exportar respostas",
+          "exportAll": "Exportar tudo"
+        },
+        "labels": {
+          "responses": "Lista de respostas",
+          "responsesCount": "respostas"
+        },
+        "datatable": {
+          "columns": {
+            "user": "Usuário",
+            "answer": "Resposta"
+          }
+        },
+        "type": {
+          "text": "Texto",
+          "single_choice": "Múltipla escolha (uma)",
+          "multiple_choice": "Múltipla escolha (múltiplas)",
+          "poll": "Enquete"
+        }
       },
       "guests": {
         "title": "Lista de Convidados",

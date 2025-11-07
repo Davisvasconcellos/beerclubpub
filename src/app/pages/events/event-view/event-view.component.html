@@ -42,6 +42,14 @@
         >
           {{ 'events.view.tabs.accessCard' | translate }}
         </button>
+        <button
+          (click)="setActiveTab('respostas')"
+          [class]="activeTab === 'respostas' 
+            ? 'border-blue-500 text-blue-600 dark:text-blue-400 border-b-2 font-medium text-sm py-2 px-1' 
+            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 border-b-2 font-medium text-sm py-2 px-1'"
+        >
+          {{ 'events.view.tabs.answers' | translate }}
+        </button>
       </nav>
     </div>
   </div>
@@ -199,11 +207,88 @@
           </div>
         </div>
       </div>
+      <!-- Botão Salvar (Cartão) -->
+      <div class="mt-6">
+        <button
+          (click)="saveCardSettings()"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
+        >
+          {{ 'events.view.actions.saveCard' | translate }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Aba Respostas -->
+    <div *ngIf="activeTab === 'respostas'" class="space-y-6">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'events.view.answers.title' | translate }}</h3>
+        <button
+          (click)="exportAllAnswersCSV()"
+          class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+        >
+          {{ 'events.view.answers.actions.exportAll' | translate }}
+        </button>
+      </div>
+
+      <div class="space-y-4">
+        <div *ngFor="let question of questions" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+          <!-- Cabeçalho do colapse -->
+          <button type="button" (click)="toggleQuestion(question.id)" class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700">
+            <div>
+              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ question.title }}</p>
+              <p class="text-xs text-gray-600 dark:text-gray-300">{{ 'events.view.answers.type.' + question.type | translate }} · {{ question.answers.length }} {{ 'events.view.answers.labels.responsesCount' | translate }}</p>
+            </div>
+            <svg [ngClass]="{ 'rotate-180': isQuestionExpanded(question.id) }" class="transition-transform" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M3.04199 9.37363C3.04199 5.87693 5.87735 3.04199 9.37533 3.04199C12.8733 3.04199 15.7087 5.87693 15.7087 9.37363C15.7087 12.8703 12.8733 15.7053 9.37533 15.7053C5.87735 15.7053 3.04199 12.8703 3.04199 9.37363ZM9.37533 1.54199C5.04926 1.54199 1.54199 5.04817 1.54199 9.37363C1.54199 13.6991 5.04926 17.2053 9.37533 17.2053C11.2676 17.2053 13.0032 16.5344 14.3572 15.4176L17.1773 18.238C17.4702 18.5309 17.945 18.5309 18.2379 18.238C18.5308 17.9451 18.5309 17.4703 18.238 17.1773L15.4182 14.3573C16.5367 13.0033 17.2087 11.2669 17.2087 9.37363C17.2087 5.04817 13.7014 1.54199 9.37533 1.54199Z" fill="currentColor"/>
+            </svg>
+          </button>
+
+          <!-- Conteúdo do colapse -->
+          <div *ngIf="isQuestionExpanded(question.id)" class="p-4 bg-white dark:bg-gray-900">
+            <div class="flex items-center justify-between mb-3">
+              <p class="text-sm text-gray-700 dark:text-gray-300">{{ 'events.view.answers.labels.responses' | translate }}</p>
+              <button
+                (click)="exportQuestionAnswersCSV(question)"
+                class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+              >
+                {{ 'events.view.answers.actions.export' | translate }}
+              </button>
+            </div>
+            <div class="overflow-hidden bg-white dark:bg-white/[0.03] rounded-xl">
+              <table class="w-full">
+                <thead class="border-t border-gray-100 dark:border-white/[0.05]">
+                  <tr>
+                    <th class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                      <p class="font-medium text-gray-700 text-theme-xs dark:text-gray-400">{{ 'events.view.answers.datatable.columns.user' | translate }}</p>
+                    </th>
+                    <th class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                      <p class="font-medium text-gray-700 text-theme-xs dark:text-gray-400">{{ 'events.view.answers.datatable.columns.answer' | translate }}</p>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="border-t border-gray-100 dark:border-white/[0.05]">
+                  <tr *ngFor="let ans of question.answers" class="border-b border-gray-100 dark:border-white/[0.05] hover:bg-gray-50 dark:hover:bg-white/[0.02]">
+                    <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                      <div class="flex items-center gap-3">
+                        <img [src]="ans.user.image" [alt]="ans.user.name" class="w-8 h-8 rounded-full object-cover">
+                        <span class="text-sm font-medium text-gray-900 dark:text-white">{{ ans.user.name }}</span>
+                      </div>
+                    </td>
+                    <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05] text-sm text-gray-700 dark:text-gray-300">
+                      {{ toAnswerText(ans.value) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- Botão Salvar - Acima da Lista de Convidados -->
-  <div class="mt-8 mb-6">
+  <!-- Botão Salvar (Detalhes) - Acima da Lista de Convidados -->
+  <div class="mt-8 mb-6" *ngIf="activeTab === 'detalhes'">
     <button
       (click)="saveEvent()"
       class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
@@ -213,7 +298,7 @@
   </div>
 
   <!-- Lista de Convidados com DataTable -->
-  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+  <div *ngIf="activeTab === 'detalhes'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'events.view.guests.title' | translate }}</h3>
       <button

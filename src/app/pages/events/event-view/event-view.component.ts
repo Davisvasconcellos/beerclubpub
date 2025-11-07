@@ -32,6 +32,21 @@ interface EventData {
   cardBackgroundImage?: string;
 }
 
+// Tipos para perguntas e respostas
+type QuestionType = 'text' | 'single_choice' | 'multiple_choice' | 'poll';
+
+interface AnswerItem {
+  user: { id: number; image: string; name: string };
+  value: string | string[];
+}
+
+interface QuestionItem {
+  id: number;
+  title: string;
+  type: QuestionType;
+  answers: AnswerItem[];
+}
+
 @Component({
   selector: 'app-event-view',
   standalone: true,
@@ -397,5 +412,132 @@ export class EventViewComponent {
     } else {
       return `linear-gradient(135deg, ${this.cardSettings.primaryColor} 0%, ${this.cardSettings.secondaryColor} 100%)`;
     }
+  }
+
+  // Salvar configurações do cartão
+  saveCardSettings() {
+    // Atualiza eventData com as configurações atuais do cartão
+    this.eventData = {
+      ...this.eventData,
+      primaryColor: this.cardSettings.primaryColor,
+      secondaryColor: this.cardSettings.secondaryColor,
+      showLogo: this.cardSettings.showLogo,
+      showQRCode: this.cardSettings.showQRCode,
+      cardBackgroundType: this.cardSettings.backgroundType,
+      cardBackgroundImage: this.cardSettings.backgroundImage
+    };
+
+    console.log('Salvando configurações do cartão:', this.cardSettings);
+    // Implementar lógica real de salvamento (API) aqui
+  }
+
+  // -----------------
+  // Respostas por pergunta
+  // -----------------
+
+  questions: QuestionItem[] = [
+    {
+      id: 101,
+      title: 'Qual foi sua experiência no evento? (texto aberto)',
+      type: 'text',
+      answers: [
+        { user: { id: 1, image: '/images/user/user-20.jpg', name: 'João Silva' }, value: 'Excelente, organização impecável!' },
+        { user: { id: 2, image: '/images/user/user-21.jpg', name: 'Maria Santos' }, value: 'Gostei muito, mas faltou água nos banheiros.' }
+      ]
+    },
+    {
+      id: 102,
+      title: 'Qual atração você mais gostou? (múltipla escolha - uma resposta)',
+      type: 'single_choice',
+      answers: [
+        { user: { id: 3, image: '/images/user/user-22.jpg', name: 'Pedro Costa' }, value: 'Banda Sunrise' },
+        { user: { id: 4, image: '/images/user/user-23.jpg', name: 'Ana Oliveira' }, value: 'DJ Nightfall' }
+      ]
+    },
+    {
+      id: 103,
+      title: 'Quais áreas você visitou? (múltipla escolha - múltiplas respostas)',
+      type: 'multiple_choice',
+      answers: [
+        { user: { id: 5, image: '/images/user/user-24.jpg', name: 'Carlos Ferreira' }, value: ['Palco Principal', 'Área VIP', 'Food Trucks'] },
+        { user: { id: 1, image: '/images/user/user-20.jpg', name: 'João Silva' }, value: ['Palco Secundário', 'Área VIP'] }
+      ]
+    },
+    {
+      id: 104,
+      title: 'Você indicaria o evento para um amigo? (enquete)',
+      type: 'poll',
+      answers: [
+        { user: { id: 2, image: '/images/user/user-21.jpg', name: 'Maria Santos' }, value: 'Sim' },
+        { user: { id: 3, image: '/images/user/user-22.jpg', name: 'Pedro Costa' }, value: 'Não' }
+      ]
+    }
+  ];
+
+  private expandedQuestionIds = new Set<number>();
+
+  toggleQuestion(id: number) {
+    if (this.expandedQuestionIds.has(id)) {
+      this.expandedQuestionIds.delete(id);
+    } else {
+      this.expandedQuestionIds.add(id);
+    }
+  }
+
+  isQuestionExpanded(id: number): boolean {
+    return this.expandedQuestionIds.has(id);
+  }
+
+  exportQuestionAnswersCSV(question: QuestionItem) {
+    const rows = question.answers.map(ans => ({
+      'Pergunta': question.title,
+      'Usuário': ans.user.name,
+      'Resposta': Array.isArray(ans.value) ? (ans.value as string[]).join(', ') : (ans.value as string)
+    }));
+
+    const csvContent = this.convertToCSV(rows);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const filename = `respostas-pergunta-${question.id}-${new Date().toISOString().split('T')[0]}.csv`;
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  exportAllAnswersCSV() {
+    const rows: any[] = [];
+    this.questions.forEach(q => {
+      q.answers.forEach(ans => {
+        rows.push({
+          'Pergunta': q.title,
+          'Usuário': ans.user.name,
+          'Resposta': Array.isArray(ans.value) ? (ans.value as string[]).join(', ') : (ans.value as string)
+        });
+      });
+    });
+
+    const csvContent = this.convertToCSV(rows);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const filename = `respostas-todas-${new Date().toISOString().split('T')[0]}.csv`;
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  }
+
+  toAnswerText(value: string | string[]): string {
+    return Array.isArray(value) ? value.join(', ') : value;
   }
 }
