@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { NgApexchartsModule, ApexAxisChartSeries, ApexChart, ApexPlotOptions, ApexDataLabels, ApexXAxis, ApexLegend, ApexYAxis } from 'ng-apexcharts';
 import { PaginationWithIconComponent } from '../../../shared/components/tables/data-tables/table-one/pagination-with-icon/pagination-with-icon.component';
 import { GuestCardModalComponent } from '../../../shared/components/modals/guest-card-modal/guest-card-modal.component';
 import { EditGuestModalComponent } from '../../../shared/components/modals/edit-guest-modal/edit-guest-modal.component';
@@ -50,7 +51,7 @@ interface QuestionItem {
 @Component({
   selector: 'app-event-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, PaginationWithIconComponent, GuestCardModalComponent, EditGuestModalComponent, CardSettingsComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, NgApexchartsModule, PaginationWithIconComponent, GuestCardModalComponent, EditGuestModalComponent, CardSettingsComponent],
   templateUrl: './event-view.component.html',
   styleUrl: './event-view.component.css'
 })
@@ -618,5 +619,67 @@ export class EventViewComponent {
 
   toAnswerText(value: string | string[]): string {
     return Array.isArray(value) ? value.join(', ') : value;
+  }
+
+  // -----------------
+  // Gráficos por pergunta (ApexCharts)
+  // -----------------
+
+  questionBarChart: ApexChart = {
+    fontFamily: 'Outfit, sans-serif',
+    type: 'bar',
+    height: 220,
+    toolbar: { show: false }
+  };
+
+  questionBarPlotOptions: ApexPlotOptions = {
+    bar: {
+      horizontal: true,
+      barHeight: '60%',
+      borderRadius: 6,
+      borderRadiusApplication: 'end'
+    }
+  };
+
+  questionBarDataLabels: ApexDataLabels = { enabled: false };
+  questionBarLegend: ApexLegend = { show: false };
+  questionBarYAxis: ApexYAxis = { title: { text: undefined } };
+  questionBarColors: string[] = ['#465fff'];
+
+  private computeCounts(question: QuestionItem): { labels: string[]; counts: number[] } | null {
+    if (question.type === 'text') return { labels: [], counts: [] };
+    const map = new Map<string, number>();
+    for (const ans of question.answers) {
+      if (Array.isArray(ans.value)) {
+        // múltiplas escolhas
+        for (const v of ans.value) {
+          map.set(v, (map.get(v) || 0) + 1);
+        }
+      } else {
+        const v = ans.value;
+        map.set(v, (map.get(v) || 0) + 1);
+      }
+    }
+    const labels = Array.from(map.keys());
+    const counts = labels.map(l => map.get(l) || 0);
+    return { labels, counts };
+  }
+
+  getQuestionChartSeries(question: QuestionItem): ApexAxisChartSeries {
+    const agg = this.computeCounts(question)!;
+    return [{ name: 'Respostas', data: agg.counts }];
+  }
+
+  getQuestionChartXAxis(question: QuestionItem): ApexXAxis {
+    const agg = this.computeCounts(question)!;
+    return {
+      categories: agg.labels,
+      axisBorder: { show: false },
+      axisTicks: { show: false }
+    };
+  }
+
+  getQuestionTotalResponses(question: QuestionItem): number {
+    return question.answers.length;
   }
 }
