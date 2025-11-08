@@ -3,47 +3,76 @@
     <h4 class="font-medium text-black dark:text-white mb-4">Adicionar Novo Evento</h4>
     <form (ngSubmit)="onSubmit()">
       <div class="mb-4">
-        <label for="eventName" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Nome do Evento</label>
-        <input type="text" id="eventName" [(ngModel)]="eventName" name="eventName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Nome do Evento</label>
+        <input type="text" id="name" [(ngModel)]="name" name="name" (input)="onNameInput()" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
       </div>
-      
-      <!-- RESPONSIVO: DESKTOP 2/LINHA | MOBILE 1/LINHA -->
+
+      <div class="mb-4">
+        <label for="slug" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Slug</label>
+        <input type="text" id="slug" [(ngModel)]="slug" name="slug" (input)="slugTouched = true" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+      </div>
+
+      <div class="mb-4">
+        <label for="bannerUrl" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Banner URL</label>
+        <input type="text" id="bannerUrl" [(ngModel)]="bannerUrl" name="bannerUrl" placeholder="http://... ou /images/cards/event2.jpg" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+      </div>
+
       <div class="mb-8">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Período do Evento</label>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4"> <!-- ← RESPONSIVO! -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div>
-            <label for="startDate" class="block text-xs text-gray-500 dark:text-gray-400">Início</label>
-            <input type="datetime-local" 
-                   id="startDate" 
-                   [(ngModel)]="startDate" 
-                   name="startDate"
-                   (change)="onStartDateChange()"
-                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+            <label for="startDatetime" class="block text-xs text-gray-500 dark:text-gray-400">Início</label>
+            <input type="datetime-local" id="startDatetime" [(ngModel)]="startDatetime" name="startDatetime" (change)="onStartDateChange()" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
           </div>
           <div>
-            <label for="endDate" class="block text-xs text-gray-500 dark:text-gray-400">Término</label>
-            <input type="datetime-local" 
-                   id="endDate" 
-                   [(ngModel)]="endDate" 
-                   name="endDate"
-                   [min]="startDate"
-                   (change)="onEndDateChange()"
-                   class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+            <label for="endDatetime" class="block text-xs text-gray-500 dark:text-gray-400">Término</label>
+            <input type="datetime-local" id="endDatetime" [(ngModel)]="endDatetime" name="endDatetime" [min]="startDatetime" (change)="onEndDateChange()" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
           </div>
         </div>
       </div>
-      
+
       <div class="mb-4">
-        <label for="eventDescription" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Detalhes</label>
-        <textarea id="eventDescription" rows="3" [(ngModel)]="details" name="details" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white"></textarea>
+        <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Descrição</label>
+        <textarea id="description" rows="3" [(ngModel)]="description" name="description" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white"></textarea>
       </div>
+
       <div class="mb-4">
-        <label for="imageUpload" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Upload de Imagem</label>
-        <input type="file" id="imageUpload" accept="image/*" (change)="onImageSelected($event)" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
-        <div *ngIf="imagePreview" class="mt-2">
-          <img [src]="imagePreview" class="w-32 h-32 object-cover rounded">
+        <label for="place" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Localização</label>
+        <input type="text" id="place" [(ngModel)]="place" name="place" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+      </div>
+
+      <div class="mb-6 grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div>
+          <label for="respName" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Responsável - Nome</label>
+          <input type="text" id="respName" [(ngModel)]="respName" name="respName" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+        </div>
+        <div>
+          <label for="respEmail" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Responsável - Email</label>
+          <input type="email" id="respEmail" [(ngModel)]="respEmail" name="respEmail" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+        </div>
+        <div>
+          <label for="respPhone" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Responsável - Telefone</label>
+          <input type="tel" id="respPhone" [(ngModel)]="respPhone" name="respPhone" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
         </div>
       </div>
+
+      <div class="mb-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div>
+          <label for="color1" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Cor 1</label>
+          <div class="flex items-center gap-3">
+            <input type="color" id="color1" [(ngModel)]="color1" name="color1" class="w-10 h-10 p-0 border border-gray-300 rounded-md">
+            <input type="text" [(ngModel)]="color1" name="color1Text" class="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+          </div>
+        </div>
+        <div>
+          <label for="color2" class="block text-sm font-medium text-gray-700 dark:text-gray-400">Cor 2</label>
+          <div class="flex items-center gap-3">
+            <input type="color" id="color2" [(ngModel)]="color2" name="color2" class="w-10 h-10 p-0 border border-gray-300 rounded-md">
+            <input type="text" [(ngModel)]="color2" name="color2Text" class="flex-1 border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-brand-500 focus:border-brand-500 dark:bg-gray-800 dark:text-white">
+          </div>
+        </div>
+      </div>
+
       <div class="flex justify-end gap-2">
         <button type="button" (click)="close.emit()" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs border border-gray-300 text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-700">Cancelar</button>
         <button type="submit" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">Salvar Evento</button>

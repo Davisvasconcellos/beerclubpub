@@ -25,6 +25,7 @@ export class EventCardComponent {
   @Input() description: string = '';
   @Input() startDate: string = '';
   @Input() endDate: string = '';
+  @Input() image: string = '/images/cards/card-01.png';
   @Input() links: { text: string; url: string; variant: 'primary' | 'outline' | 'info' | 'warning' }[] = [];
   @Output() viewLinks = new EventEmitter<void>();
   @Output() editEvent = new EventEmitter<void>();

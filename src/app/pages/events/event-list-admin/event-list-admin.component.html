@@ -6,17 +6,28 @@
     </button>
   </div>
   <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    <app-event-card
-      *ngFor="let event of events"
-      [eventName]="event.eventName"
-      [description]="event.description"
-      [startDate]="event.startDate"
-      [endDate]="event.endDate"
-      [links]="event.links"
-      (viewLinks)="openLinksModal(event)"
-      (editEvent)="onEditEvent(event)"
-    ></app-event-card>
+    <ng-container *ngIf="!isLoading && events.length > 0; else loadingOrEmpty">
+      <app-event-card
+        *ngFor="let event of events"
+        [eventName]="event.eventName"
+        [description]="event.description"
+        [startDate]="event.startDate"
+        [endDate]="event.endDate"
+        [image]="event.image || ''"
+        [links]="event.links"
+        (viewLinks)="openLinksModal(event)"
+        (editEvent)="onEditEvent(event)"
+      ></app-event-card>
+    </ng-container>
   </div>
+
+  <ng-template #loadingOrEmpty>
+    <div class="col-span-4 flex flex-col items-center justify-center py-10">
+      <div *ngIf="isLoading" class="text-gray-500 dark:text-white/70">Carregando eventos...</div>
+      <div *ngIf="!isLoading && loadError" class="text-red-600 dark:text-red-400">{{ loadError }}</div>
+      <div *ngIf="!isLoading && !loadError" class="text-gray-500 dark:text-white/70">Nenhum evento encontrado.</div>
+    </div>
+  </ng-template>
 
   <app-event-links-modal
     [isOpen]="isModalOpen"
