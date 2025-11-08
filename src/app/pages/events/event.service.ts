@@ -113,7 +113,8 @@ export class EventService {
   updateEvent(idOrCode: number | string, changes: Partial<ApiEvent>): Observable<ApiEvent> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    return this.http.put<ApiEvent>(`${this.API_BASE_URL}/events/${idOrCode}`, changes, { headers });
+    // Backend espera PATCH para atualizações parciais
+    return this.http.patch<ApiEvent>(`${this.API_BASE_URL}/events/${idOrCode}`, changes, { headers });
   }
 
   private mapApiEventToListItem(ev: ApiEvent): EventListItem {

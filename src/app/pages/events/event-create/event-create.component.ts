@@ -271,8 +271,8 @@ export class EventCreateComponent {
       resp_email: respEmail,
       resp_name: respName,
       resp_phone: respPhone,
-      color_1: this.event.primaryColor,
-      color_2: this.event.secondaryColor,
+      color_1: this.cardSettings.primaryColor,
+      color_2: this.cardSettings.secondaryColor,
       card_background: this.normalizeBannerUrl(this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '')
     };
 
@@ -280,10 +280,16 @@ export class EventCreateComponent {
       next: async (created: ApiEvent) => {
         try {
           // Se houver arquivo selecionado, faz upload e atualiza banner_url no evento criado
-          if (this.imageFile && created?.id_code) {
-            const upload = await this.imageUploadService.uploadImage(this.imageFile, 'event-banner', created.id_code, { maxWidth: 1200, maxHeight: 800, quality: 0.9, format: 'jpeg' });
+          const idCode = created?.id_code as string | undefined;
+          if (this.imageFile && idCode) {
+            const upload = await this.imageUploadService.uploadImage(
+              this.imageFile,
+              'event-banner',
+              idCode,
+              { maxWidth: 1200, maxHeight: 800, quality: 0.9, format: 'jpeg' }
+            );
             if (upload.success && upload.filePath) {
-              await this.eventService.updateEvent(created.id_code!, { banner_url: upload.filePath }).toPromise();
+              await this.eventService.updateEvent(idCode, { banner_url: upload.filePath }).toPromise();
             }
           }
           this.isSaving = false;

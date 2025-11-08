@@ -241,6 +241,20 @@ export class ImageUploadService {
       formData.append('image', file); // Campo genérico 'image'
       formData.append('type', type);
       formData.append('entityId', entityId);
+      // Definir a pasta de destino de acordo com o tipo
+      // utility-server aceita 'folder' para escolher subpasta em /images
+      let folder: string | undefined;
+      const t = (type || '').toLowerCase();
+      if (t.includes('event')) {
+        folder = 'events';
+      } else if (t.startsWith('store')) {
+        folder = 'stores';
+      } else if (t.includes('user')) {
+        folder = 'user';
+      }
+      if (folder) {
+        formData.append('folder', folder);
+      }
 
       console.log(`📤 Enviando arquivo para o servidor (tipo: ${type}):`, fileName);
 
