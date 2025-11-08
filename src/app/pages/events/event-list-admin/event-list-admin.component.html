@@ -1,7 +1,7 @@
 <div>
   <h3 class="font-medium text-black dark:text-white">{{ 'events.admin.list.title' | translate }}</h3>
   <div class="flex justify-end mb-4">
-    <button (click)="openAddEventModal()" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">
+    <button (click)="goToCreateEvent()" class="inline-flex items-center gap-2 px-4 py-3 text-sm font-medium rounded-lg shadow-theme-xs bg-blue-500 text-white hover:bg-blue-600">
       {{ 'events.admin.list.addButton' | translate }}
     </button>
   </div>
@@ -35,9 +35,5 @@
     (close)="closeLinksModal()"
   ></app-event-links-modal>
 
-  <app-add-event-modal
-    [isOpen]="isAddEventModalOpen"
-    (close)="closeAddEventModal()"
-    (saveEvent)="onSaveNewEvent($event)"
-  ></app-add-event-modal>
+  
 </div>

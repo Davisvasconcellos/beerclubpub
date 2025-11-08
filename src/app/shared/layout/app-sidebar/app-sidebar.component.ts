@@ -65,6 +65,7 @@ export class AppSidebarComponent {
         { name: 'Lista de Eventos', path: '/events/event-list-admin' },
         { name: 'Visualizar Evento', path: '/events/event-view' },
         { name: 'Cadastro de Perguntas', path: '/events/questions-admin' },
+        { name: 'Criar Evento', path: '/events/event-create' },
       ],
     },
     {

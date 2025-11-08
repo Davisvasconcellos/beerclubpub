@@ -1,0 +1,57 @@
+/* Estilos do Event View copiados para manter a identidade visual */
+
+.custom-scrollbar::-webkit-scrollbar {
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.25);
+}
+
+/* Card Preview Styles */
+.card-preview {
+  position: relative;
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.3);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Tabelas */
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  background-color: transparent;
+}
+
+tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Abas */
+nav button {
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Inputs */
+input[type="text"],
+input[type="datetime-local"],
+textarea, select {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* Dark mode */
+.dark .card-preview {
+  box-shadow: 0 8px 25px -5px rgba(255, 255, 255, 0.1);
+}

@@ -44,6 +44,7 @@ export interface CreateEventPayload {
   resp_phone: string;
   color_1: string;
   color_2: string;
+  card_background?: string | null;
 }
 
 export interface EventCreateApiResponse {
@@ -97,6 +98,22 @@ export class EventService {
         };
       })
     );
+  }
+
+  // Retorna o objeto bruto da API para obter id e id_code
+  createEventRaw(payload: CreateEventPayload): Observable<ApiEvent> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    return this.http.post<EventCreateApiResponse>(`${this.API_BASE_URL}/events`, payload, { headers }).pipe(
+      map((resp) => (resp?.data?.event || (resp?.data?.events ? resp.data!.events[0] : undefined)) as ApiEvent)
+    );
+  }
+
+  // Atualiza um evento por id numérico ou id_code string
+  updateEvent(idOrCode: number | string, changes: Partial<ApiEvent>): Observable<ApiEvent> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    return this.http.put<ApiEvent>(`${this.API_BASE_URL}/events/${idOrCode}`, changes, { headers });
   }
 
   private mapApiEventToListItem(ev: ApiEvent): EventListItem {

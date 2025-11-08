@@ -98,6 +98,7 @@ import { WaitersComponent } from './pages/pub/admin/waiters/waiters.component';
 import { TablesComponent as AdminTablesComponent } from './pages/pub/admin/tables/tables.component';
 import { EventListAdminComponent } from './pages/events/event-list-admin/event-list-admin.component';
 import { EventViewComponent } from './pages/events/event-view/event-view.component';
+import { EventCreateComponent } from './pages/events/event-create/event-create.component';
 import { QuestionsAdminComponent } from './pages/events/questions-admin/questions-admin.component';
 import { UploadDemoComponent } from './pages/upload-demo/upload-demo.component';
 
@@ -568,6 +569,11 @@ export const routes: Routes = [
       {
         path: 'events/event-view',
         component: EventViewComponent,
+      },
+      {
+        path: 'events/event-create',
+        component: EventCreateComponent,
+        title: 'Criar Evento'
       },
       {
         path: 'events/questions-admin',
