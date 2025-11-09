@@ -2,7 +2,7 @@
   <!-- Background Type Toggle -->
   <div>
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-      Tipo de Fundo
+      Tipo de Fundo *
     </label>
     <div class="flex space-x-4">
       <label class="flex items-center">
@@ -31,41 +31,41 @@
   <!-- Gradient Colors (shown when gradient is selected) -->
   <div *ngIf="settings.backgroundType === 'gradient'">
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-      Cores Personalizadas
+      Cores Personalizadas *
     </label>
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-          Cor 1
+          Cor 1 *
         </label>
         <div class="flex items-center space-x-2">
           <input 
             type="color" 
             [value]="settings.primaryColor"
-            (input)="onColorChange('primary', $event.target.value)"
+            (input)="onColorChange('primary', $any($event.target).value)"
             class="w-10 h-8 border border-gray-300 rounded cursor-pointer">
           <input 
             type="text" 
             [value]="settings.primaryColor"
-            (input)="onColorChange('primary', $event.target.value)"
+            (input)="onColorChange('primary', $any($event.target).value)"
             class="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         </div>
       </div>
       
       <div>
         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-          Cor 2
+          Cor 2 *
         </label>
         <div class="flex items-center space-x-2">
           <input 
             type="color" 
             [value]="settings.secondaryColor"
-            (input)="onColorChange('secondary', $event.target.value)"
+            (input)="onColorChange('secondary', $any($event.target).value)"
             class="w-10 h-8 border border-gray-300 rounded cursor-pointer">
           <input 
             type="text" 
             [value]="settings.secondaryColor"
-            (input)="onColorChange('secondary', $event.target.value)"
+            (input)="onColorChange('secondary', $any($event.target).value)"
             class="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
         </div>
       </div>
@@ -75,7 +75,7 @@
   <!-- Image Upload (shown when image is selected) -->
   <div *ngIf="settings.backgroundType === 'image'">
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-      Imagem de Fundo
+      Imagem de Fundo *
     </label>
     <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md dark:border-gray-600">
       <div class="space-y-1 text-center">

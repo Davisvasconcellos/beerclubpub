@@ -1,4 +1,8 @@
 <div class="p-6 bg-white dark:bg-gray-900 min-h-screen">
+  <!-- Overlay de carregamento global -->
+  <div *ngIf="isEventLoading" class="fixed inset-0 z-[9998] bg-gray-900/60 backdrop-blur-sm flex items-center justify-center">
+    <div class="h-10 w-10 rounded-full border-4 border-white/40 border-t-transparent animate-spin"></div>
+  </div>
   <!-- Imagem do Evento -->
   <div class="mb-8">
     <div class="relative w-full h-64 bg-gray-200 dark:bg-gray-700 rounded-lg overflow-hidden">
@@ -54,125 +58,105 @@
     </div>
   </div>
 
+  <!-- Toast é renderizado via overlay global no body em triggerToast() -->
+
   <!-- Conteúdo das Abas -->
   <div class="mb-8">
     <!-- Aba Detalhes -->
     <div *ngIf="activeTab === 'detalhes'" class="space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Informações Básicas -->
+        <!-- Coluna 1: Nome, Descrição e Datas -->
         <div class="space-y-4">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'events.view.details.title' | translate }}</h3>
-          
+
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ 'events.view.details.fields.eventName.label' | translate }}
-            </label>
-            <input
-              type="text"
-              id="eventName"
-              name="eventName"
-              [value]="event.name"
-              (input)="event.name = $any($event.target).value"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              [placeholder]="'events.view.details.fields.eventName.placeholder' | translate"
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ 'events.view.details.fields.eventName.label' | translate }}</label>
+            <input type="text" id="eventName" name="eventName" [(ngModel)]="event.name" #nameModel="ngModel" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" [placeholder]="'events.view.details.fields.eventName.placeholder' | translate" [class.border-red-500]="nameModel.invalid && nameModel.touched">
+            <p *ngIf="nameModel.invalid && nameModel.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">Campo obrigatório.</p>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ 'events.view.details.fields.description.label' | translate }}
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows="4"
-              [value]="event.description"
-              (input)="event.description = $any($event.target).value"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              [placeholder]="'events.view.details.fields.description.placeholder' | translate"></textarea>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ 'events.view.details.fields.description.label' | translate }}</label>
+            <textarea id="description" name="description" rows="4" [(ngModel)]="event.description" #descModel="ngModel" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" [placeholder]="'events.view.details.fields.description.placeholder' | translate" [class.border-red-500]="descModel.invalid && descModel.touched"></textarea>
+            <p *ngIf="descModel.invalid && descModel.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">Campo obrigatório.</p>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              {{ 'events.view.details.fields.location.label' | translate }}
-            </label>
-            <input
-              type="text"
-              [(ngModel)]="event.location"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-            >
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ 'events.view.details.datetimeSection.title' | translate }}</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{{ 'events.view.details.datetimeSection.startDate.label' | translate }}</label>
+                <input type="datetime-local" id="startDate" name="startDate" [(ngModel)]="event.startDate" #startModel="ngModel" required (change)="onDateChange('start', $event)" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" [class.border-red-500]="startModel.invalid && startModel.touched">
+                <p *ngIf="startModel.invalid && startModel.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">Campo obrigatório.</p>
+              </div>
+              <div>
+                <label for="endDate" class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">{{ 'events.view.details.datetimeSection.endDate.label' | translate }}</label>
+                <input type="datetime-local" id="endDate" name="endDate" [(ngModel)]="event.endDate" #endModel="ngModel" required [min]="event.startDate" (change)="onDateChange('end', $event)" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white" [class.border-red-500]="endModel.invalid && endModel.touched">
+                <p *ngIf="endModel.invalid && endModel.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">Campo obrigatório.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna 2: Localização e Responsável -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Dados do Evento</h3>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ 'events.view.details.fields.location.label' | translate }}</label>
+            <input type="text" [(ngModel)]="event.location" #locModel="ngModel" required class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="Informe a localidade do evento" [class.border-red-500]="locModel.invalid && locModel.touched">
+            <p *ngIf="locModel.invalid && locModel.touched" class="mt-1 text-sm text-red-600 dark:text-red-400">Campo obrigatório.</p>
           </div>
 
-          <!-- Campos adicionais alinhados ao cadastro -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Slug</label>
-            <input
-              type="text"
-              [(ngModel)]="event.slug"
-              class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-            >
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Responsável</label>
-              <input
-                type="text"
-                [(ngModel)]="event.respName"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-              >
+              <input type="text" [(ngModel)]="event.respName" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="Nome do responsável">
             </div>
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email do Responsável</label>
-              <input
-                type="email"
-                [(ngModel)]="event.respEmail"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-              >
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefone do Responsável</label>
-              <input
-                type="tel"
-                [(ngModel)]="event.respPhone"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email do responsável</label>
+              <input type="email" [(ngModel)]="event.respEmail" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="email@exemplo.com">
             </div>
           </div>
-        </div>
 
-        <!-- Datas e Ações -->
-        <div class="space-y-4">
-          <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'events.view.details.datetimeSection.title' | translate }}</h3>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ 'events.view.details.datetimeSection.startDate.label' | translate }}
-              </label>
-              <input
-                type="datetime-local"
-                id="startDate"
-                name="startDate"
-                [value]="event.startDate"
-                (change)="onDateChange('start', $event)"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefone</label>
+              <input type="tel" [(ngModel)]="event.respPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="(00) 00000-0000">
             </div>
             <div>
-              <label for="endDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                {{ 'events.view.details.datetimeSection.endDate.label' | translate }}
-              </label>
-              <input
-                type="datetime-local"
-                id="endDate"
-                name="endDate"
-                [value]="event.endDate"
-                [min]="event.startDate"
-                (change)="onDateChange('end', $event)"
-                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-              >
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cidade</label>
+              <input type="text" [(ngModel)]="event.city" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="Cidade">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estado</label>
+              <input type="text" [(ngModel)]="event.state" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="UF">
             </div>
           </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endereço</label>
+            <input type="text" [(ngModel)]="event.address" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="Rua, número, complemento">
+          </div>
         </div>
+      </div>
+
+      <!-- Botão Salvar (Detalhes) - Acima da Lista de Convidados -->
+      <div class="mt-8 mb-6">
+        <button
+          (click)="saveEvent()"
+          [disabled]="isSaving || !isDetailsValid()"
+          class="w-full bg-green-600 hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg flex items-center justify-center"
+        >
+          <span *ngIf="!isSaving">Atualizar evento</span>
+          <span *ngIf="isSaving" class="flex items-center gap-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            Salvando...
+          </span>
+        </button>
       </div>
     </div>
 
@@ -401,15 +385,6 @@
     </div>
   </div>
 
-  <!-- Botão Salvar (Detalhes) - Acima da Lista de Convidados -->
-  <div class="mt-8 mb-6" *ngIf="activeTab === 'detalhes'">
-    <button
-      (click)="saveEvent()"
-      class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-6 rounded-lg transition-colors shadow-md hover:shadow-lg"
-    >
-      {{ 'events.view.actions.save' | translate }}
-    </button>
-  </div>
 
   <!-- Lista de Convidados com DataTable -->
   <div *ngIf="activeTab === 'detalhes'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">

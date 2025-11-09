@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -7,6 +7,7 @@ import { PaginationWithIconComponent } from '../../../shared/components/tables/d
 import { GuestCardModalComponent } from '../../../shared/components/modals/guest-card-modal/guest-card-modal.component';
 import { EditGuestModalComponent } from '../../../shared/components/modals/edit-guest-modal/edit-guest-modal.component';
 import { CardSettingsComponent, CardSettings } from '../../../shared/components/cards/card-settings/card-settings.component';
+import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
 import { EventService, ApiEvent, ApiGuest } from '../event.service';
@@ -28,6 +29,9 @@ interface EventData {
   name: string;
   description: string;
   location: string;
+  city?: string;
+  state?: string;
+  address?: string;
   startDate: string;
   endDate: string;
   slug?: string;
@@ -67,12 +71,17 @@ interface QuestionItem {
 })
 export class EventViewComponent implements OnInit {
   activeTab: string = 'detalhes';
+  private eventIdCode?: string;
+  isEventLoading: boolean = true;
 
   event: EventData = {
     id: 1,
     name: 'Festival de Música Vibehood',
     description: 'Três dias de música ao vivo com artistas renomados e talentos emergentes. Desfrute de diversos gêneros musicais, food trucks e uma atmosfera vibrante.',
     location: 'Parque Central da Cidade',
+    city: '',
+    state: '',
+    address: '',
     startDate: '2024-06-15',
     endDate: '2024-06-17',
     primaryColor: '#3B82F6',
@@ -182,6 +191,9 @@ export class EventViewComponent implements OnInit {
     name: this.event.name,
     description: this.event.description,
     location: this.event.location,
+    city: this.event.city,
+    state: this.event.state,
+    address: this.event.address,
     startDate: this.event.startDate,
     endDate: this.event.endDate,
     primaryColor: this.event.primaryColor,
@@ -214,15 +226,69 @@ export class EventViewComponent implements OnInit {
   sortKey: string = 'name';
   sortOrder: 'asc' | 'desc' = 'asc';
   searchTerm: string = '';
+  isSaving: boolean = false;
+  saveMessage: string = '';
+  saveError: string = '';
 
-  constructor(private route: ActivatedRoute, private eventService: EventService) {}
+  // Toast state
+  showToast: boolean = false;
+  toastVariant: 'success' | 'info' | 'warning' | 'error' = 'success';
+  toastTitle: string = '';
+  toastDescription?: string;
+
+  constructor(
+    private route: ActivatedRoute,
+    private eventService: EventService,
+    private appRef: ApplicationRef,
+    private injector: Injector,
+    private envInjector: EnvironmentInjector
+  ) {}
 
   ngOnInit(): void {
-    const idCode = this.route.snapshot.paramMap.get('id_code');
-    if (idCode) {
-      this.loadEvent(idCode);
-      this.loadGuests(idCode);
-    }
+    this.route.paramMap.subscribe((pm) => {
+      const idCode = pm.get('id_code');
+      if (idCode) {
+        this.resetEventState();
+        this.eventIdCode = idCode;
+        this.loadEvent(idCode);
+        this.loadGuests(idCode);
+      }
+    });
+  }
+
+  private resetEventState() {
+    this.isEventLoading = true;
+    this.event = {
+      id: 0,
+      name: '',
+      description: '',
+      location: '',
+      city: '',
+      state: '',
+      address: '',
+      startDate: '',
+      endDate: '',
+      slug: '',
+      respName: '',
+      respEmail: '',
+      respPhone: '',
+      primaryColor: '#3B82F6',
+      secondaryColor: '#1E40AF',
+      showLogo: true,
+      showQRCode: true,
+      image: '/images/cards/event2.jpg',
+      cardBackgroundType: 'image',
+      cardBackgroundImage: '/images/cards/event3.jpg'
+    };
+    this.cardSettings = {
+      backgroundType: 'image',
+      backgroundImage: '/images/cards/event4.jpg',
+      primaryColor: this.event.primaryColor,
+      secondaryColor: this.event.secondaryColor,
+      showLogo: this.event.showLogo,
+      showQRCode: this.event.showQRCode
+    };
+    this.guests = [];
   }
 
   private loadEvent(idCode: string) {
@@ -241,12 +307,16 @@ export class EventViewComponent implements OnInit {
         const respName = (ev as any).resp_name || '';
         const respEmail = (ev as any).resp_email || '';
         const respPhone = (ev as any).resp_phone || '';
+        const id_code = (ev as any).id_code || idCode;
 
         this.event = {
           id: Number(ev.id) || 0,
           name,
           description,
           location: place,
+          city: '',
+          state: '',
+          address: '',
           startDate: this.toLocalDateTime(startIso),
           endDate: this.toLocalDateTime(endIso),
           slug,
@@ -261,6 +331,7 @@ export class EventViewComponent implements OnInit {
           cardBackgroundType: 'image',
           cardBackgroundImage: cardBg
         };
+        this.eventIdCode = id_code;
 
         this.cardSettings = {
           backgroundType: 'image',
@@ -270,9 +341,12 @@ export class EventViewComponent implements OnInit {
           showLogo: true,
           showQRCode: true
         };
+        this.isEventLoading = false;
       },
       error: (err) => {
-        console.error('Falha ao carregar evento', err);
+        this.isEventLoading = false;
+        const msg = (err?.error?.message || err?.message || 'Falha ao carregar evento');
+        this.triggerToast('error', 'Erro ao carregar evento', msg);
       }
     });
   }
@@ -346,16 +420,19 @@ export class EventViewComponent implements OnInit {
   onDateChange(field: string, event: Event) {
     const target = event.target as HTMLInputElement;
     const newDate = target.value;
+    const startD = this.parseLocalDate(this.event.startDate);
+    const endD = this.parseLocalDate(this.event.endDate);
+    const newD = this.parseLocalDate(newDate);
 
     if (field === 'start') {
       // Se a data de início mudou e é maior que a data de fim, limpar a data de fim
-      if (this.event.endDate && newDate > this.event.endDate) {
+      if (endD && newD && newD.getTime() > endD.getTime()) {
         this.event.endDate = '';
       }
       this.event.startDate = newDate;
     } else if (field === 'end') {
       // Se a data de fim é menor que a data de início, ajustar para a data de início
-      if (this.event.startDate && newDate < this.event.startDate) {
+      if (startD && newD && newD.getTime() < startD.getTime()) {
         this.event.endDate = this.event.startDate;
         target.value = this.event.startDate;
         return;
@@ -365,8 +442,68 @@ export class EventViewComponent implements OnInit {
   }
 
   saveEvent() {
-    console.log('Salvando evento:', this.event);
-    // Implementar lógica de salvamento
+    this.isSaving = true;
+    this.saveMessage = '';
+    this.saveError = '';
+
+    if (!this.isDetailsValid()) {
+      this.isSaving = false;
+      this.saveError = 'Preencha os campos obrigatórios: nome, descrição, datas e local.';
+      return;
+    }
+
+    const name = (this.event.name || '').trim();
+    const description = (this.event.description || '').trim();
+    const banner = this.normalizeBannerUrl(this.cardSettings.backgroundImage || this.event.cardBackgroundImage || this.event.image || '/images/cards/event2.jpg');
+    const startIso = this.toIsoZ(this.event.startDate);
+    const endIso = this.toIsoZ(this.event.endDate);
+    const place = this.concatPlace(this.event.location, this.event.city, this.event.state, this.event.address);
+    const respEmail = (this.event.respEmail || '').trim();
+    const respName = (this.event.respName || '').trim();
+    const respPhone = (this.event.respPhone || '').trim();
+    const color_1 = this.cardSettings.primaryColor || this.event.primaryColor;
+    const color_2 = this.cardSettings.secondaryColor || this.event.secondaryColor;
+    const card_background = this.cardSettings.backgroundType === 'image' ? (this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '') : '';
+    const slug = this.slugify(name);
+
+    const changes: Partial<ApiEvent> & {
+      place?: string;
+      resp_email?: string;
+      resp_name?: string;
+      resp_phone?: string;
+      color_1?: string;
+      color_2?: string;
+      card_background?: string | null;
+    } = {
+      name,
+      description,
+      banner_url: banner,
+      start_datetime: startIso,
+      end_datetime: endIso,
+      slug,
+      place,
+      resp_email: respEmail,
+      resp_name: respName,
+      resp_phone: respPhone,
+      color_1,
+      color_2,
+      card_background: card_background || null
+    };
+
+    const idOrCode = this.eventIdCode || this.event.id;
+    this.eventService.updateEvent(idOrCode, changes).subscribe({
+      next: () => {
+        this.isSaving = false;
+        this.saveMessage = '';
+        this.triggerToast('success', 'Atualização realizada', 'Evento atualizado com sucesso.');
+      },
+      error: (err) => {
+        console.error('Erro ao atualizar evento:', err);
+        this.isSaving = false;
+        this.saveError = '';
+        this.triggerToast('error', 'Falha na atualização', 'Erro ao atualizar evento. Tente novamente.');
+      }
+    });
   }
 
   exportGuestList() {
@@ -496,19 +633,93 @@ export class EventViewComponent implements OnInit {
 
   // Salvar configurações do cartão
   saveCardSettings() {
-    // Atualiza eventData com as configurações atuais do cartão
-    this.eventData = {
-      ...this.eventData,
-      primaryColor: this.cardSettings.primaryColor,
-      secondaryColor: this.cardSettings.secondaryColor,
-      showLogo: this.cardSettings.showLogo,
-      showQRCode: this.cardSettings.showQRCode,
-      cardBackgroundType: this.cardSettings.backgroundType,
-      cardBackgroundImage: this.cardSettings.backgroundImage
-    };
+    this.saveEvent();
+  }
 
-    console.log('Salvando configurações do cartão:', this.cardSettings);
-    // Implementar lógica real de salvamento (API) aqui
+  private concatPlace(location?: string, city?: string, uf?: string, address?: string): string {
+    const parts = [
+      (location || '').trim(),
+      (city || '').trim(),
+      (uf || '').trim(),
+      (address || '').trim()
+    ].filter(p => !!p);
+    return parts.join(', ');
+  }
+
+  private slugify(text: string): string {
+    return (text || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .trim();
+  }
+
+  private toIsoZ(localValue: string | undefined): string {
+    if (!localValue) return '';
+    const parsed = this.parseLocalDate(localValue);
+    if (!parsed) return localValue;
+    return parsed.toISOString();
+  }
+
+  private parseLocalDate(value?: string): Date | null {
+    if (!value) return null;
+    // Esperado: YYYY-MM-DDTHH:MM (datetime-local)
+    const m = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2})$/.exec(value);
+    if (m) {
+      const [_, y, mo, d, h, mi] = m;
+      const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), 0, 0);
+      return dt;
+    }
+    // Fallback para formatos parseáveis pelo Date
+    const dt = new Date(value);
+    return isNaN(dt.getTime()) ? null : dt;
+  }
+
+  private normalizeBannerUrl(url: string): string {
+    const clean = (url || '').trim();
+    if (!clean) return '';
+    if (/^https?:\/\//.test(clean)) return clean;
+    return clean.startsWith('/') ? `http://localhost:4202${clean}` : `http://localhost:4202/images/cards/${clean}`;
+  }
+
+  isDetailsValid(): boolean {
+    const nameOk = !!(this.event.name && this.event.name.trim());
+    const descOk = !!(this.event.description && this.event.description.trim());
+    const startOk = !!(this.event.startDate && this.event.startDate.trim());
+    const endOk = !!(this.event.endDate && this.event.endDate.trim());
+    const locOk = !!(this.event.location && this.event.location.trim());
+    return nameOk && descOk && startOk && endOk && locOk;
+  }
+
+  private triggerToast(
+    variant: 'success' | 'info' | 'warning' | 'error',
+    title: string,
+    description?: string
+  ) {
+    const compRef = createComponent(NotificationComponent, {
+      environmentInjector: this.envInjector,
+      elementInjector: this.injector,
+    });
+    compRef.setInput('variant', variant);
+    compRef.setInput('title', title);
+    compRef.setInput('description', description);
+    compRef.setInput('hideDuration', 3000);
+
+    this.appRef.attachView(compRef.hostView);
+    const host = compRef.location.nativeElement as HTMLElement;
+    host.style.position = 'fixed';
+    host.style.top = '16px';
+    host.style.right = '16px';
+    host.style.zIndex = '2147483647';
+    host.style.pointerEvents = 'auto';
+    document.body.appendChild(host);
+
+    setTimeout(() => {
+      this.appRef.detachView(compRef.hostView);
+      compRef.destroy();
+    }, 3200);
   }
 
   // -----------------
