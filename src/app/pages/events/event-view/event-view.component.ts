@@ -9,7 +9,7 @@ import { EditGuestModalComponent } from '../../../shared/components/modals/edit-
 import { CardSettingsComponent, CardSettings } from '../../../shared/components/cards/card-settings/card-settings.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
-import { EventService, ApiEvent } from '../event.service';
+import { EventService, ApiEvent, ApiGuest } from '../event.service';
 
 interface TableRowData {
   id: number;
@@ -17,6 +17,10 @@ interface TableRowData {
   email: string;
   phone: string;
   status: 'Confirmado' | 'Pendente' | 'Cancelado';
+  documentNumber?: string;
+  guestType?: string;
+  rsvp?: boolean;
+  checkin?: boolean;
 }
 
 interface EventData {
@@ -96,7 +100,9 @@ export class EventViewComponent implements OnInit {
       .filter((item) =>
         item.user.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         item.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        item.phone.toLowerCase().includes(this.searchTerm.toLowerCase())
+        item.phone.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        (item.guestType?.toLowerCase().includes(this.searchTerm.toLowerCase()) ?? false) ||
+        (item.documentNumber?.toLowerCase().includes(this.searchTerm.toLowerCase()) ?? false)
       )
       .sort((a, b) => {
         let valueA: any, valueB: any;
@@ -163,48 +169,7 @@ export class EventViewComponent implements OnInit {
   // Dados dos convidados adaptados para o DataTable
   tableData: TableRowData[] = [];
 
-  guests: Guest[] = [
-    {
-      id: 1,
-      image: '/images/user/user-20.jpg',
-      name: 'João Silva',
-      email: 'joao.silva@email.com',
-      phone: '(11) 99999-9999',
-      status: 'Confirmado'
-    },
-    {
-      id: 2,
-      image: '/images/user/user-21.jpg',
-      name: 'Maria Santos',
-      email: 'maria.santos@email.com',
-      phone: '(11) 88888-8888',
-      status: 'Pendente'
-    },
-    {
-      id: 3,
-      image: '/images/user/user-22.jpg',
-      name: 'Pedro Costa',
-      email: 'pedro.costa@email.com',
-      phone: '(11) 77777-7777',
-      status: 'Confirmado'
-    },
-    {
-      id: 4,
-      image: '/images/user/user-23.jpg',
-      name: 'Ana Oliveira',
-      email: 'ana.oliveira@email.com',
-      phone: '(11) 66666-6666',
-      status: 'Cancelado'
-    },
-    {
-      id: 5,
-      image: '/images/user/user-24.jpg',
-      name: 'Carlos Ferreira',
-      email: 'carlos.ferreira@email.com',
-      phone: '(11) 55555-5555',
-      status: 'Confirmado'
-    }
-  ];
+  guests: Guest[] = [];
 
   // Modal properties
   isGuestCardModalOpen = false;
@@ -231,8 +196,10 @@ export class EventViewComponent implements OnInit {
   // Propriedades do DataTable
   columns = [
     { key: 'name', label: 'Convidado' },
-    { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Telefone' },
+    { key: 'guestType', label: 'Tipo de convidado' },
+    { key: 'rsvp', label: 'RSVP' },
+    { key: 'checkin', label: 'Check-in' },
     { key: 'actions', label: 'Ações' }
   ];
 
@@ -248,21 +215,13 @@ export class EventViewComponent implements OnInit {
   sortOrder: 'asc' | 'desc' = 'asc';
   searchTerm: string = '';
 
-  constructor(private route: ActivatedRoute, private eventService: EventService) {
-    // Converter dados dos convidados para o formato do DataTable
-    this.tableData = this.guests.map(guest => ({
-      id: guest.id,
-      user: { image: guest.image, name: guest.name },
-      email: guest.email,
-      phone: guest.phone,
-      status: guest.status
-    }));
-  }
+  constructor(private route: ActivatedRoute, private eventService: EventService) {}
 
   ngOnInit(): void {
     const idCode = this.route.snapshot.paramMap.get('id_code');
     if (idCode) {
       this.loadEvent(idCode);
+      this.loadGuests(idCode);
     }
   }
 
@@ -314,6 +273,38 @@ export class EventViewComponent implements OnInit {
       },
       error: (err) => {
         console.error('Falha ao carregar evento', err);
+      }
+    });
+  }
+
+  private loadGuests(idCode: string) {
+    this.eventService.getEventGuests(idCode, { page: 1, page_size: 20 }).subscribe({
+      next: (guests: ApiGuest[]) => {
+        // Mapear para o modelo Guest usado no componente
+        this.guests = guests.map(g => ({
+          id: g.id,
+          name: g.display_name,
+          email: g.email,
+          phone: g.phone || '',
+          image: this.normalizeImageUrl(g.avatar_url || undefined),
+          status: g.checkin ? 'Confirmado' : 'Pendente'
+        }));
+
+        // Atualizar dados da tabela para DataTables
+        this.tableData = this.guests.map(guest => ({
+          id: guest.id,
+          user: { image: guest.image, name: guest.name },
+          email: guest.email,
+          phone: guest.phone,
+          status: guest.status,
+          documentNumber: (guests.find(g => g.id === guest.id)?.document?.number) || '',
+          guestType: (guests.find(g => g.id === guest.id)?.type) || '',
+          rsvp: !!(guests.find(g => g.id === guest.id)?.rsvp),
+          checkin: !!(guests.find(g => g.id === guest.id)?.checkin)
+        }));
+      },
+      error: (err) => {
+        console.error('Falha ao carregar convidados', err);
       }
     });
   }

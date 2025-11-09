@@ -71,6 +71,31 @@ export interface EventListItem {
   links: Array<{ text: string; url: string; variant: 'primary' | 'outline' | 'info' | 'warning' }>;
 }
 
+// ================================
+// Guests API Types
+// ================================
+export interface ApiGuestDocument { type?: string; number?: string }
+export interface ApiGuest {
+  id: number;
+  display_name: string;
+  avatar_url?: string | null;
+  email: string;
+  document?: ApiGuestDocument | null;
+  phone?: string;
+  type?: string;
+  origin_status?: string;
+  rsvp?: boolean;
+  rsvp_at?: string | null;
+  checkin?: string | null;
+  check_in_method?: string | null;
+}
+
+export interface GuestsApiResponse {
+  success: boolean;
+  data: { guests: ApiGuest[] };
+  message?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EventService {
   private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
@@ -86,6 +111,36 @@ export class EventService {
         const events = resp?.data?.events ?? [];
         return events.map((ev) => this.mapApiEventToListItem(ev));
       })
+    );
+  }
+
+  // Lista convidados do evento por id_code (ou ID) com paginação/filtros simples
+  getEventGuests(idOrCode: string, params?: {
+    page?: number;
+    page_size?: number;
+    search?: string;
+    type?: string;
+    source?: string;
+    checked_in?: boolean;
+    rsvp?: boolean;
+  }): Observable<ApiGuest[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) query.set('page_size', String(params.page_size));
+    if (params?.search) query.set('search', params.search);
+    if (params?.type) query.set('type', params.type);
+    if (params?.source) query.set('source', params.source);
+    if (typeof params?.checked_in === 'boolean') query.set('checked_in', String(params.checked_in));
+    if (typeof params?.rsvp === 'boolean') query.set('rsvp', String(params.rsvp));
+
+    const qs = query.toString();
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/guests${qs ? `?${qs}` : ''}`;
+
+    return this.http.get<GuestsApiResponse>(url, { headers }).pipe(
+      map((resp) => resp?.data?.guests ?? [])
     );
   }
 

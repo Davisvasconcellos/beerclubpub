@@ -488,11 +488,25 @@
               <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                 <div class="flex items-center gap-3">
                   <img [src]="item.user.image" [alt]="item.user.name" class="w-10 h-10 rounded-full object-cover">
-                  <span class="text-sm font-medium text-gray-900 dark:text-white">{{ item.user.name }}</span>
+                  <div class="flex flex-col min-w-0">
+                    <span class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ item.user.name }}</span>
+                    <span class="text-xs text-gray-600 dark:text-gray-300 truncate">{{ item.email }}</span>
+                    <span *ngIf="item.documentNumber" class="text-xs text-gray-600 dark:text-gray-300 truncate">{{ item.documentNumber }}</span>
+                  </div>
                 </div>
               </td>
-              <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05] text-sm text-gray-600 dark:text-gray-300">{{ item.email }}</td>
               <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05] text-sm text-gray-600 dark:text-gray-300">{{ item.phone }}</td>
+              <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05] text-sm text-gray-600 dark:text-gray-300">{{ item.guestType || '-' }}</td>
+              <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                <span [ngClass]="item.rsvp ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'" class="inline-block px-2 py-1 rounded text-xs font-medium">
+                  {{ item.rsvp ? 'Sim' : 'Não' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
+                <span [ngClass]="item.checkin ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'" class="inline-block px-2 py-1 rounded text-xs font-medium">
+                  {{ item.checkin ? 'Sim' : 'Não' }}
+                </span>
+              </td>
               <td class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
                 <div class="flex space-x-2">
                   <button 
@@ -550,6 +564,12 @@
                     <span class="text-sm font-medium text-gray-900 dark:text-white truncate">{{ item.user.name }}</span>
                     <span class="text-xs text-gray-600 dark:text-gray-300 truncate">{{ item.email }}</span>
                     <span class="text-xs text-gray-600 dark:text-gray-300">{{ item.phone }}</span>
+                    <span *ngIf="item.documentNumber" class="text-xs text-gray-600 dark:text-gray-300 truncate">{{ item.documentNumber }}</span>
+                    <div class="flex flex-wrap gap-2 mt-1">
+                      <span class="inline-block px-2 py-1 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 text-[10px]">{{ item.guestType || '-' }}</span>
+                      <span [ngClass]="item.rsvp ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'" class="inline-block px-2 py-1 rounded text-[10px]">RSVP: {{ item.rsvp ? 'Sim' : 'Não' }}</span>
+                      <span [ngClass]="item.checkin ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'" class="inline-block px-2 py-1 rounded text-[10px]">Check-in: {{ item.checkin ? 'Sim' : 'Não' }}</span>
+                    </div>
                   </div>
                 </div>
               </td>
