@@ -31,6 +31,14 @@ export interface EventsApiResponse {
   };
 }
 
+export interface EventDetailApiResponse {
+  success: boolean;
+  data: {
+    event: ApiEvent;
+    total_responses?: number;
+  };
+}
+
 export interface CreateEventPayload {
   name: string;
   slug: string;
@@ -59,6 +67,7 @@ export interface EventListItem {
   startDate: string;
   endDate: string;
   image?: string;
+  id_code?: string;
   links: Array<{ text: string; url: string; variant: 'primary' | 'outline' | 'info' | 'warning' }>;
 }
 
@@ -117,6 +126,15 @@ export class EventService {
     return this.http.patch<ApiEvent>(`${this.API_BASE_URL}/events/${idOrCode}`, changes, { headers });
   }
 
+  // Busca detalhes de um evento por id_code público
+  getEventByIdCode(idCode: string): Observable<ApiEvent> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    return this.http.get<EventDetailApiResponse>(`${this.API_BASE_URL}/events/${idCode}`, { headers }).pipe(
+      map((resp) => resp?.data?.event as ApiEvent)
+    );
+  }
+
   private mapApiEventToListItem(ev: ApiEvent): EventListItem {
     const eventName = ev.name || ev.title || 'Evento';
     const description = ev.description ?? ev.details ?? 'Sem descrição';
@@ -131,7 +149,7 @@ export class EventService {
     // Links podem ser enriquecidos posteriormente quando a API disponibilizar URLs
     const links: Array<{ text: string; url: string; variant: 'primary' | 'outline' | 'info' | 'warning' }> = [];
 
-    return { eventName, description, startDate, endDate, image: image || undefined, links };
+    return { eventName, description, startDate, endDate, image: image || undefined, id_code: ev.id_code, links };
   }
 
   private formatDateTime(iso: string | undefined): string {

@@ -567,7 +567,7 @@ export const routes: Routes = [
         component: EventListAdminComponent,
       },
       {
-        path: 'events/event-view',
+        path: 'events/event-view/:id_code',
         component: EventViewComponent,
       },
       {

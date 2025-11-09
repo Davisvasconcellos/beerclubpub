@@ -255,7 +255,7 @@ export class EventCreateComponent {
     const startIso = this.toIsoZ(this.event.startDate);
     const endIso = this.toIsoZ(this.event.endDate);
 
-    const place = this.concatPlace(this.event.location, this.event.address);
+    const place = this.concatPlace(this.event.location, this.event.city, this.event.state, this.event.address);
     const respEmail = (this.event.responsibleEmail || '').trim();
     const respName = (this.event.responsibleName || '').trim();
     const respPhone = (this.event.responsiblePhone || '').replace(/\D+/g, '').trim();
@@ -315,11 +315,14 @@ export class EventCreateComponent {
     this.saveEvent();
   }
 
-  private concatPlace(location?: string, address?: string): string {
-    const loc = (location || '').trim();
-    const addr = (address || '').trim();
-    if (loc && addr) return `${loc} - ${addr}`;
-    return loc || addr || '';
+  private concatPlace(location?: string, city?: string, uf?: string, address?: string): string {
+    const parts = [
+      (location || '').trim(),
+      (city || '').trim(),
+      (uf || '').trim(),
+      (address || '').trim()
+    ].filter(p => !!p);
+    return parts.join(', ');
   }
 
   private slugify(text: string): string {

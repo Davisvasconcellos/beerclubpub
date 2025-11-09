@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgApexchartsModule, ApexAxisChartSeries, ApexChart, ApexPlotOptions, ApexDataLabels, ApexXAxis, ApexLegend, ApexYAxis } from 'ng-apexcharts';
@@ -8,6 +9,7 @@ import { EditGuestModalComponent } from '../../../shared/components/modals/edit-
 import { CardSettingsComponent, CardSettings } from '../../../shared/components/cards/card-settings/card-settings.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
+import { EventService, ApiEvent } from '../event.service';
 
 interface TableRowData {
   id: number;
@@ -24,6 +26,10 @@ interface EventData {
   location: string;
   startDate: string;
   endDate: string;
+  slug?: string;
+  respName?: string;
+  respEmail?: string;
+  respPhone?: string;
   primaryColor: string;
   secondaryColor: string;
   showLogo: boolean;
@@ -55,7 +61,7 @@ interface QuestionItem {
   templateUrl: './event-view.component.html',
   styleUrl: './event-view.component.css'
 })
-export class EventViewComponent {
+export class EventViewComponent implements OnInit {
   activeTab: string = 'detalhes';
 
   event: EventData = {
@@ -242,7 +248,7 @@ export class EventViewComponent {
   sortOrder: 'asc' | 'desc' = 'asc';
   searchTerm: string = '';
 
-  constructor() {
+  constructor(private route: ActivatedRoute, private eventService: EventService) {
     // Converter dados dos convidados para o formato do DataTable
     this.tableData = this.guests.map(guest => ({
       id: guest.id,
@@ -251,6 +257,88 @@ export class EventViewComponent {
       phone: guest.phone,
       status: guest.status
     }));
+  }
+
+  ngOnInit(): void {
+    const idCode = this.route.snapshot.paramMap.get('id_code');
+    if (idCode) {
+      this.loadEvent(idCode);
+    }
+  }
+
+  private loadEvent(idCode: string) {
+    this.eventService.getEventByIdCode(idCode).subscribe({
+      next: (ev: ApiEvent) => {
+        const name = ev.name || ev.title || '';
+        const description = ev.description ?? ev.details ?? '';
+        const startIso = ev.start_datetime || ev.start_date || ev.startDate || '';
+        const endIso = ev.end_datetime || ev.end_date || ev.endDate || '';
+        const banner = this.normalizeImageUrl(ev.banner_url || ev.image || undefined) || '/images/cards/event2.jpg';
+        const place = (ev as any).place || '';
+        const color1 = (ev as any).color_1 || '#3B82F6';
+        const color2 = (ev as any).color_2 || '#1E40AF';
+        const cardBg = (ev as any).card_background || this.event.cardBackgroundImage || '/images/cards/event3.jpg';
+        const slug = (ev as any).slug || '';
+        const respName = (ev as any).resp_name || '';
+        const respEmail = (ev as any).resp_email || '';
+        const respPhone = (ev as any).resp_phone || '';
+
+        this.event = {
+          id: Number(ev.id) || 0,
+          name,
+          description,
+          location: place,
+          startDate: this.toLocalDateTime(startIso),
+          endDate: this.toLocalDateTime(endIso),
+          slug,
+          respName,
+          respEmail,
+          respPhone,
+          primaryColor: color1,
+          secondaryColor: color2,
+          showLogo: true,
+          showQRCode: true,
+          image: banner,
+          cardBackgroundType: 'image',
+          cardBackgroundImage: cardBg
+        };
+
+        this.cardSettings = {
+          backgroundType: 'image',
+          backgroundImage: cardBg,
+          primaryColor: color1,
+          secondaryColor: color2,
+          showLogo: true,
+          showQRCode: true
+        };
+      },
+      error: (err) => {
+        console.error('Falha ao carregar evento', err);
+      }
+    });
+  }
+
+  private toLocalDateTime(iso: string): string {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    } catch {
+      // Caso venha já no formato correto ou outro, retorna como está
+      return iso;
+    }
+  }
+
+  private normalizeImageUrl(url?: string | null): string | undefined {
+    const clean = (url || '').trim();
+    if (!clean) return undefined;
+    if (/^https?:\/\//.test(clean)) return clean;
+    return clean.startsWith('/') ? clean : `/${clean}`;
   }
 
   onImageUpload(event: any) {

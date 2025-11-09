@@ -59,8 +59,17 @@ export class EventListAdminComponent implements OnInit {
   }
 
   onEditEvent(event: Event) {
-    console.log('Editar evento:', event);
-    // Implementar a lógica de edição aqui
+    try {
+      const idCode = (event as any)?.id_code as string | undefined;
+      if (!idCode) {
+        this.loadError = 'Evento sem id_code para edição.';
+        return;
+      }
+      this.router.navigate(['/events/event-view', idCode]);
+    } catch (e) {
+      console.error('Falha ao navegar para edição:', e);
+      this.loadError = 'Falha ao abrir edição do evento.';
+    }
   }
 
   openLinksModal(event: Event) {
