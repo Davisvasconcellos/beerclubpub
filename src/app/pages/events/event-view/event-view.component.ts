@@ -11,6 +11,7 @@ import { NotificationComponent } from '../../../shared/components/ui/notificatio
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
 import { EventService, ApiEvent, ApiGuest } from '../event.service';
+import { ImageUploadService } from '../../../shared/services/image-upload.service';
 
 interface TableRowData {
   id: number;
@@ -69,10 +70,16 @@ interface QuestionItem {
   templateUrl: './event-view.component.html',
   styleUrl: './event-view.component.css'
 })
-export class EventViewComponent implements OnInit {
-  activeTab: string = 'detalhes';
-  private eventIdCode?: string;
-  isEventLoading: boolean = true;
+  export class EventViewComponent implements OnInit {
+    activeTab: string = 'detalhes';
+    private eventIdCode?: string;
+    isEventLoading: boolean = true;
+    private imageFile?: File;
+    private imageDirty: boolean = false;
+    private bannerOriginalUrl?: string;
+    private cardImageFile?: File;
+    private cardImageDirty: boolean = false;
+    private cardBackgroundOriginalUrl?: string;
 
   event: EventData = {
     id: 1,
@@ -241,7 +248,8 @@ export class EventViewComponent implements OnInit {
     private eventService: EventService,
     private appRef: ApplicationRef,
     private injector: Injector,
-    private envInjector: EnvironmentInjector
+    private envInjector: EnvironmentInjector,
+    private imageUploadService: ImageUploadService
   ) {}
 
   ngOnInit(): void {
@@ -302,7 +310,8 @@ export class EventViewComponent implements OnInit {
         const place = (ev as any).place || '';
         const color1 = (ev as any).color_1 || '#3B82F6';
         const color2 = (ev as any).color_2 || '#1E40AF';
-        const cardBg = (ev as any).card_background || this.event.cardBackgroundImage || '/images/cards/event3.jpg';
+        const cardBgRaw = (ev as any).card_background || this.event.cardBackgroundImage || '/images/cards/event3.jpg';
+        const cardBg = this.normalizeImageUrl(cardBgRaw) || cardBgRaw;
         const slug = (ev as any).slug || '';
         const respName = (ev as any).resp_name || '';
         const respEmail = (ev as any).resp_email || '';
@@ -332,6 +341,8 @@ export class EventViewComponent implements OnInit {
           cardBackgroundImage: cardBg
         };
         this.eventIdCode = id_code;
+        this.bannerOriginalUrl = (ev.banner_url || ev.image || undefined) || undefined;
+        this.cardBackgroundOriginalUrl = (ev as any).card_background || undefined;
 
         this.cardSettings = {
           backgroundType: 'image',
@@ -409,6 +420,8 @@ export class EventViewComponent implements OnInit {
   onImageUpload(event: any) {
     const file = event.target.files[0];
     if (file) {
+      this.imageFile = file;
+      this.imageDirty = true;
       const reader = new FileReader();
       reader.onload = (e: any) => {
         this.event.image = e.target.result;
@@ -454,7 +467,6 @@ export class EventViewComponent implements OnInit {
 
     const name = (this.event.name || '').trim();
     const description = (this.event.description || '').trim();
-    const banner = this.normalizeBannerUrl(this.cardSettings.backgroundImage || this.event.cardBackgroundImage || this.event.image || '/images/cards/event2.jpg');
     const startIso = this.toIsoZ(this.event.startDate);
     const endIso = this.toIsoZ(this.event.endDate);
     const place = this.concatPlace(this.event.location, this.event.city, this.event.state, this.event.address);
@@ -463,7 +475,16 @@ export class EventViewComponent implements OnInit {
     const respPhone = (this.event.respPhone || '').trim();
     const color_1 = this.cardSettings.primaryColor || this.event.primaryColor;
     const color_2 = this.cardSettings.secondaryColor || this.event.secondaryColor;
-    const card_background = this.cardSettings.backgroundType === 'image' ? (this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '') : '';
+    let card_background: string | undefined;
+    if (this.cardSettings.backgroundType === 'image') {
+      // Se a imagem do cartão está "suja" (alterada), não enviar card_background no primeiro POST
+      if (!this.cardImageDirty) {
+        card_background = this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '';
+      }
+    } else {
+      // Para gradiente, enviar string vazia para limpar o background de imagem
+      card_background = '';
+    }
     const slug = this.slugify(name);
 
     const changes: Partial<ApiEvent> & {
@@ -477,7 +498,6 @@ export class EventViewComponent implements OnInit {
     } = {
       name,
       description,
-      banner_url: banner,
       start_datetime: startIso,
       end_datetime: endIso,
       slug,
@@ -486,16 +506,98 @@ export class EventViewComponent implements OnInit {
       resp_name: respName,
       resp_phone: respPhone,
       color_1,
-      color_2,
-      card_background: card_background || null
+      color_2
     };
+
+    // Enviar card_background somente quando definido (evita enviar null quando sujo)
+    if (card_background !== undefined) {
+      changes.card_background = card_background;
+    }
 
     const idOrCode = this.eventIdCode || this.event.id;
     this.eventService.updateEvent(idOrCode, changes).subscribe({
-      next: () => {
+      next: async () => {
+        // Se a imagem foi alterada, fazer upload e atualizar banner_url em seguida
+        if (this.imageDirty && this.imageFile && this.eventIdCode) {
+          try {
+            const result = await this.imageUploadService.uploadImage(
+              this.imageFile,
+              'event-banner',
+              this.eventIdCode,
+              { maxWidth: 1200, maxHeight: 630, quality: 0.85 }
+            );
+
+            if (result.success && result.filePath) {
+              await new Promise<void>((resolve, reject) => {
+                this.eventService.updateEvent(idOrCode, { banner_url: result.filePath }).subscribe({
+                  next: () => resolve(),
+                  error: (err) => reject(err)
+                });
+              });
+
+              this.event.image = result.filePath;
+              this.imageDirty = false;
+              this.triggerToast('success', 'Atualização realizada', 'Evento e imagem atualizados com sucesso.');
+            } else {
+              this.triggerToast('warning', 'Imagem não atualizada', result.error || 'Falha no upload da imagem. O banner antigo foi mantido.');
+              if (this.bannerOriginalUrl) {
+                this.event.image = this.normalizeImageUrl(this.bannerOriginalUrl) || this.event.image;
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao enviar imagem do evento:', error);
+            this.triggerToast('error', 'Falha ao atualizar imagem', 'Erro ao enviar a nova imagem. O banner antigo foi mantido.');
+            if (this.bannerOriginalUrl) {
+              this.event.image = this.normalizeImageUrl(this.bannerOriginalUrl) || this.event.image;
+            }
+          }
+        } else {
+          this.triggerToast('success', 'Atualização realizada', 'Evento atualizado com sucesso.');
+        }
+
+        // Se a imagem do cartão foi alterada, fazer upload e atualizar card_background em seguida
+        if (this.cardImageDirty && this.cardImageFile && this.eventIdCode) {
+          try {
+            const result = await this.imageUploadService.uploadImage(
+              this.cardImageFile,
+              'event-card',
+              this.eventIdCode,
+              { maxWidth: 800, maxHeight: 1200, quality: 0.9 }
+            );
+
+            if (result.success && result.filePath) {
+              await new Promise<void>((resolve, reject) => {
+                this.eventService.updateEvent(idOrCode, { card_background: result.filePath } as any).subscribe({
+                  next: () => resolve(),
+                  error: (err) => reject(err)
+                });
+              });
+
+              const newUrl = this.normalizeImageUrl(result.filePath) || result.filePath;
+              this.cardSettings = { ...this.cardSettings, backgroundImage: newUrl };
+              this.event.cardBackgroundImage = newUrl;
+              this.cardImageDirty = false;
+            } else {
+              this.triggerToast('warning', 'Imagem do cartão não atualizada', result.error || 'Falha no upload da imagem. O fundo antigo foi mantido.');
+              if (this.cardBackgroundOriginalUrl) {
+                const original = this.normalizeImageUrl(this.cardBackgroundOriginalUrl) || this.event.cardBackgroundImage;
+                this.cardSettings = { ...this.cardSettings, backgroundImage: original };
+                this.event.cardBackgroundImage = original;
+              }
+            }
+          } catch (error) {
+            console.error('Erro ao enviar imagem do cartão:', error);
+            this.triggerToast('error', 'Falha ao atualizar imagem do cartão', 'Erro ao enviar a nova imagem. O fundo antigo foi mantido.');
+            if (this.cardBackgroundOriginalUrl) {
+              const original = this.normalizeImageUrl(this.cardBackgroundOriginalUrl) || this.event.cardBackgroundImage;
+              this.cardSettings = { ...this.cardSettings, backgroundImage: original };
+              this.event.cardBackgroundImage = original;
+            }
+          }
+        }
+
         this.isSaving = false;
         this.saveMessage = '';
-        this.triggerToast('success', 'Atualização realizada', 'Evento atualizado com sucesso.');
       },
       error: (err) => {
         console.error('Erro ao atualizar evento:', err);
@@ -629,6 +731,11 @@ export class EventViewComponent implements OnInit {
     } else {
       return `linear-gradient(135deg, ${this.cardSettings.primaryColor} 0%, ${this.cardSettings.secondaryColor} 100%)`;
     }
+  }
+
+  onCardBackgroundFileChange(file: File | null) {
+    this.cardImageFile = file ?? undefined;
+    this.cardImageDirty = !!file;
   }
 
   // Salvar configurações do cartão
