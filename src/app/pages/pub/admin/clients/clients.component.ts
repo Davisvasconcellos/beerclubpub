@@ -159,15 +159,21 @@ export class ClientsComponent {
   searchTerm: string = '';
 
   get filteredData(): TableRowData[] {
-    if (!this.searchTerm) {
+    const termLc = (this.searchTerm || '').toLowerCase();
+    if (!termLc) {
       return this.tableData;
     }
-    
-    return this.tableData.filter(item =>
-      item.client.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      item.client.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      item.client.phone.includes(this.searchTerm)
-    );
+
+    return this.tableData.filter(item => {
+      const nameLc = (item.client?.name || '').toLowerCase();
+      const emailLc = (item.client?.email || '').toLowerCase();
+      const phoneStr = String(item.client?.phone || '');
+      return (
+        nameLc.includes(termLc) ||
+        emailLc.includes(termLc) ||
+        phoneStr.includes(this.searchTerm || '')
+      );
+    });
   }
 
   get sortedData(): TableRowData[] {
@@ -176,11 +182,11 @@ export class ClientsComponent {
       let bValue: any;
 
       if (this.sortKey === 'name') {
-        aValue = a.client.name.toLowerCase();
-        bValue = b.client.name.toLowerCase();
+        aValue = (a.client?.name || '').toLowerCase();
+        bValue = (b.client?.name || '').toLowerCase();
       } else if (this.sortKey === 'email') {
-        aValue = a.client.email.toLowerCase();
-        bValue = b.client.email.toLowerCase();
+        aValue = (a.client?.email || '').toLowerCase();
+        bValue = (b.client?.email || '').toLowerCase();
       } else if (this.sortKey === 'time') {
         aValue = a.time;
         bValue = b.time;

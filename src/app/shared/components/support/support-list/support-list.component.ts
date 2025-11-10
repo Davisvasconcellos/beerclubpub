@@ -165,20 +165,20 @@ export class SupportListComponent {
   selected: string[] = [];
 
   get filteredTickets(): Ticket[] {
+    const termLc = (this.searchQuery || '').toLowerCase();
+    const categoryLc = (this.filterData?.category || '').toLowerCase();
+    const companyLc = (this.filterData?.company || '').toLowerCase();
+
     return this.tickets
-      .filter(
-        (ticket) => this.selectedStatus === 'All' || ticket.status === this.selectedStatus
+      .filter((ticket) => this.selectedStatus === 'All' || ticket.status === this.selectedStatus)
+      .filter((ticket) =>
+        ((ticket.subject || '').toLowerCase().includes(termLc)) ||
+        ((ticket.name || '').toLowerCase().includes(termLc)) ||
+        ((ticket.email || '').toLowerCase().includes(termLc))
       )
-      .filter(
-        (ticket) =>
-          ticket.subject.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          ticket.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          ticket.email.toLowerCase().includes(this.searchQuery.toLowerCase())
-      )
-      .filter(
-        (ticket) =>
-          ticket.subject.toLowerCase().includes(this.filterData.category.toLowerCase()) &&
-          ticket.email.toLowerCase().includes(this.filterData.company.toLowerCase())
+      .filter((ticket) =>
+        ((ticket.subject || '').toLowerCase().includes(categoryLc)) &&
+        ((ticket.email || '').toLowerCase().includes(companyLc))
       );
   }
 

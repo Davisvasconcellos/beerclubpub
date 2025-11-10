@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ModalComponent } from '../../ui/modal/modal.component';
 import { Guest } from '../../../interfaces/guest.interface';
@@ -36,7 +36,7 @@ export interface CardSettings {
   templateUrl: './guest-card-modal.component.html',
   styleUrls: ['./guest-card-modal.component.css']
 })
-export class GuestCardModalComponent {
+export class GuestCardModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
   @Input() guest: Guest | null = null;
   @Input() event: Event | null = null;
@@ -52,6 +52,19 @@ export class GuestCardModalComponent {
 
   ngOnInit() {
     if (this.event) {
+      this.cardSettings = {
+        backgroundType: this.event.cardBackgroundType || 'gradient',
+        primaryColor: this.event.primaryColor || '#3B82F6',
+        secondaryColor: this.event.secondaryColor || '#8B5CF6',
+        backgroundImage: this.event.cardBackgroundImage,
+        showLogo: this.event.showLogo !== false,
+        showQRCode: this.event.showQRCode !== false
+      };
+    }
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['event'] && this.event) {
       this.cardSettings = {
         backgroundType: this.event.cardBackgroundType || 'gradient',
         primaryColor: this.event.primaryColor || '#3B82F6',

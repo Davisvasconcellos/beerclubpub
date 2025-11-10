@@ -83,11 +83,15 @@ export class DataTableTwoComponent {
   }
 
   updateData() {
+    const termLc = (this.searchTerm || '').toLowerCase();
     this.filteredAndSortedData = this.tableRowData
       .filter(item =>
-        Object.values(item).some(
-          value => typeof value === 'string' && value.toLowerCase().includes(this.searchTerm.toLowerCase())
-        )
+        Object.values(item).some(value => {
+          if (typeof value === 'string') {
+            return (value || '').toLowerCase().includes(termLc);
+          }
+          return false;
+        })
       )
       .sort((a, b) => {
         if (this.sortKey === 'salary') {

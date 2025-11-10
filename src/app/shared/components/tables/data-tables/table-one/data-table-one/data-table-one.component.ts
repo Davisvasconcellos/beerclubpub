@@ -142,14 +142,19 @@ export class DataTableOneComponent {
   searchTerm: string = '';
 
   get filteredAndSortedData() {
+    const termLc = (this.searchTerm || '').toLowerCase();
     return this.tableData
       .filter((item) =>
-        Object.values(item).some(
-          (value) =>
-            typeof value === 'string' &&
-            value.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-            (typeof value === 'object' && value.name.toLowerCase().includes(this.searchTerm.toLowerCase()))
-        )
+        Object.values(item).some((value) => {
+          if (typeof value === 'string') {
+            return (value || '').toLowerCase().includes(termLc);
+          }
+          if (typeof value === 'object' && value) {
+            const nameLc = (value as any).name ? String((value as any).name).toLowerCase() : '';
+            return nameLc.includes(termLc);
+          }
+          return false;
+        })
       )
       .sort((a, b) => {
         if (this.sortKey === 'name') {

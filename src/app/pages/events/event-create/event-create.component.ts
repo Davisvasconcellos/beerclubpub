@@ -345,7 +345,8 @@ export class EventCreateComponent {
     const clean = (url || '').trim();
     if (!clean) return '';
     if (/^https?:\/\//.test(clean)) return clean;
-    return clean.startsWith('/') ? `http://localhost:4202${clean}` : `http://localhost:4202/images/cards/${clean}`;
+    // Use relative paths so images are served by the Angular dev server
+    return clean.startsWith('/') ? clean : `/images/cards/${clean}`;
   }
 
   isDetailsValid(): boolean {

@@ -114,9 +114,9 @@ interface QuestionItem {
   get filteredAndSortedData() {
     return this.tableData
       .filter((item) =>
-        item.user.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        item.email.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        item.phone.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        ((item.user?.name || '').toLowerCase().includes(this.searchTerm.toLowerCase())) ||
+        ((item.email || '').toLowerCase().includes(this.searchTerm.toLowerCase())) ||
+        ((item.phone || '').toLowerCase().includes(this.searchTerm.toLowerCase())) ||
         (item.guestType?.toLowerCase().includes(this.searchTerm.toLowerCase()) ?? false) ||
         (item.documentNumber?.toLowerCase().includes(this.searchTerm.toLowerCase()) ?? false)
       )
@@ -124,8 +124,8 @@ interface QuestionItem {
         let valueA: any, valueB: any;
 
         if (this.sortKey === 'name') {
-          valueA = a.user.name;
-          valueB = b.user.name;
+          valueA = a.user?.name || '';
+          valueB = b.user?.name || '';
         } else {
           valueA = a[this.sortKey as keyof TableRowData];
           valueB = b[this.sortKey as keyof TableRowData];
@@ -788,7 +788,8 @@ interface QuestionItem {
     const clean = (url || '').trim();
     if (!clean) return '';
     if (/^https?:\/\//.test(clean)) return clean;
-    return clean.startsWith('/') ? `http://localhost:4202${clean}` : `http://localhost:4202/images/cards/${clean}`;
+    // Prefer relative paths served by the Angular dev server
+    return clean.startsWith('/') ? clean : `/images/cards/${clean}`;
   }
 
   isDetailsValid(): boolean {
