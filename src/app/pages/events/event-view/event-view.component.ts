@@ -14,6 +14,7 @@ import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
 import { EventService, ApiEvent, ApiGuest } from '../event.service';
 import { ImageUploadService } from '../../../shared/services/image-upload.service';
+import { AuthService } from '../../../shared/services/auth.service';
 
 interface TableRowData {
   id: number;
@@ -96,6 +97,17 @@ interface QuestionItem {
     image: '/images/cards/event2.jpg',
     cardBackgroundType: 'image',
     cardBackgroundImage: '/images/cards/event3.jpg'
+  }
+
+  private toBool(value: any): boolean {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value !== 0;
+    if (typeof value === 'string') {
+      const v = value.trim().toLowerCase();
+      return v === 'true' || v === '1' || v === 't' || v === 'y' || v === 'yes';
+    }
+    return !!value;
   }
 
   // Configurações do cartão
@@ -245,7 +257,8 @@ interface QuestionItem {
     private appRef: ApplicationRef,
     private injector: Injector,
     private envInjector: EnvironmentInjector,
-    private imageUploadService: ImageUploadService
+    private imageUploadService: ImageUploadService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -403,12 +416,18 @@ interface QuestionItem {
           email: g.email,
           phone: g.phone || '',
           image: this.normalizeImageUrl(g.avatar_url || undefined),
-          status: g.checkin ? 'Confirmado' : 'Pendente'
+          status: g.check_in_at ? 'Confirmado' : 'Pendente'
         }));
 
         // Atualizar dados da tabela para DataTables
         this.tableData = this.guests.map(guest => {
           const g = guests.find(gg => gg.id === guest.id);
+          const rsvpBoolRaw = g?.rsvp_confirmed !== undefined && g?.rsvp_confirmed !== null
+            ? this.toBool(g?.rsvp_confirmed)
+            : this.toBool(g?.rsvp);
+          const rsvpAtVal = this.normalizeDateString(g?.rsvp_at ?? null);
+          const rsvpBool = rsvpBoolRaw || !!rsvpAtVal;
+          const checkInAt = this.normalizeDateString(g?.check_in_at ?? null);
           return {
             id: guest.id,
             user: { image: guest.image, name: guest.name },
@@ -417,10 +436,10 @@ interface QuestionItem {
             status: guest.status,
             documentNumber: g?.document?.number || '',
             guestType: g?.type || '',
-            rsvp: !!(g?.rsvp),
-            rsvpAt: g?.rsvp_at ?? null,
-            checkin: !!(g?.checkin),
-            checkinAt: g?.checkin ?? null
+            rsvp: rsvpBool,
+            rsvpAt: rsvpAtVal,
+            checkin: !!checkInAt,
+            checkinAt: checkInAt
           } as TableRowData;
         });
       },
@@ -458,16 +477,70 @@ interface QuestionItem {
     }
   }
 
+  private normalizeDateString(value: string | null | undefined): string | null {
+    if (!value) return null;
+    // Converte "YYYY-MM-DD HH:mm:ss" em "YYYY-MM-DDTHH:mm:ss" para compatibilidade com DatePipe
+    if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
+      return value.replace(' ', 'T');
+    }
+    return value;
+  }
+
   toggleRsvp(row: TableRowData) {
     const newVal = !row.rsvp;
-    // Apenas alterna o estado; mantém rsvpAt como valor do banco
-    this.tableData = this.tableData.map(r => r.id === row.id ? { ...r, rsvp: newVal } : r);
+    if (!this.eventIdCode) return;
+    // Se está marcado como SIM e usuário não é MASTER, não permite desconfirmar
+    if (row.rsvp && !this.authService.hasRole('master')) {
+      this.triggerToast('warning', 'Ação não permitida', 'Somente MASTER pode desconfirmar RSVP');
+      return;
+    }
+    const payload = {
+      rsvp_confirmed: newVal ? 1 : 0,
+      rsvp_at: newVal ? new Date().toISOString() : null
+    };
+    this.eventService.updateEventGuest(this.eventIdCode, row.id, payload).subscribe({
+      next: (g) => {
+        const rsvpAtVal = this.normalizeDateString(g?.rsvp_at ?? null);
+        const rsvpBoolRaw = this.toBool(g?.rsvp_confirmed ?? g?.rsvp);
+        const rsvpBool = rsvpBoolRaw || !!rsvpAtVal;
+        this.tableData = this.tableData.map(r => r.id === row.id ? {
+          ...r,
+          rsvp: rsvpBool,
+          rsvpAt: rsvpAtVal
+        } : r);
+        this.triggerToast('success', 'RSVP atualizado', rsvpBool ? 'Confirmado' : 'Não confirmado');
+      },
+      error: () => {
+        this.triggerToast('error', 'Falha ao atualizar RSVP');
+      }
+    });
   }
 
   toggleCheckin(row: TableRowData) {
     const newVal = !row.checkin;
-    // Apenas alterna o estado; mantém checkinAt como valor do banco
-    this.tableData = this.tableData.map(r => r.id === row.id ? { ...r, checkin: newVal } : r);
+    if (!this.eventIdCode) return;
+    // Se já está com check-in e usuário não é MASTER, não permite remover
+    if (row.checkin && !this.authService.hasRole('master')) {
+      this.triggerToast('warning', 'Ação não permitida', 'Somente MASTER pode remover o check-in');
+      return;
+    }
+    const payload = {
+      check_in_at: newVal ? new Date().toISOString() : null
+    };
+    this.eventService.updateEventGuest(this.eventIdCode, row.id, payload).subscribe({
+      next: (g) => {
+        const checkInAt = this.normalizeDateString(g?.check_in_at ?? null);
+        this.tableData = this.tableData.map(r => r.id === row.id ? {
+          ...r,
+          checkin: !!checkInAt,
+          checkinAt: checkInAt
+        } : r);
+        this.triggerToast('success', 'Check-in atualizado', !!checkInAt ? 'Marcado' : 'Desmarcado');
+      },
+      error: () => {
+        this.triggerToast('error', 'Falha ao atualizar Check-in');
+      }
+    });
   }
 
   private normalizeImageUrl(url?: string | null): string | undefined {

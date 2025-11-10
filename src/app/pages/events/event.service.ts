@@ -84,10 +84,31 @@ export interface ApiGuest {
   phone?: string;
   type?: string;
   origin_status?: string;
-  rsvp?: boolean;
+  // RSVP
+  rsvp?: boolean; // compat
+  rsvp_confirmed?: boolean | number | null; // coluna oficial pode vir 0/1
   rsvp_at?: string | null;
-  checkin?: string | null;
+  invited_at?: string | null;
+  invited_by_user_id?: number | null;
+  // Check-in
+  check_in_at?: string | null;
   check_in_method?: string | null;
+  authorized_by_user?: number | null;
+  // Extras
+  source?: string | null;
+  guest_number?: number | null;
+  guest_document_type?: string | null;
+  guest_phone?: string | null;
+  guest_email?: string | null;
+  guestname?: string | null;
+}
+
+export interface ApiGuestUpdatePayload {
+  rsvp_confirmed?: boolean | number | null;
+  rsvp_at?: string | null;
+  check_in_at?: string | null;
+  check_in_method?: string | null;
+  authorized_by_user?: number | null;
 }
 
 export interface GuestsApiResponse {
@@ -141,6 +162,16 @@ export class EventService {
 
     return this.http.get<GuestsApiResponse>(url, { headers }).pipe(
       map((resp) => resp?.data?.guests ?? [])
+    );
+  }
+
+  // Atualiza campos de um convidado do evento
+  updateEventGuest(idOrCode: string | number, guestId: number, changes: ApiGuestUpdatePayload): Observable<ApiGuest> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/guests/${guestId}`;
+    return this.http.patch<{ success: boolean; data: { guest: ApiGuest } }>(url, changes, { headers }).pipe(
+      map((resp) => resp?.data?.guest)
     );
   }
 
