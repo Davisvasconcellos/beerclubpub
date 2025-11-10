@@ -24,7 +24,9 @@ interface TableRowData {
   documentNumber?: string;
   guestType?: string;
   rsvp?: boolean;
+  rsvpAt?: string | null;
   checkin?: boolean;
+  checkinAt?: string | null;
 }
 
 interface EventData {
@@ -405,17 +407,22 @@ interface QuestionItem {
         }));
 
         // Atualizar dados da tabela para DataTables
-        this.tableData = this.guests.map(guest => ({
-          id: guest.id,
-          user: { image: guest.image, name: guest.name },
-          email: guest.email,
-          phone: guest.phone,
-          status: guest.status,
-          documentNumber: (guests.find(g => g.id === guest.id)?.document?.number) || '',
-          guestType: (guests.find(g => g.id === guest.id)?.type) || '',
-          rsvp: !!(guests.find(g => g.id === guest.id)?.rsvp),
-          checkin: !!(guests.find(g => g.id === guest.id)?.checkin)
-        }));
+        this.tableData = this.guests.map(guest => {
+          const g = guests.find(gg => gg.id === guest.id);
+          return {
+            id: guest.id,
+            user: { image: guest.image, name: guest.name },
+            email: guest.email,
+            phone: guest.phone,
+            status: guest.status,
+            documentNumber: g?.document?.number || '',
+            guestType: g?.type || '',
+            rsvp: !!(g?.rsvp),
+            rsvpAt: g?.rsvp_at ?? null,
+            checkin: !!(g?.checkin),
+            checkinAt: g?.checkin ?? null
+          } as TableRowData;
+        });
       },
       error: (err) => {
         console.error('Falha ao carregar convidados', err);
@@ -437,6 +444,30 @@ interface QuestionItem {
       // Caso venha já no formato correto ou outro, retorna como está
       return iso;
     }
+  }
+
+  toLocalTime(iso?: string | null): string {
+    if (!iso) return '';
+    try {
+      const d = new Date(iso);
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${hours}:${minutes}`;
+    } catch {
+      return String(iso);
+    }
+  }
+
+  toggleRsvp(row: TableRowData) {
+    const newVal = !row.rsvp;
+    // Apenas alterna o estado; mantém rsvpAt como valor do banco
+    this.tableData = this.tableData.map(r => r.id === row.id ? { ...r, rsvp: newVal } : r);
+  }
+
+  toggleCheckin(row: TableRowData) {
+    const newVal = !row.checkin;
+    // Apenas alterna o estado; mantém checkinAt como valor do banco
+    this.tableData = this.tableData.map(r => r.id === row.id ? { ...r, checkin: newVal } : r);
   }
 
   private normalizeImageUrl(url?: string | null): string | undefined {
