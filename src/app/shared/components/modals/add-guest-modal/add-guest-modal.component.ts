@@ -8,7 +8,10 @@ export interface NewGuestInput {
   email: string;
   phone: string;
   documentNumber: string;
+  documentType: 'id' | 'cpf' | 'passaporte';
+  guestType: 'normal' | 'premium' | 'vip';
   checkin: boolean;
+  check_in_method: 'staff_manual' | 'walk_in' | 'invited';
 }
 
 @Component({
@@ -31,6 +34,8 @@ export class AddGuestModalComponent {
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
       documentNumber: ['', [Validators.required]],
+      documentType: ['id', [Validators.required]],
+      guestType: ['normal', [Validators.required]],
       checkin: [false]
     });
   }
@@ -41,14 +46,19 @@ export class AddGuestModalComponent {
 
   onSave() {
     if (this.form.valid) {
-      const value = this.form.value as NewGuestInput;
-      this.save.emit({
+      const value = this.form.value as any;
+      const method: 'staff_manual' | 'walk_in' | 'invited' = !!value.checkin ? 'walk_in' : 'invited';
+      const payload: NewGuestInput = {
         name: value.name,
         email: value.email,
         phone: value.phone,
         documentNumber: value.documentNumber,
-        checkin: !!value.checkin
-      });
+        documentType: value.documentType,
+        guestType: value.guestType,
+        checkin: !!value.checkin,
+        check_in_method: method
+      };
+      this.save.emit(payload);
     }
   }
 }

@@ -117,6 +117,14 @@ export interface GuestsApiResponse {
   message?: string;
 }
 
+export interface CreateEventGuestPayload {
+  display_name: string;
+  email: string;
+  phone?: string;
+  document?: ApiGuestDocument | null;
+  check_in_at?: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class EventService {
   private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
@@ -171,6 +179,16 @@ export class EventService {
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
     const url = `${this.API_BASE_URL}/events/${idOrCode}/guests/${guestId}`;
     return this.http.patch<{ success: boolean; data: { guest: ApiGuest } }>(url, changes, { headers }).pipe(
+      map((resp) => resp?.data?.guest)
+    );
+  }
+
+  // Cria um convidado (pré-convidado) para o evento
+  createEventGuest(idOrCode: string | number, payload: CreateEventGuestPayload): Observable<ApiGuest> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/guests`;
+    return this.http.post<{ success: boolean; data: { guest: ApiGuest } }>(url, payload, { headers }).pipe(
       map((resp) => resp?.data?.guest)
     );
   }

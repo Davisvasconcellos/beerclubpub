@@ -40,6 +40,19 @@
           placeholder="(00) 00000-0000">
       </div>
 
+      <!-- Tipo do documento -->
+      <div class="text-left">
+        <label for="documentType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo do documento</label>
+        <select
+          id="documentType"
+          formControlName="documentType"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <option value="id">ID</option>
+          <option value="cpf">CPF</option>
+          <option value="passaporte">Passaporte</option>
+        </select>
+      </div>
+
       <!-- Identidade -->
       <div class="text-left">
         <label for="documentNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Identidade</label>
@@ -51,6 +64,19 @@
           placeholder="Número de identidade">
       </div>
 
+      <!-- Tipo do convidado -->
+      <div class="text-left">
+        <label for="guestType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo do convidado</label>
+        <select
+          id="guestType"
+          formControlName="guestType"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+          <option value="normal">Normal</option>
+          <option value="premium">Premium</option>
+          <option value="vip">VIP</option>
+        </select>
+      </div>
+
       <!-- Check-in imediato -->
       <div class="text-left">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Check-in</label>
@@ -58,6 +84,7 @@
           <input id="checkin" type="checkbox" formControlName="checkin" class="h-4 w-4" />
           <label for="checkin" class="text-sm text-gray-700 dark:text-gray-300">Realizar check-in imediato</label>
         </div>
+        <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Método de check-in: automático como <span class="font-medium">staff_manual</span>; se marcado agora, vai como <span class="font-medium">walk_in</span>. Se não marcado, vai como <span class="font-medium">invited</span>.</p>
       </div>
 
       <!-- Ações -->

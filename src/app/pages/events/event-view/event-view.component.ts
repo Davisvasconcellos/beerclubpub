@@ -282,36 +282,57 @@ interface QuestionItem {
   }
 
   saveNewGuest(newGuest: NewGuestInput) {
-    const nextId = (this.tableData.length ? Math.max(...this.tableData.map(t => t.id)) : 0) + 1;
-
-    const guest: Guest = {
-      id: nextId,
-      name: newGuest.name,
+    if (!this.eventIdCode) return;
+    const payload = {
+      display_name: newGuest.name,
       email: newGuest.email,
       phone: newGuest.phone,
-      image: undefined,
-      status: newGuest.checkin ? 'Confirmado' : 'Pendente'
+      document: { number: newGuest.documentNumber },
+      check_in_at: newGuest.checkin ? new Date().toISOString() : null
     };
 
-    // Atualiza lista de convidados base
-    this.guests = [guest, ...this.guests];
+    this.eventService.createEventGuest(this.eventIdCode, payload).subscribe({
+      next: (g) => {
+        const normalizedImage = this.normalizeImageUrl(g?.avatar_url || undefined);
+        const rsvpAtVal = this.normalizeDateString(g?.rsvp_at ?? null);
+        const rsvpBoolRaw = g?.rsvp_confirmed !== undefined && g?.rsvp_confirmed !== null
+          ? this.toBool(g?.rsvp_confirmed)
+          : this.toBool(g?.rsvp);
+        const rsvpBool = rsvpBoolRaw || !!rsvpAtVal;
+        const checkInAt = this.normalizeDateString(g?.check_in_at ?? null);
 
-    // Atualiza dados da tabela
-    const row: TableRowData = {
-      id: nextId,
-      user: { image: guest.image, name: guest.name },
-      email: guest.email,
-      phone: guest.phone,
-      status: guest.status,
-      documentNumber: newGuest.documentNumber || '',
-      guestType: '',
-      rsvp: false,
-      checkin: !!newGuest.checkin
-    };
-    this.tableData = [row, ...this.tableData];
+        const guest: Guest = {
+          id: g.id,
+          name: g.display_name,
+          email: g.email,
+          phone: g.phone || '',
+          image: normalizedImage,
+          status: g.check_in_at ? 'Confirmado' : 'Pendente'
+        };
+        this.guests = [guest, ...this.guests];
 
-    this.isAddGuestModalOpen = false;
-    this.triggerToast('success', 'Convidado adicionado', 'Convidado inserido na lista de convidados.');
+        const row: TableRowData = {
+          id: g.id,
+          user: { image: guest.image, name: guest.name },
+          email: guest.email,
+          phone: guest.phone,
+          status: guest.status,
+          documentNumber: g?.document?.number || '',
+          guestType: g?.type || '',
+          rsvp: rsvpBool,
+          rsvpAt: rsvpAtVal,
+          checkin: !!checkInAt,
+          checkinAt: checkInAt
+        };
+        this.tableData = [row, ...this.tableData];
+        this.isAddGuestModalOpen = false;
+        this.triggerToast('success', 'Convidado adicionado', 'Pré-convidado cadastrado com sucesso.');
+      },
+      error: (err) => {
+        const msg = (err?.error?.message || err?.message || 'Falha ao cadastrar convidado');
+        this.triggerToast('error', 'Erro ao adicionar convidado', msg);
+      }
+    });
   }
 
   private resetEventState() {
