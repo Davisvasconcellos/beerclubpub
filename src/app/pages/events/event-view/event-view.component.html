@@ -39,6 +39,14 @@
           {{ 'events.view.tabs.details' | translate }}
         </button>
         <button
+          (click)="setActiveTab('convidados')"
+          [class]="activeTab === 'convidados' 
+            ? 'border-blue-500 text-blue-600 dark:text-blue-400 border-b-2 font-medium text-sm py-2 px-1' 
+            : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 border-b-2 font-medium text-sm py-2 px-1'"
+        >
+          Convidados
+        </button>
+        <button
           (click)="setActiveTab('cartao')"
           [class]="activeTab === 'cartao' 
             ? 'border-blue-500 text-blue-600 dark:text-blue-400 border-b-2 font-medium text-sm py-2 px-1' 
@@ -119,24 +127,9 @@
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefone</label>
-              <input type="tel" [(ngModel)]="event.respPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="(00) 00000-0000">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Cidade</label>
-              <input type="text" [(ngModel)]="event.city" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="Cidade">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Estado</label>
-              <input type="text" [(ngModel)]="event.state" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="UF">
-            </div>
-          </div>
-
           <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Endereço</label>
-            <input type="text" [(ngModel)]="event.address" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="Rua, número, complemento">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Telefone</label>
+            <input type="tel" [(ngModel)]="event.respPhone" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:text-white" placeholder="(00) 00000-0000">
           </div>
         </div>
       </div>
@@ -387,60 +380,70 @@
   </div>
 
 
-  <!-- Lista de Convidados com DataTable -->
-  <div *ngIf="activeTab === 'detalhes'" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'events.view.guests.title' | translate }}</h3>
-      <button
-        (click)="exportGuestList()"
-        class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
-      >
-        {{ 'events.view.guests.actions.export' | translate }}
-      </button>
-    </div>
-    
-    <!-- DataTable Component -->
-    <div class="overflow-hidden bg-white dark:bg-white/[0.03] rounded-xl">
-      <div class="flex flex-col gap-2 px-4 py-4 border border-b-0 border-gray-100 dark:border-white/[0.05] rounded-t-xl sm:flex-row sm:items-center sm:justify-between">
-        <div class="flex items-center gap-3">
-          <span class="text-gray-500 dark:text-gray-400"> {{ 'events.view.guests.datatable.show' | translate }} </span>
-          <div class="relative z-20 bg-transparent">
-            <select
-              [(ngModel)]="itemsPerPage"
-              (ngModelChange)="onItemsPerPageChange()"
-              class="w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
-            >
-              <option value="5" class="text-gray-500 dark:bg-gray-900 dark:text-gray-400">5</option>
-              <option value="8" class="text-gray-500 dark:bg-gray-900 dark:text-gray-400">8</option>
-              <option value="10" class="text-gray-500 dark:bg-gray-900 dark:text-gray-400">10</option>
-            </select>
-            <span class="absolute z-30 text-gray-500 -translate-y-1/2 right-2 top-1/2 dark:text-gray-400">
-              <svg class="stroke-current" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3.8335 5.9165L8.00016 10.0832L12.1668 5.9165" stroke="" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </span>
-          </div>
-          <span class="text-gray-500 dark:text-gray-400"> {{ 'events.view.guests.datatable.entries' | translate }} </span>
-        </div>
-
-        <div class="relative">
-          <span class="absolute text-gray-500 -translate-y-1/2 pointer-events-none left-4 top-1/2 dark:text-gray-400">
-            <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" clipRule="evenodd" d="M3.04199 9.37363C3.04199 5.87693 5.87735 3.04199 9.37533 3.04199C12.8733 3.04199 15.7087 5.87693 15.7087 9.37363C15.7087 12.8703 12.8733 15.7053 9.37533 15.7053C5.87735 15.7053 3.04199 12.8703 3.04199 9.37363ZM9.37533 1.54199C5.04926 1.54199 1.54199 5.04817 1.54199 9.37363C1.54199 13.6991 5.04926 17.2053 9.37533 17.2053C11.2676 17.2053 13.0032 16.5344 14.3572 15.4176L17.1773 18.238C17.4702 18.5309 17.945 18.5309 18.2379 18.238C18.5308 17.9451 18.5309 17.4703 18.238 17.1773L15.4182 14.3573C16.5367 13.0033 17.2087 11.2669 17.2087 9.37363C17.2087 5.04817 13.7014 1.54199 9.37533 1.54199Z" fill=""/>
-            </svg>
-          </span>
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            [placeholder]="'events.view.guests.datatable.searchPlaceholder' | translate"
-            class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[300px]"
-          />
+  <!-- Aba Convidados -->
+  <div *ngIf="activeTab === 'convidados'" class="space-y-6">
+    <!-- Lista de Convidados com DataTable -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ 'events.view.guests.title' | translate }}</h3>
+        <div class="flex items-center gap-2">
+          <button
+            (click)="exportGuestList()"
+            class="bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            {{ 'events.view.guests.actions.export' | translate }}
+          </button>
+          <button
+            (click)="openAddGuestModal()"
+            class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors"
+          >
+            Adicionar convidado
+          </button>
         </div>
       </div>
+      
+      <!-- DataTable Component -->
+      <div class="overflow-hidden bg-white dark:bg-white/[0.03] rounded-xl">
+        <div class="flex flex-col gap-2 px-4 py-4 border border-b-0 border-gray-100 dark:border-white/[0.05] rounded-t-xl sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-3">
+            <span class="text-gray-500 dark:text-gray-400"> {{ 'events.view.guests.datatable.show' | translate }} </span>
+            <div class="relative z-20 bg-transparent">
+              <select
+                [(ngModel)]="itemsPerPage"
+                (ngModelChange)="onItemsPerPageChange()"
+                class="w-full py-2 pl-3 pr-8 text-sm text-gray-800 bg-transparent border border-gray-300 rounded-lg appearance-none dark:bg-dark-900 h-9 bg-none shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800"
+              >
+                <option value="5" class="text-gray-500 dark:bg-gray-900 dark:text-gray-400">5</option>
+                <option value="8" class="text-gray-500 dark:bg-gray-900 dark:text-gray-400">8</option>
+                <option value="10" class="text-gray-500 dark:bg-gray-900 dark:text-gray-400">10</option>
+              </select>
+              <span class="absolute z-30 text-gray-500 -translate-y-1/2 right-2 top-1/2 dark:text-gray-400">
+                <svg class="stroke-current" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3.8335 5.9165L8.00016 10.0832L12.1668 5.9165" stroke="" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </span>
+            </div>
+            <span class="text-gray-500 dark:text-gray-400"> {{ 'events.view.guests.datatable.entries' | translate }} </span>
+          </div>
 
-      <div class="max-w-full overflow-x-auto custom-scrollbar">
-        <!-- Desktop Table -->
-        <table class="w-full hidden md:table">
+          <div class="relative">
+            <span class="absolute text-gray-500 -translate-y-1/2 pointer-events-none left-4 top-1/2 dark:text-gray-400">
+              <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M3.04199 9.37363C3.04199 5.87693 5.87735 3.04199 9.37533 3.04199C12.8733 3.04199 15.7087 5.87693 15.7087 9.37363C15.7087 12.8703 12.8733 15.7053 9.37533 15.7053C5.87735 15.7053 3.04199 12.8703 3.04199 9.37363ZM9.37533 1.54199C5.04926 1.54199 1.54199 5.04817 1.54199 9.37363C1.54199 13.6991 5.04926 17.2053 9.37533 17.2053C11.2676 17.2053 13.0032 16.5344 14.3572 15.4176L17.1773 18.238C17.4702 18.5309 17.945 18.5309 18.2379 18.238C18.5308 17.9451 18.5309 17.4703 18.238 17.1773L15.4182 14.3573C16.5367 13.0033 17.2087 11.2669 17.2087 9.37363C17.2087 5.04817 13.7014 1.54199 9.37533 1.54199Z" fill=""/>
+              </svg>
+            </span>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              [placeholder]="'events.view.guests.datatable.searchPlaceholder' | translate"
+              class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-11 pr-4 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[300px]"
+            />
+          </div>
+        </div>
+
+        <div class="max-w-full overflow-x-auto custom-scrollbar">
+          <!-- Desktop Table -->
+          <table class="w-full hidden md:table">
           <thead class="border-t border-gray-100 dark:border-white/[0.05]">
             <tr>
               <th *ngFor="let column of columns" class="px-4 py-3 border border-gray-100 dark:border-white/[0.05]">
@@ -608,3 +611,10 @@
   (close)="closeEditGuestModal()"
   (save)="saveGuestChanges($event)">
 </app-edit-guest-modal>
+
+<!-- Modal de Adicionar Convidado -->
+<app-add-guest-modal
+  [isOpen]="isAddGuestModalOpen"
+  (close)="closeAddGuestModal()"
+  (save)="saveNewGuest($event)"
+></app-add-guest-modal>

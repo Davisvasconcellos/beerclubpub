@@ -39,9 +39,6 @@ interface EventData {
   responsibleName?: string;
   responsibleEmail?: string;
   responsiblePhone?: string;
-  city?: string;
-  state?: string;
-  address?: string;
   startDate: string;
   endDate: string;
   primaryColor: string;
@@ -71,9 +68,6 @@ export class EventCreateComponent {
     responsibleName: '',
     responsibleEmail: '',
     responsiblePhone: '',
-    city: '',
-    state: '',
-    address: '',
     startDate: '',
     endDate: '',
     primaryColor: '#3B82F6',
@@ -116,9 +110,6 @@ export class EventCreateComponent {
     responsibleName: this.event.responsibleName,
     responsibleEmail: this.event.responsibleEmail,
     responsiblePhone: this.event.responsiblePhone,
-    city: this.event.city,
-    state: this.event.state,
-    address: this.event.address,
     startDate: this.event.startDate,
     endDate: this.event.endDate,
     primaryColor: this.event.primaryColor,
@@ -255,7 +246,7 @@ export class EventCreateComponent {
     const startIso = this.toIsoZ(this.event.startDate);
     const endIso = this.toIsoZ(this.event.endDate);
 
-    const place = this.concatPlace(this.event.location, this.event.city, this.event.state, this.event.address);
+    const place = (this.event.location || '').trim();
     const respEmail = (this.event.responsibleEmail || '').trim();
     const respName = (this.event.responsibleName || '').trim();
     const respPhone = (this.event.responsiblePhone || '').replace(/\D+/g, '').trim();
@@ -315,16 +306,6 @@ export class EventCreateComponent {
     this.saveEvent();
   }
 
-  private concatPlace(location?: string, city?: string, uf?: string, address?: string): string {
-    const parts = [
-      (location || '').trim(),
-      (city || '').trim(),
-      (uf || '').trim(),
-      (address || '').trim()
-    ].filter(p => !!p);
-    return parts.join(', ');
-  }
-
   private slugify(text: string): string {
     return (text || '')
       .normalize('NFD')
@@ -345,8 +326,14 @@ export class EventCreateComponent {
     const clean = (url || '').trim();
     if (!clean) return '';
     if (/^https?:\/\//.test(clean)) return clean;
-    // Use relative paths so images are served by the Angular dev server
-    return clean.startsWith('/') ? clean : `/images/cards/${clean}`;
+    // Converte caminho relativo para URL absoluta com base no origin atual
+    const path = clean.startsWith('/') ? clean : `/images/cards/${clean}`;
+    try {
+      const origin = (typeof window !== 'undefined' && window.location && window.location.origin) ? window.location.origin : '';
+      return origin ? `${origin}${path}` : path;
+    } catch {
+      return path;
+    }
   }
 
   isDetailsValid(): boolean {

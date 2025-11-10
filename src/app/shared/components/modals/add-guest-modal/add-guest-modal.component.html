@@ -1,0 +1,80 @@
+<app-modal 
+  [isOpen]="isOpen" 
+  (close)="onClose()"
+  className="max-w-md">
+
+  <div class="p-6 text-center">
+    <h2 class="text-xl font-semibold text-gray-800 dark:text-white mb-6">Adicionar convidado</h2>
+
+    <form [formGroup]="form" (ngSubmit)="onSave()" class="space-y-4">
+      <!-- Nome -->
+      <div class="text-left">
+        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nome</label>
+        <input
+          id="name"
+          type="text"
+          formControlName="name"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="Nome completo">
+      </div>
+
+      <!-- Email -->
+      <div class="text-left">
+        <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="email@exemplo.com">
+      </div>
+
+      <!-- Telefone -->
+      <div class="text-left">
+        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone</label>
+        <input
+          id="phone"
+          type="tel"
+          formControlName="phone"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="(00) 00000-0000">
+      </div>
+
+      <!-- Identidade -->
+      <div class="text-left">
+        <label for="documentNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Identidade</label>
+        <input
+          id="documentNumber"
+          type="text"
+          formControlName="documentNumber"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          placeholder="Número de identidade">
+      </div>
+
+      <!-- Check-in imediato -->
+      <div class="text-left">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Check-in</label>
+        <div class="flex items-center gap-2">
+          <input id="checkin" type="checkbox" formControlName="checkin" class="h-4 w-4" />
+          <label for="checkin" class="text-sm text-gray-700 dark:text-gray-300">Realizar check-in imediato</label>
+        </div>
+      </div>
+
+      <!-- Ações -->
+      <div class="flex gap-3 pt-4">
+        <button
+          type="button"
+          (click)="onClose()"
+          class="flex-1 px-4 py-2 text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+          Cancelar
+        </button>
+        <button
+          type="submit"
+          [disabled]="form.invalid"
+          class="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors dark:disabled:bg-gray-600">
+          Adicionar
+        </button>
+      </div>
+    </form>
+  </div>
+</app-modal>

@@ -6,6 +6,8 @@ import { NgApexchartsModule, ApexAxisChartSeries, ApexChart, ApexPlotOptions, Ap
 import { PaginationWithIconComponent } from '../../../shared/components/tables/data-tables/table-one/pagination-with-icon/pagination-with-icon.component';
 import { GuestCardModalComponent } from '../../../shared/components/modals/guest-card-modal/guest-card-modal.component';
 import { EditGuestModalComponent } from '../../../shared/components/modals/edit-guest-modal/edit-guest-modal.component';
+import { AddGuestModalComponent } from '../../../shared/components/modals/add-guest-modal/add-guest-modal.component';
+import { NewGuestInput } from '../../../shared/components/modals/add-guest-modal/add-guest-modal.component';
 import { CardSettingsComponent, CardSettings } from '../../../shared/components/cards/card-settings/card-settings.component';
 import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
@@ -30,9 +32,6 @@ interface EventData {
   name: string;
   description: string;
   location: string;
-  city?: string;
-  state?: string;
-  address?: string;
   startDate: string;
   endDate: string;
   slug?: string;
@@ -66,7 +65,7 @@ interface QuestionItem {
 @Component({
   selector: 'app-event-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslateModule, NgApexchartsModule, PaginationWithIconComponent, GuestCardModalComponent, EditGuestModalComponent, CardSettingsComponent],
+  imports: [CommonModule, FormsModule, TranslateModule, NgApexchartsModule, PaginationWithIconComponent, GuestCardModalComponent, EditGuestModalComponent, AddGuestModalComponent, CardSettingsComponent],
   templateUrl: './event-view.component.html',
   styleUrl: './event-view.component.css'
 })
@@ -86,9 +85,6 @@ interface QuestionItem {
     name: 'Festival de Música Vibehood',
     description: 'Três dias de música ao vivo com artistas renomados e talentos emergentes. Desfrute de diversos gêneros musicais, food trucks e uma atmosfera vibrante.',
     location: 'Parque Central da Cidade',
-    city: '',
-    state: '',
-    address: '',
     startDate: '2024-06-15',
     endDate: '2024-06-17',
     primaryColor: '#3B82F6',
@@ -190,6 +186,7 @@ interface QuestionItem {
   // Modal properties
   isGuestCardModalOpen = false;
   isEditGuestModalOpen = false;
+  isAddGuestModalOpen = false;
   selectedGuest: Guest | null = null;
 
   // Event data for modal
@@ -198,9 +195,6 @@ interface QuestionItem {
     name: this.event.name,
     description: this.event.description,
     location: this.event.location,
-    city: this.event.city,
-    state: this.event.state,
-    address: this.event.address,
     startDate: this.event.startDate,
     endDate: this.event.endDate,
     primaryColor: this.event.primaryColor,
@@ -264,6 +258,47 @@ interface QuestionItem {
     });
   }
 
+  openAddGuestModal() {
+    this.isAddGuestModalOpen = true;
+  }
+
+  closeAddGuestModal() {
+    this.isAddGuestModalOpen = false;
+  }
+
+  saveNewGuest(newGuest: NewGuestInput) {
+    const nextId = (this.tableData.length ? Math.max(...this.tableData.map(t => t.id)) : 0) + 1;
+
+    const guest: Guest = {
+      id: nextId,
+      name: newGuest.name,
+      email: newGuest.email,
+      phone: newGuest.phone,
+      image: undefined,
+      status: newGuest.checkin ? 'Confirmado' : 'Pendente'
+    };
+
+    // Atualiza lista de convidados base
+    this.guests = [guest, ...this.guests];
+
+    // Atualiza dados da tabela
+    const row: TableRowData = {
+      id: nextId,
+      user: { image: guest.image, name: guest.name },
+      email: guest.email,
+      phone: guest.phone,
+      status: guest.status,
+      documentNumber: newGuest.documentNumber || '',
+      guestType: '',
+      rsvp: false,
+      checkin: !!newGuest.checkin
+    };
+    this.tableData = [row, ...this.tableData];
+
+    this.isAddGuestModalOpen = false;
+    this.triggerToast('success', 'Convidado adicionado', 'Convidado inserido na lista de convidados.');
+  }
+
   private resetEventState() {
     this.isEventLoading = true;
     this.event = {
@@ -271,9 +306,6 @@ interface QuestionItem {
       name: '',
       description: '',
       location: '',
-      city: '',
-      state: '',
-      address: '',
       startDate: '',
       endDate: '',
       slug: '',
@@ -322,10 +354,7 @@ interface QuestionItem {
           id: Number(ev.id) || 0,
           name,
           description,
-          location: place,
-          city: '',
-          state: '',
-          address: '',
+          location: (place || '').trim(),
           startDate: this.toLocalDateTime(startIso),
           endDate: this.toLocalDateTime(endIso),
           slug,
@@ -469,7 +498,7 @@ interface QuestionItem {
     const description = (this.event.description || '').trim();
     const startIso = this.toIsoZ(this.event.startDate);
     const endIso = this.toIsoZ(this.event.endDate);
-    const place = this.concatPlace(this.event.location, this.event.city, this.event.state, this.event.address);
+    const place = (this.event.location || '').trim();
     const respEmail = (this.event.respEmail || '').trim();
     const respName = (this.event.respName || '').trim();
     const respPhone = (this.event.respPhone || '').trim();
@@ -479,7 +508,9 @@ interface QuestionItem {
     if (this.cardSettings.backgroundType === 'image') {
       // Se a imagem do cartão está "suja" (alterada), não enviar card_background no primeiro POST
       if (!this.cardImageDirty) {
-        card_background = this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '';
+        const bg = this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '';
+        // Envia URL absoluta para o backend
+        card_background = bg ? this.normalizeBannerUrl(bg) : '';
       }
     } else {
       // Para gradiente, enviar string vazia para limpar o background de imagem
@@ -528,8 +559,9 @@ interface QuestionItem {
             );
 
             if (result.success && result.filePath) {
+              const bannerFullUrl = this.normalizeBannerUrl(result.filePath);
               await new Promise<void>((resolve, reject) => {
-                this.eventService.updateEvent(idOrCode, { banner_url: result.filePath }).subscribe({
+                this.eventService.updateEvent(idOrCode, { banner_url: bannerFullUrl }).subscribe({
                   next: () => resolve(),
                   error: (err) => reject(err)
                 });
@@ -566,8 +598,9 @@ interface QuestionItem {
             );
 
             if (result.success && result.filePath) {
+              const cardFullUrl = this.normalizeBannerUrl(result.filePath);
               await new Promise<void>((resolve, reject) => {
-                this.eventService.updateEvent(idOrCode, { card_background: result.filePath } as any).subscribe({
+                this.eventService.updateEvent(idOrCode, { card_background: cardFullUrl } as any).subscribe({
                   next: () => resolve(),
                   error: (err) => reject(err)
                 });
@@ -743,16 +776,6 @@ interface QuestionItem {
     this.saveEvent();
   }
 
-  private concatPlace(location?: string, city?: string, uf?: string, address?: string): string {
-    const parts = [
-      (location || '').trim(),
-      (city || '').trim(),
-      (uf || '').trim(),
-      (address || '').trim()
-    ].filter(p => !!p);
-    return parts.join(', ');
-  }
-
   private slugify(text: string): string {
     return (text || '')
       .normalize('NFD')
@@ -788,8 +811,9 @@ interface QuestionItem {
     const clean = (url || '').trim();
     if (!clean) return '';
     if (/^https?:\/\//.test(clean)) return clean;
-    // Prefer relative paths served by the Angular dev server
-    return clean.startsWith('/') ? clean : `/images/cards/${clean}`;
+    const base = (typeof window !== 'undefined' && (window as any).location?.origin) ? (window as any).location.origin : '';
+    const relative = clean.startsWith('/') ? clean : `/images/cards/${clean}`;
+    return base ? `${base}${relative}` : relative;
   }
 
   isDetailsValid(): boolean {
