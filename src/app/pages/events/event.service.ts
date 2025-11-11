@@ -78,6 +78,33 @@ export interface EventListItem {
 }
 
 // ================================
+// Questions API Types
+// ================================
+export interface ApiQuestion {
+  id: number;
+  text?: string; // creation/update response may return `text`
+  question_text?: string; // list response may return `question_text`
+  type?: string; // creation/update may use `type`
+  question_type?: string; // list may use `question_type`
+  options?: string[];
+  is_required?: boolean;
+  show_results?: boolean;
+  order_index?: number;
+}
+
+export interface QuestionsListApiResponse {
+  success: boolean;
+  data: { questions: ApiQuestion[] };
+  message?: string;
+}
+
+export interface QuestionCreateApiResponse {
+  success: boolean;
+  data: { question: ApiQuestion };
+  message?: string;
+}
+
+// ================================
 // Guests API Types
 // ================================
 export interface ApiGuestDocument { type?: string; number?: string }
@@ -391,5 +418,72 @@ export class EventService {
       return clean;
     }
     return clean;
+  }
+
+  // ================================
+  // Questions API Methods
+  // ================================
+  getEventQuestions(idOrCode: string | number): Observable<ApiQuestion[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/questions`;
+    return this.http.get<QuestionsListApiResponse>(url, { headers }).pipe(
+      map((resp) => (resp?.data?.questions ?? []).map((q) => this.normalizeQuestion(q)))
+    );
+  }
+
+  createEventQuestion(idOrCode: string | number, payload: {
+    text: string;
+    type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating' | 'music_preference';
+    options?: string[];
+    is_required?: boolean;
+    show_results?: boolean;
+    order_index?: number;
+  }): Observable<ApiQuestion> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/questions`;
+    return this.http.post<QuestionCreateApiResponse>(url, payload, { headers }).pipe(
+      map((resp) => this.normalizeQuestion(resp?.data?.question))
+    );
+  }
+
+  updateEventQuestion(idOrCode: string | number, questionId: number, changes: Partial<{
+    text: string;
+    type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating' | 'music_preference';
+    options: string[];
+    is_required: boolean;
+    show_results: boolean;
+    order_index: number;
+  }>): Observable<ApiQuestion> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/questions/${questionId}`;
+    return this.http.patch<QuestionCreateApiResponse>(url, changes, { headers }).pipe(
+      map((resp) => this.normalizeQuestion(resp?.data?.question))
+    );
+  }
+
+  deleteEventQuestion(idOrCode: string | number, questionId: number): Observable<{ success: boolean; message?: string }>{
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/questions/${questionId}`;
+    return this.http.delete<{ success: boolean; message?: string }>(url, { headers });
+  }
+
+  private normalizeQuestion(api: ApiQuestion | undefined): ApiQuestion {
+    if (!api) return { id: 0, text: '', type: 'text', options: [], is_required: true, show_results: true, order_index: 0 };
+    const text = api.text ?? api.question_text ?? '';
+    const type = api.type ?? api.question_type ?? 'text';
+    const options = Array.isArray(api.options) ? api.options : [];
+    return {
+      id: api.id,
+      text,
+      type,
+      options,
+      is_required: api.is_required ?? true,
+      show_results: api.show_results ?? true,
+      order_index: api.order_index ?? 0,
+    };
   }
 }

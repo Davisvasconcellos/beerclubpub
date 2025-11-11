@@ -8,8 +8,8 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
-        <select [(ngModel)]="newQuestion.event_id" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-          <option *ngFor="let e of events" [value]="e.id">{{ e.name }}</option>
+        <select [(ngModel)]="newQuestion.event_id_code" (ngModelChange)="loadQuestionsForSelectedEvent()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option *ngFor="let e of events" [value]="e.id_code">{{ e.eventName }}</option>
         </select>
       </div>
       <div>
@@ -35,19 +35,21 @@
           <button type="button" (click)="addOption()" class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 text-white hover:bg-blue-600">+ Adicionar opção</button>
         </div>
         <div class="space-y-2">
-          <div *ngFor="let opt of newQuestion.options; let i = index" class="flex items-center gap-2">
-            <input type="text" [(ngModel)]="opt.text" placeholder="Texto da opção" class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
-            <label *ngIf="newQuestion.type !== 'poll'" class="flex items-center gap-1 text-xs text-gray-700 dark:text-gray-300">
-              <input type="checkbox" [checked]="opt.correct" (change)="toggleCorrect(i)" class="rounded border-gray-300 dark:border-gray-600">
-              Correta
-            </label>
+          <div *ngFor="let opt of newQuestion.options; let i = index; trackBy: trackOptionByIndex" class="flex items-center gap-2">
+            <input
+              type="text"
+              name="option-{{ i }}"
+              [ngModel]="opt"
+              (ngModelChange)="newQuestion.options[i] = $event"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Texto da opção"
+              class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
             <button type="button" (click)="removeOption(i)" class="px-2 py-1 text-xs rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600">Remover</button>
           </div>
         </div>
         <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-          - Para "Múltipla escolha (uma opção)", marque apenas uma como correta. <br>
-          - Para "Múltipla escolha (várias opções)", você pode marcar mais de uma como correta. <br>
-          - Para "Enquete", a marcação de correta não se aplica; serão contabilizados os votos por opção.
+          - Para "Múltipla escolha (uma opção)", as respostas são únicas.<br>
+          - Para "Múltipla escolha (várias opções)", as respostas podem conter várias opções.<br>
         </p>
       </div>
     </div>
@@ -61,11 +63,8 @@
         <input type="checkbox" [(ngModel)]="newQuestion.show_results" class="rounded border-gray-300 dark:border-gray-600">
         <span class="text-sm text-gray-700 dark:text-gray-300">Mostrar resultados</span>
       </label>
-      <label class="flex items-center gap-2">
-        <input type="checkbox" [(ngModel)]="newQuestion.config.allow_multiple_answers" class="rounded border-gray-300 dark:border-gray-600">
-        <span class="text-sm text-gray-700 dark:text-gray-300">Permitir múltiplas respostas</span>
-      </label>
-    </div>
+      <!-- Config adicional removido: backend não utiliza no payload -->
+      </div>
 
     <div class="mt-4">
       <button (click)="saveQuestion()" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg">Salvar pergunta</button>
@@ -80,7 +79,14 @@
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-900 dark:text-white font-medium">{{ q.text }}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">Evento: {{ getEventNameById(q.event_id) }} • Tipo: {{ q.type }} <span *ngIf="q.options?.length">• Opções: {{ q.options?.join(', ') }}</span></p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Evento: {{ getEventNameByCode(q.event_id_code) }} • Tipo: {{ q.type }}
+              <span *ngIf="q.options?.length">• Opções:
+                <ng-container *ngFor="let opt of q.options; let last = last">
+                  {{ opt }}<span *ngIf="!last">, </span>
+                </ng-container>
+              </span>
+            </p>
           </div>
           <span class="text-xs text-gray-500 dark:text-gray-400">Ordem: {{ q.order_index }}</span>
         </div>
