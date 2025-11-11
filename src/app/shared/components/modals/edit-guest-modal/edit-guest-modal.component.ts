@@ -39,6 +39,30 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
       documentType: ['rg'],
       guestType: ['normal', [Validators.required]]
     });
+
+    // Limpa erro de duplicidade ao editar o valor
+    const emailCtrl = this.editForm.get('email');
+    const docCtrl = this.editForm.get('documentNumber');
+    if (emailCtrl) {
+      emailCtrl.valueChanges.subscribe(() => {
+        const errs = emailCtrl.errors || {};
+        if (errs['duplicate']) {
+          const { duplicate, apiMessage, ...rest } = errs as any;
+          const nextErrs = Object.keys(rest).length ? rest : null;
+          emailCtrl.setErrors(nextErrs);
+        }
+      });
+    }
+    if (docCtrl) {
+      docCtrl.valueChanges.subscribe(() => {
+        const errs = docCtrl.errors || {};
+        if (errs['duplicate']) {
+          const { duplicate, apiMessage, ...rest } = errs as any;
+          const nextErrs = Object.keys(rest).length ? rest : null;
+          docCtrl.setErrors(nextErrs);
+        }
+      });
+    }
   }
 
   ngOnChanges() {
@@ -52,6 +76,24 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
         guestType: (this.guest as any).guestType || 'normal'
       });
     }
+  }
+
+  resetForm() {
+    // Limpa erros e volta aos valores padrão
+    this.editForm.reset({
+      name: '',
+      email: '',
+      phone: '',
+      documentNumber: '',
+      documentType: 'rg',
+      guestType: 'normal'
+    });
+    Object.keys(this.editForm.controls).forEach((key) => {
+      const ctrl = this.editForm.get(key);
+      ctrl?.setErrors(null);
+      ctrl?.markAsPristine();
+      ctrl?.markAsUntouched();
+    });
   }
 
   onSave() {
@@ -70,6 +112,8 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
   }
 
   onClose() {
+    // Ao cancelar/fechar, zerar formulário
+    this.resetForm();
     this.close.emit();
   }
 

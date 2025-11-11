@@ -43,12 +43,14 @@
           type="email"
           formControlName="email"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          [ngClass]="{'border-red-500 ring-2 ring-red-200': editForm.get('email')?.errors?.['duplicate']}"
           placeholder="Digite o email">
         <div *ngIf="editForm.get('email')?.invalid && editForm.get('email')?.touched" 
              class="text-red-500 text-xs mt-1">
           <span *ngIf="editForm.get('email')?.errors?.['required']">Email é obrigatório</span>
           <span *ngIf="editForm.get('email')?.errors?.['email']">Email deve ter um formato válido</span>
         </div>
+        <div *ngIf="editForm.get('email')?.errors?.['duplicate']" class="text-red-600 text-xs mt-1">{{ editForm.get('email')?.errors?.['apiMessage'] || 'Email já está em uso neste evento' }}</div>
       </div>
 
       <!-- Phone Field -->
@@ -100,7 +102,9 @@
           type="text"
           formControlName="documentNumber"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+          [ngClass]="{'border-red-500 ring-2 ring-red-200': editForm.get('documentNumber')?.errors?.['duplicate']}"
           placeholder="Digite o número">
+        <div *ngIf="editForm.get('documentNumber')?.errors?.['duplicate']" class="text-red-600 text-xs mt-1">{{ editForm.get('documentNumber')?.errors?.['apiMessage'] || 'Documento já está em uso neste evento' }}</div>
       </div>
 
        

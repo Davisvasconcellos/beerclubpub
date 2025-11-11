@@ -55,9 +55,55 @@ export class AddGuestModalComponent {
         }
       });
     }
+
+    // Limpa erro de duplicidade ao editar o valor
+    const docCtrl = this.form.get('documentNumber');
+    if (emailCtrl) {
+      emailCtrl.valueChanges.subscribe(() => {
+        const errs = emailCtrl.errors || {};
+        if (errs['duplicate']) {
+          const { duplicate, apiMessage, ...rest } = errs as any;
+          const nextErrs = Object.keys(rest).length ? rest : null;
+          emailCtrl.setErrors(nextErrs);
+        }
+      });
+    }
+    if (docCtrl) {
+      docCtrl.valueChanges.subscribe(() => {
+        const errs = docCtrl.errors || {};
+        if (errs['duplicate']) {
+          const { duplicate, apiMessage, ...rest } = errs as any;
+          const nextErrs = Object.keys(rest).length ? rest : null;
+          docCtrl.setErrors(nextErrs);
+        }
+      });
+    }
+  }
+
+  resetForm() {
+    // Limpa erros e volta aos valores padrão
+    this.form.reset({
+      name: '',
+      email: '',
+      phone: '',
+      documentNumber: '',
+      documentType: 'rg',
+      guestType: 'normal',
+      checkin: false
+    });
+    Object.keys(this.form.controls).forEach((key) => {
+      const ctrl = this.form.get(key);
+      ctrl?.setErrors(null);
+      ctrl?.markAsPristine();
+      ctrl?.markAsUntouched();
+    });
+    const emailCtrl = this.form.get('email');
+    emailCtrl?.enable({ emitEvent: false });
   }
 
   onClose() {
+    // Ao cancelar/fechar, zerar formulário
+    this.resetForm();
     this.close.emit();
   }
 

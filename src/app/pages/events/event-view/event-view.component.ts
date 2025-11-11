@@ -1,4 +1,4 @@
-import { Component, OnInit, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
+import { Component, OnInit, ApplicationRef, Injector, EnvironmentInjector, createComponent, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -250,6 +250,8 @@ interface QuestionItem {
   toastVariant: 'success' | 'info' | 'warning' | 'error' = 'success';
   toastTitle: string = '';
   toastDescription?: string;
+  @ViewChild(AddGuestModalComponent) addGuestModal?: AddGuestModalComponent;
+  @ViewChild(EditGuestModalComponent) editGuestModal?: EditGuestModalComponent;
 
   constructor(
     private route: ActivatedRoute,
@@ -274,10 +276,14 @@ interface QuestionItem {
   }
 
   openAddGuestModal() {
+    // Garantir que o modal abre com formulário limpo
+    this.addGuestModal?.resetForm?.();
     this.isAddGuestModalOpen = true;
   }
 
   closeAddGuestModal() {
+    // Ao fechar/cancelar, zera o formulário
+    this.addGuestModal?.resetForm?.();
     this.isAddGuestModalOpen = false;
   }
 
@@ -327,7 +333,10 @@ interface QuestionItem {
             checkinAt: checkInAt
           };
           this.tableData = [row, ...this.tableData];
+          // Fechar e zerar formulário, e recarregar lista para garantir sincronização
+          this.addGuestModal?.resetForm?.();
           this.isAddGuestModalOpen = false;
+          if (this.eventIdCode) { this.loadGuests(this.eventIdCode); }
           this.triggerToast('success', 'Check-in realizado', 'Convidado criado como walk_in e check-in efetuado.');
         },
         error: (err) => {
@@ -336,7 +345,11 @@ interface QuestionItem {
             case 400: msg = 'Erro de validação: verifique os campos obrigatórios.'; break;
             case 403: msg = 'Acesso negado: verifique o token e permissões.'; break;
             case 404: msg = 'Evento não encontrado.'; break;
-            case 409: msg = 'Convidado duplicado: documento/telefone já cadastrados.'; break;
+            case 409: {
+              msg = err?.error?.message || 'Convidado duplicado por email/documento/usuário';
+              this.handleDuplicateError('add', err);
+              break;
+            }
           }
           this.triggerToast('error', 'Erro no check-in', msg);
         }
@@ -391,7 +404,10 @@ interface QuestionItem {
             checkinAt: checkInAt
           };
           this.tableData = [row, ...this.tableData];
+          // Fechar e zerar formulário, e recarregar lista para garantir sincronização
+          this.addGuestModal?.resetForm?.();
           this.isAddGuestModalOpen = false;
+          if (this.eventIdCode) { this.loadGuests(this.eventIdCode); }
           this.triggerToast('success', 'Convidado adicionado', 'Pré-convidado cadastrado com sucesso.');
         },
         error: (err) => {
@@ -400,7 +416,11 @@ interface QuestionItem {
             case 400: msg = 'Erro de validação: verifique os campos obrigatórios.'; break;
             case 403: msg = 'Acesso negado: verifique o token e permissões.'; break;
             case 404: msg = 'Evento não encontrado.'; break;
-            case 409: msg = 'Convidado duplicado: email/documento já cadastrados.'; break;
+            case 409: {
+              msg = err?.error?.message || 'Convidado duplicado por email/documento/usuário';
+              this.handleDuplicateError('add', err);
+              break;
+            }
           }
           this.triggerToast('error', 'Erro ao adicionar convidado', msg);
         }
@@ -988,10 +1008,51 @@ interface QuestionItem {
         if (status === 400) msg = 'Dados inválidos. Verifique os campos e tente novamente.';
         if (status === 403) msg = 'Sem permissão para atualizar este convidado.';
         if (status === 404) msg = 'Convidado não encontrado.';
-        if (status === 409) msg = 'Conflito: dados já utilizados por outro convidado.';
+        if (status === 409) {
+          msg = err?.error?.message || 'Convidado duplicado por email/documento/usuário';
+          this.handleDuplicateError('edit', err);
+        }
         this.triggerToast('error', 'Erro ao salvar', msg);
       }
     });
+  }
+
+  private handleDuplicateError(kind: 'add' | 'edit', err: any) {
+    try {
+      const field: string | undefined = err?.error?.details?.[0]?.field;
+      const apiMessage: string | undefined = err?.error?.message;
+      const form = kind === 'add' ? this.addGuestModal?.form : this.editGuestModal?.editForm;
+      if (!form) return;
+
+      let controlName: string | undefined;
+      const normalizedField = (field || '').toLowerCase();
+      if (['guest_email', 'email'].includes(normalizedField)) {
+        controlName = 'email';
+      } else if ([
+        'guest_document_number',
+        'document_number',
+        'document.number',
+        'document'
+      ].includes(normalizedField)) {
+        controlName = 'documentNumber';
+      } else if (normalizedField === 'user_id') {
+        controlName = undefined; // mensagem global
+      } else {
+        controlName = undefined;
+      }
+
+      if (controlName) {
+        const ctrl = form.get(controlName);
+        if (ctrl) {
+          const existingErrors = ctrl.errors || {};
+          ctrl.setErrors({ ...existingErrors, duplicate: true, apiMessage });
+          ctrl.markAsTouched();
+          ctrl.updateValueAndValidity({ emitEvent: true });
+        }
+      }
+    } catch (_) {
+      // falha silenciosa na sinalização do formulário; o toaster já cobre a mensagem
+    }
   }
 
   // Métodos para configurações do cartão
