@@ -276,6 +276,7 @@ interface QuestionItem {
         this.eventIdCode = idCode;
         this.loadEvent(idCode);
         this.loadGuests(idCode);
+        this.loadQuestions(idCode);
       }
     });
   }
@@ -1266,45 +1267,44 @@ interface QuestionItem {
   // -----------------
   // Respostas por pergunta
   // -----------------
+  questions: QuestionItem[] = [];
 
-  questions: QuestionItem[] = [
-    {
-      id: 101,
-      title: 'Qual foi sua experiência no evento? (texto aberto)',
-      type: 'text',
-      answers: [
-        { user: { id: 1, image: '/images/user/user-20.jpg', name: 'João Silva' }, value: 'Excelente, organização impecável!' },
-        { user: { id: 2, image: '/images/user/user-21.jpg', name: 'Maria Santos' }, value: 'Gostei muito, mas faltou água nos banheiros.' }
-      ]
-    },
-    {
-      id: 102,
-      title: 'Qual atração você mais gostou? (múltipla escolha - uma resposta)',
-      type: 'single_choice',
-      answers: [
-        { user: { id: 3, image: '/images/user/user-22.jpg', name: 'Pedro Costa' }, value: 'Banda Sunrise' },
-        { user: { id: 4, image: '/images/user/user-23.jpg', name: 'Ana Oliveira' }, value: 'DJ Nightfall' }
-      ]
-    },
-    {
-      id: 103,
-      title: 'Quais áreas você visitou? (múltipla escolha - múltiplas respostas)',
-      type: 'multiple_choice',
-      answers: [
-        { user: { id: 5, image: '/images/user/user-24.jpg', name: 'Carlos Ferreira' }, value: ['Palco Principal', 'Área VIP', 'Food Trucks'] },
-        { user: { id: 1, image: '/images/user/user-20.jpg', name: 'João Silva' }, value: ['Palco Secundário', 'Área VIP'] }
-      ]
-    },
-    {
-      id: 104,
-      title: 'Você indicaria o evento para um amigo? (enquete)',
-      type: 'poll',
-      answers: [
-        { user: { id: 2, image: '/images/user/user-21.jpg', name: 'Maria Santos' }, value: 'Sim' },
-        { user: { id: 3, image: '/images/user/user-22.jpg', name: 'Pedro Costa' }, value: 'Não' }
-      ]
+  private mapApiTypeToLocalType(apiType?: string): QuestionType {
+    const t = (apiType || '').toLowerCase();
+    switch (t) {
+      case 'text':
+      case 'textarea':
+        return 'text';
+      case 'radio':
+        return 'single_choice';
+      case 'checkbox':
+        return 'multiple_choice';
+      case 'rating':
+      case 'music_preference':
+        return 'poll';
+      default:
+        return 'text';
     }
-  ];
+  }
+
+  private loadQuestions(idCode: string) {
+    this.eventService.getEventQuestions(idCode).subscribe({
+      next: (apiQuestions) => {
+        this.questions = apiQuestions
+          .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+          .map((q) => ({
+            id: q.id,
+            title: q.text || '',
+            type: this.mapApiTypeToLocalType(q.type),
+            answers: []
+          }));
+      },
+      error: (err) => {
+        const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas');
+        this.triggerToast('error', 'Erro ao carregar perguntas', msg);
+      }
+    });
+  }
 
   private expandedQuestionIds = new Set<number>();
 
