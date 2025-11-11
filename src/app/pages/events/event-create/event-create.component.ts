@@ -251,6 +251,18 @@ export class EventCreateComponent {
     const respName = (this.event.responsibleName || '').trim();
     const respPhone = (this.event.responsiblePhone || '').replace(/\D+/g, '').trim();
 
+    // Determina o tipo efetivo do fundo do cartão com fallbacks
+    const bgTypeRequested: 'image' | 'gradient' = this.cardSettings.backgroundType;
+    const bgImg = this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '';
+    const hasBgImage = !!bgImg;
+    const hasBgColors = !!(this.cardSettings.primaryColor && this.cardSettings.secondaryColor);
+    let effectiveBgType: 'image' | 'gradient' = bgTypeRequested;
+    if (bgTypeRequested === 'image' && !hasBgImage) {
+      effectiveBgType = hasBgColors ? 'gradient' : 'image';
+    } else if (bgTypeRequested === 'gradient' && !hasBgColors) {
+      effectiveBgType = hasBgImage ? 'image' : 'gradient';
+    }
+
     const payload: CreateEventPayload = {
       name,
       slug: this.slugify(name),
@@ -264,7 +276,8 @@ export class EventCreateComponent {
       resp_phone: respPhone,
       color_1: this.cardSettings.primaryColor,
       color_2: this.cardSettings.secondaryColor,
-      card_background: this.normalizeBannerUrl(this.cardSettings.backgroundImage || this.event.cardBackgroundImage || '')
+      card_background: this.normalizeBannerUrl(bgImg),
+      card_background_type: effectiveBgType === 'image' ? 1 : 0
     };
 
     this.eventService.createEventRaw(payload).subscribe({
@@ -412,11 +425,24 @@ export class EventCreateComponent {
 
   onCardSettingsChange(settings: any) { this.cardSettings = { ...settings }; }
   getCardBackground(): string {
-    if (this.cardSettings.backgroundType === 'image' && this.cardSettings.backgroundImage) {
-      return `url(${this.cardSettings.backgroundImage})`;
-    } else {
-      return `linear-gradient(135deg, ${this.cardSettings.primaryColor} 0%, ${this.cardSettings.secondaryColor} 100%)`;
+    const type = this.cardSettings.backgroundType;
+    const img = this.cardSettings.backgroundImage || this.event.cardBackgroundImage;
+    const hasImage = !!img;
+    const hasColors = !!(this.cardSettings.primaryColor && this.cardSettings.secondaryColor);
+
+    let effective: 'image' | 'gradient' = type;
+    if (type === 'image' && !hasImage) {
+      effective = hasColors ? 'gradient' : 'image';
+    } else if (type === 'gradient' && !hasColors) {
+      effective = hasImage ? 'image' : 'gradient';
     }
+
+    if (effective === 'image' && hasImage) {
+      return `url(${img})`;
+    }
+    const c1 = this.cardSettings.primaryColor || this.event.primaryColor || '#3B82F6';
+    const c2 = this.cardSettings.secondaryColor || this.event.secondaryColor || '#1E40AF';
+    return `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
   }
   
 

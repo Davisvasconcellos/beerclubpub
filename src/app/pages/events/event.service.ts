@@ -20,6 +20,11 @@ export interface ApiEvent {
   image?: string | null;
   slug?: string;
   id_code?: string;
+  // Card background fields
+  color_1?: string | null;
+  color_2?: string | null;
+  card_background?: string | null;
+  card_background_type?: number | null; // 0 = colors (gradient), 1 = image
   // add any other fields from API as needed
 }
 
@@ -53,6 +58,7 @@ export interface CreateEventPayload {
   color_1: string;
   color_2: string;
   card_background?: string | null;
+  card_background_type?: number | null; // 0 colors, 1 image
 }
 
 export interface EventCreateApiResponse {
@@ -120,6 +126,24 @@ export interface ApiGuestUpdatePayload {
 export interface GuestsApiResponse {
   success: boolean;
   data: { guests: ApiGuest[] };
+  message?: string;
+}
+
+// Guests stats (para KPIs de convidados)
+export interface GuestsStats {
+  total_guests: number;
+  rsvp_count: number;
+  checkin_count: number;
+  by_source?: Record<string, number>;
+  by_type?: Record<string, number>;
+  by_check_in_method?: Record<string, number>;
+}
+
+// Resposta com guests e stats juntos
+export interface GuestsWithStatsApiResponse {
+  success: boolean;
+  data: { guests: ApiGuest[]; stats?: GuestsStats };
+  meta?: any;
   message?: string;
 }
 
@@ -196,6 +220,36 @@ export class EventService {
 
     return this.http.get<GuestsApiResponse>(url, { headers }).pipe(
       map((resp) => resp?.data?.guests ?? [])
+    );
+  }
+
+  // Versão que também retorna stats para KPIs
+  getEventGuestsWithStats(idOrCode: string, params?: {
+    page?: number;
+    page_size?: number;
+    search?: string;
+    type?: string;
+    source?: string;
+    checked_in?: boolean;
+    rsvp?: boolean;
+  }): Observable<{ guests: ApiGuest[]; stats?: GuestsStats }> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) query.set('page_size', String(params.page_size));
+    if (params?.search) query.set('search', params.search);
+    if (params?.type) query.set('type', params.type);
+    if (params?.source) query.set('source', params.source);
+    if (typeof params?.checked_in === 'boolean') query.set('checked_in', String(params.checked_in));
+    if (typeof params?.rsvp === 'boolean') query.set('rsvp', String(params.rsvp));
+
+    const qs = query.toString();
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/guests${qs ? `?${qs}` : ''}`;
+
+    return this.http.get<GuestsWithStatsApiResponse>(url, { headers }).pipe(
+      map((resp) => ({ guests: resp?.data?.guests ?? [], stats: resp?.data?.stats }))
     );
   }
 
@@ -283,6 +337,15 @@ export class EventService {
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
     return this.http.get<EventDetailApiResponse>(`${this.API_BASE_URL}/events/${idCode}`, { headers }).pipe(
       map((resp) => resp?.data?.event as ApiEvent)
+    );
+  }
+
+  // Versão que retorna também total_responses (para KPIs)
+  getEventByIdCodeDetail(idCode: string): Observable<{ event: ApiEvent; total_responses?: number }> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    return this.http.get<EventDetailApiResponse>(`${this.API_BASE_URL}/events/${idCode}`, { headers }).pipe(
+      map((resp) => ({ event: resp?.data?.event as ApiEvent, total_responses: resp?.data?.total_responses }))
     );
   }
 

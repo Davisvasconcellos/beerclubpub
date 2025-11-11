@@ -12,23 +12,25 @@ import { CardSettingsComponent, CardSettings } from '../../../shared/components/
 import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
-import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem } from '../event.service';
+  import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem, GuestsStats } from '../event.service';
 import { ImageUploadService } from '../../../shared/services/image-upload.service';
 import { AuthService } from '../../../shared/services/auth.service';
 
-interface TableRowData {
-  id: number;
-  user: { image: string | undefined; name: string };
-  email: string;
-  phone: string;
-  status: 'Confirmado' | 'Pendente' | 'Cancelado';
-  documentNumber?: string;
-  guestType?: string;
-  rsvp?: boolean;
-  rsvpAt?: string | null;
-  checkin?: boolean;
-  checkinAt?: string | null;
-}
+  interface TableRowData {
+    id: number;
+    user: { image: string | undefined; name: string };
+    email: string;
+    phone: string;
+    status: 'Confirmado' | 'Pendente' | 'Cancelado';
+    documentNumber?: string;
+    guestType?: string;
+    source?: string;
+    rsvp?: boolean;
+    rsvpAt?: string | null;
+    checkin?: boolean;
+    checkinAt?: string | null;
+    checkinMethod?: string;
+  }
 
 interface EventData {
   id: number;
@@ -73,7 +75,7 @@ interface QuestionItem {
   styleUrl: './event-view.component.css'
 })
   export class EventViewComponent implements OnInit {
-    activeTab: string = 'detalhes';
+    activeTab: string = 'kpi_convidados';
     private eventIdCode?: string;
     isEventLoading: boolean = true;
     private imageFile?: File;
@@ -196,6 +198,9 @@ interface QuestionItem {
   tableData: TableRowData[] = [];
 
   guests: Guest[] = [];
+  // KPIs
+  guestStats?: GuestsStats;
+  totalResponses: number = 0;
 
   // Modal properties
   isGuestCardModalOpen = false;
@@ -461,8 +466,8 @@ interface QuestionItem {
   }
 
   private loadEvent(idCode: string) {
-    this.eventService.getEventByIdCode(idCode).subscribe({
-      next: (ev: ApiEvent) => {
+    this.eventService.getEventByIdCodeDetail(idCode).subscribe({
+      next: ({ event: ev, total_responses }) => {
         const name = ev.name || ev.title || '';
         const description = ev.description ?? ev.details ?? '';
         const startIso = ev.start_datetime || ev.start_date || ev.startDate || '';
@@ -473,11 +478,24 @@ interface QuestionItem {
         const color2 = (ev as any).color_2 || '#1E40AF';
         const cardBgRaw = (ev as any).card_background || this.event.cardBackgroundImage || '/images/cards/event3.jpg';
         const cardBg = this.normalizeImageUrl(cardBgRaw) || cardBgRaw;
+        const bgTypeNum = (ev as any).card_background_type as number | null | undefined;
         const slug = (ev as any).slug || '';
         const respName = (ev as any).resp_name || '';
         const respEmail = (ev as any).resp_email || '';
         const respPhone = (ev as any).resp_phone || '';
         const id_code = (ev as any).id_code || idCode;
+
+        // Determina o tipo com fallbacks recomendados
+        const hasImage = !!cardBg;
+        const hasColors = !!(color1 && color2);
+        let cardBackgroundType: 'gradient' | 'image' = 'image';
+        if (bgTypeNum === 1) {
+          cardBackgroundType = hasImage ? 'image' : (hasColors ? 'gradient' : 'image');
+        } else if (bgTypeNum === 0) {
+          cardBackgroundType = hasColors ? 'gradient' : (hasImage ? 'image' : 'gradient');
+        } else {
+          cardBackgroundType = hasImage ? 'image' : (hasColors ? 'gradient' : 'image');
+        }
 
         this.event = {
           id: Number(ev.id) || 0,
@@ -495,7 +513,7 @@ interface QuestionItem {
           showLogo: true,
           showQRCode: true,
           image: banner,
-          cardBackgroundType: 'image',
+          cardBackgroundType,
           cardBackgroundImage: cardBg
         };
         this.eventIdCode = id_code;
@@ -503,7 +521,7 @@ interface QuestionItem {
         this.cardBackgroundOriginalUrl = (ev as any).card_background || undefined;
 
         this.cardSettings = {
-          backgroundType: 'image',
+          backgroundType: cardBackgroundType,
           backgroundImage: cardBg,
           primaryColor: color1,
           secondaryColor: color2,
@@ -511,6 +529,7 @@ interface QuestionItem {
           showQRCode: true
         };
         this.isEventLoading = false;
+        this.totalResponses = Number(total_responses || 0);
       },
       error: (err) => {
         this.isEventLoading = false;
@@ -521,8 +540,8 @@ interface QuestionItem {
   }
 
   private loadGuests(idCode: string) {
-    this.eventService.getEventGuests(idCode, { page: 1, page_size: 20 }).subscribe({
-      next: (guests: ApiGuest[]) => {
+    this.eventService.getEventGuestsWithStats(idCode, { page: 1, page_size: 20 }).subscribe({
+      next: ({ guests, stats }) => {
         // Mapear para o modelo Guest usado no componente
         this.guests = guests.map(g => ({
           id: g.id,
@@ -553,17 +572,83 @@ interface QuestionItem {
             status: guest.status,
             documentNumber: g?.document?.number || '',
             guestType: g?.type || '',
+            source: g?.source || '',
             rsvp: rsvpBool,
             rsvpAt: rsvpAtVal,
             checkin: !!checkInAt,
-            checkinAt: checkInAt
+            checkinAt: checkInAt,
+            checkinMethod: g?.check_in_method || ''
           } as TableRowData;
         });
+        // Guardar KPIs de convidados
+        this.guestStats = stats ? {
+          total_guests: Number(stats.total_guests || 0),
+          rsvp_count: Number(stats.rsvp_count || 0),
+          checkin_count: Number(stats.checkin_count || 0)
+        } : undefined;
       },
       error: (err) => {
-        console.error('Falha ao carregar convidados', err);
+        const msg = (err?.error?.message || err?.message || 'Falha ao carregar convidados');
+        this.triggerToast('error', 'Erro ao carregar convidados', msg);
       }
     });
+  }
+
+  // Getters para exibir valores dos cards de KPI
+  get totalGuestsKpi(): number {
+    return (this.guestStats?.total_guests ?? this.tableData.length) || 0;
+  }
+  get totalRsvpKpi(): number {
+    return (this.guestStats?.rsvp_count ?? this.tableData.filter(r => !!r.rsvp).length) || 0;
+  }
+  get totalCheckinKpi(): number {
+    return (this.guestStats?.checkin_count ?? this.tableData.filter(r => !!r.checkin).length) || 0;
+  }
+  get totalResponsesKpi(): number {
+    return this.totalResponses || 0;
+  }
+
+  // Segmentos para tabelas de analytics
+  private mapToSegments<T extends string | null | undefined>(records: Array<{ key?: T }>): { label: string; count: number }[] {
+    const counts = new Map<string, number>();
+    for (const rec of records) {
+      const kRaw = (rec.key ?? '').toString().trim();
+      const key = kRaw || 'Não informado';
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return Array.from(counts.entries())
+      .map(([label, count]) => ({ label, count }))
+      .sort((a, b) => b.count - a.count);
+  }
+
+  get bySourceSegments(): { label: string; count: number }[] {
+    const source = this.guestStats?.by_source;
+    if (source) {
+      return Object.entries(source as Record<string, number>)
+        .map(([label, count]) => ({ label, count: Number(count) }))
+        .sort((a, b) => Number(b.count) - Number(a.count));
+    }
+    return this.mapToSegments(this.tableData.map(r => ({ key: r.source })));
+  }
+
+  get byTypeSegments(): { label: string; count: number }[] {
+    const type = this.guestStats?.by_type;
+    if (type) {
+      return Object.entries(type as Record<string, number>)
+        .map(([label, count]) => ({ label, count: Number(count) }))
+        .sort((a, b) => Number(b.count) - Number(a.count));
+    }
+    return this.mapToSegments(this.tableData.map(r => ({ key: r.guestType })));
+  }
+
+  get byCheckinMethodSegments(): { label: string; count: number }[] {
+    const method = this.guestStats?.by_check_in_method;
+    if (method) {
+      return Object.entries(method as Record<string, number>)
+        .map(([label, count]) => ({ label, count: Number(count) }))
+        .sort((a, b) => Number(b.count) - Number(a.count));
+    }
+    return this.mapToSegments(this.tableData.map(r => ({ key: r.checkinMethod })));
   }
 
   private toLocalDateTime(iso: string): string {
@@ -744,6 +829,11 @@ interface QuestionItem {
       card_background = '';
     }
     const slug = this.slugify(name);
+    const hasImageForType = !!(this.cardSettings.backgroundImage || this.event.cardBackgroundImage);
+    const hasColorsForType = !!(color_1 && color_2);
+    const card_background_type: 0 | 1 = this.cardSettings.backgroundType === 'image'
+      ? (hasImageForType ? 1 : (hasColorsForType ? 0 : 1))
+      : (hasColorsForType ? 0 : (hasImageForType ? 1 : 0));
 
     const changes: Partial<ApiEvent> & {
       place?: string;
@@ -753,6 +843,7 @@ interface QuestionItem {
       color_1?: string;
       color_2?: string;
       card_background?: string | null;
+      card_background_type?: number;
     } = {
       name,
       description,
@@ -764,7 +855,8 @@ interface QuestionItem {
       resp_name: respName,
       resp_phone: respPhone,
       color_1,
-      color_2
+      color_2,
+      card_background_type
     };
 
     // Enviar card_background somente quando definido (evita enviar null quando sujo)
@@ -827,7 +919,7 @@ interface QuestionItem {
             if (result.success && result.filePath) {
               const cardFullUrl = this.normalizeBannerUrl(result.filePath);
               await new Promise<void>((resolve, reject) => {
-                this.eventService.updateEvent(idOrCode, { card_background: cardFullUrl } as any).subscribe({
+                this.eventService.updateEvent(idOrCode, { card_background: cardFullUrl, card_background_type: 1 } as any).subscribe({
                   next: () => resolve(),
                   error: (err) => reject(err)
                 });
@@ -836,6 +928,8 @@ interface QuestionItem {
               const newUrl = this.normalizeImageUrl(result.filePath) || result.filePath;
               this.cardSettings = { ...this.cardSettings, backgroundImage: newUrl };
               this.event.cardBackgroundImage = newUrl;
+              this.event.cardBackgroundType = 'image';
+              this.cardSettings.backgroundType = 'image';
               this.cardImageDirty = false;
             } else {
               this.triggerToast('warning', 'Imagem do cartão não atualizada', result.error || 'Falha no upload da imagem. O fundo antigo foi mantido.');
@@ -1061,11 +1155,24 @@ interface QuestionItem {
   }
 
   getCardBackground(): string {
-    if (this.cardSettings.backgroundType === 'image' && this.cardSettings.backgroundImage) {
-      return `url(${this.cardSettings.backgroundImage})`;
-    } else {
-      return `linear-gradient(135deg, ${this.cardSettings.primaryColor} 0%, ${this.cardSettings.secondaryColor} 100%)`;
+    const type = this.cardSettings.backgroundType;
+    const img = this.cardSettings.backgroundImage || this.event.cardBackgroundImage;
+    const hasImage = !!img;
+    const hasColors = !!(this.cardSettings.primaryColor && this.cardSettings.secondaryColor);
+
+    let effective: 'image' | 'gradient' = type;
+    if (type === 'image' && !hasImage) {
+      effective = hasColors ? 'gradient' : 'image';
+    } else if (type === 'gradient' && !hasColors) {
+      effective = hasImage ? 'image' : 'gradient';
     }
+
+    if (effective === 'image' && hasImage) {
+      return `url(${img})`;
+    }
+    const c1 = this.cardSettings.primaryColor || this.event.primaryColor || '#3B82F6';
+    const c2 = this.cardSettings.secondaryColor || this.event.secondaryColor || '#1E40AF';
+    return `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
   }
 
   onCardBackgroundFileChange(file: File | null) {

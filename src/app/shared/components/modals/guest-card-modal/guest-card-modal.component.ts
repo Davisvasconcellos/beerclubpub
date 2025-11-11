@@ -85,11 +85,25 @@ export class GuestCardModalComponent implements OnInit, OnChanges {
   }
 
   getCardBackground(): string {
-    if (this.cardSettings.backgroundType === 'image' && this.cardSettings.backgroundImage) {
-      return `url('${this.cardSettings.backgroundImage}')`;
+    const type = this.cardSettings.backgroundType;
+    const img = this.cardSettings.backgroundImage || this.event?.cardBackgroundImage;
+    const hasImage = !!img;
+    const hasColors = !!(this.cardSettings.primaryColor && this.cardSettings.secondaryColor);
+
+    let effective: 'image' | 'gradient' = type;
+    if (type === 'image' && !hasImage) {
+      effective = hasColors ? 'gradient' : 'image';
+    } else if (type === 'gradient' && !hasColors) {
+      effective = hasImage ? 'image' : 'gradient';
     }
-    
-    return `linear-gradient(135deg, ${this.cardSettings.primaryColor || '#3B82F6'}, ${this.cardSettings.secondaryColor || '#1E40AF'})`;
+
+    if (effective === 'image' && hasImage) {
+      return `url('${img}')`;
+    }
+
+    const c1 = this.cardSettings.primaryColor || this.event?.primaryColor || '#3B82F6';
+    const c2 = this.cardSettings.secondaryColor || this.event?.secondaryColor || '#1E40AF';
+    return `linear-gradient(135deg, ${c1}, ${c2})`;
   }
 
   getInitials(name?: string): string {
