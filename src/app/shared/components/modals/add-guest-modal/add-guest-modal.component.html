@@ -27,54 +27,56 @@
           formControlName="email"
           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
           placeholder="email@exemplo.com">
+        <p *ngIf="form.value.checkin" class="mt-1 text-xs text-amber-600">No check-in imediato, o email não será armazenado.</p>
       </div>
 
       <!-- Telefone -->
-      <div class="text-left">
-        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone</label>
-        <input
-          id="phone"
-          type="tel"
-          formControlName="phone"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          placeholder="(00) 00000-0000">
+      <!-- Linha: Telefone + Tipo do convidado -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="text-left">
+          <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Telefone</label>
+          <input
+            id="phone"
+            type="tel"
+            formControlName="phone"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="(00) 00000-0000">
+        </div>
+        <div class="text-left">
+          <label for="guestType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo do convidado</label>
+          <select
+            id="guestType"
+            formControlName="guestType"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <option value="normal">Normal</option>
+            <option value="premium">Premium</option>
+            <option value="vip">VIP</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Tipo do documento -->
-      <div class="text-left">
-        <label for="documentType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo do documento</label>
-        <select
-          id="documentType"
-          formControlName="documentType"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-          <option value="id">ID</option>
-          <option value="cpf">CPF</option>
-          <option value="passaporte">Passaporte</option>
-        </select>
-      </div>
-
-      <!-- Identidade -->
-      <div class="text-left">
-        <label for="documentNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Identidade</label>
-        <input
-          id="documentNumber"
-          type="text"
-          formControlName="documentNumber"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-          placeholder="Número de identidade">
-      </div>
-
-      <!-- Tipo do convidado -->
-      <div class="text-left">
-        <label for="guestType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo do convidado</label>
-        <select
-          id="guestType"
-          formControlName="guestType"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
-          <option value="normal">Normal</option>
-          <option value="premium">Premium</option>
-          <option value="vip">VIP</option>
-        </select>
+      <!-- Linha: Tipo do documento + Número -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="text-left">
+          <label for="documentType" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo do documento</label>
+          <select
+            id="documentType"
+            formControlName="documentType"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+            <option value="rg">RG</option>
+            <option value="cpf">CPF</option>
+            <option value="passport">Passaporte</option>
+          </select>
+        </div>
+        <div class="text-left">
+          <label for="documentNumber" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número do documento</label>
+          <input
+            id="documentNumber"
+            type="text"
+            formControlName="documentNumber"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            placeholder="Digite o número">
+        </div>
       </div>
 
       <!-- Check-in imediato -->
@@ -85,6 +87,7 @@
           <label for="checkin" class="text-sm text-gray-700 dark:text-gray-300">Realizar check-in imediato</label>
         </div>
         <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Método de check-in: automático como <span class="font-medium">staff_manual</span>; se marcado agora, vai como <span class="font-medium">walk_in</span>. Se não marcado, vai como <span class="font-medium">invited</span>.</p>
+        <p *ngIf="form.value.checkin" class="mt-1 text-xs text-amber-600">Observação: neste fluxo o backend ignora o email.</p>
       </div>
 
       <!-- Ações -->

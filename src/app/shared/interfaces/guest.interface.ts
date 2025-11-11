@@ -6,4 +6,7 @@ export interface Guest {
   status: 'Confirmado' | 'Pendente' | 'Cancelado';
   image?: string;
   instagram?: string;
+  documentNumber?: string;
+  documentType?: 'rg' | 'cpf' | 'passport';
+  guestType?: 'normal' | 'premium' | 'vip';
 }

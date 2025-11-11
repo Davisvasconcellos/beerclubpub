@@ -8,7 +8,7 @@ export interface NewGuestInput {
   email: string;
   phone: string;
   documentNumber: string;
-  documentType: 'id' | 'cpf' | 'passaporte';
+  documentType: 'rg' | 'cpf' | 'passport';
   guestType: 'normal' | 'premium' | 'vip';
   checkin: boolean;
   check_in_method: 'staff_manual' | 'walk_in' | 'invited';
@@ -31,13 +31,30 @@ export class AddGuestModalComponent {
   constructor(private fb: FormBuilder) {
     this.form = this.fb.group({
       name: ['', [Validators.required]],
-      email: ['', [Validators.required, Validators.email]],
+      email: [{ value: '', disabled: false }, [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
       documentNumber: ['', [Validators.required]],
-      documentType: ['id', [Validators.required]],
+      documentType: ['rg', [Validators.required]],
       guestType: ['normal', [Validators.required]],
       checkin: [false]
     });
+
+    const emailCtrl = this.form.get('email');
+    const checkinCtrl = this.form.get('checkin');
+    if (emailCtrl && checkinCtrl) {
+      // Set initial state based on checkin
+      if (checkinCtrl.value) {
+        emailCtrl.disable({ emitEvent: false });
+      }
+      // Toggle disabled when checkin changes
+      checkinCtrl.valueChanges.subscribe((checked: boolean) => {
+        if (checked) {
+          emailCtrl.disable();
+        } else {
+          emailCtrl.enable();
+        }
+      });
+    }
   }
 
   onClose() {

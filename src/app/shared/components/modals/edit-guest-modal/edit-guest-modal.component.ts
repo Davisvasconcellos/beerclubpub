@@ -24,10 +24,9 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
       name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
-      instagram: [''],
-      linkedin: [''],
-      twitter: [''],
-      facebook: ['']
+      documentNumber: [''],
+      documentType: ['rg'],
+      guestType: ['normal', [Validators.required]]
     });
   }
 
@@ -36,7 +35,9 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
       name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.required]],
-      instagram: ['']
+      documentNumber: [''],
+      documentType: ['rg'],
+      guestType: ['normal', [Validators.required]]
     });
   }
 
@@ -46,7 +47,9 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
         name: this.guest.name,
         email: this.guest.email,
         phone: this.guest.phone,
-        instagram: this.guest.instagram || ''
+        documentNumber: (this.guest as any).documentNumber || '',
+        documentType: (this.guest as any).documentType || 'rg',
+        guestType: (this.guest as any).guestType || 'normal'
       });
     }
   }
@@ -58,7 +61,9 @@ export class EditGuestModalComponent implements OnInit, OnChanges {
         name: this.editForm.value.name,
         email: this.editForm.value.email,
         phone: this.editForm.value.phone,
-        instagram: this.editForm.value.instagram || undefined
+        ...(this.editForm.value.documentNumber ? { documentNumber: this.editForm.value.documentNumber } : {}),
+        ...(this.editForm.value.documentType ? { documentType: this.editForm.value.documentType } : {}),
+        ...(this.editForm.value.guestType ? { guestType: this.editForm.value.guestType } : {})
       };
       this.save.emit(updatedGuest);
     }

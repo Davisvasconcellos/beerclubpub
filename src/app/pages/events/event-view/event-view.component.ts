@@ -12,7 +12,7 @@ import { CardSettingsComponent, CardSettings } from '../../../shared/components/
 import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
-import { EventService, ApiEvent, ApiGuest } from '../event.service';
+import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem } from '../event.service';
 import { ImageUploadService } from '../../../shared/services/image-upload.service';
 import { AuthService } from '../../../shared/services/auth.service';
 
@@ -283,56 +283,129 @@ interface QuestionItem {
 
   saveNewGuest(newGuest: NewGuestInput) {
     if (!this.eventIdCode) return;
-    const payload = {
-      display_name: newGuest.name,
-      email: newGuest.email,
-      phone: newGuest.phone,
-      document: { number: newGuest.documentNumber },
-      check_in_at: newGuest.checkin ? new Date().toISOString() : null
-    };
+    // Mapeia campos do modal para API conforme fluxo
+    if (newGuest.checkin) {
+      // Check-in imediato: POST /checkin/manual (não enviar email)
+      const payload = {
+        guest_name: newGuest.name,
+        guest_phone: newGuest.phone,
+        guest_document_type: newGuest.documentType,
+        guest_document_number: newGuest.documentNumber,
+        type: newGuest.guestType,
+      };
+      this.eventService.checkinManual(this.eventIdCode, payload).subscribe({
+        next: (g) => {
+          const normalizedImage = this.normalizeImageUrl(g?.avatar_url || undefined);
+          const rsvpAtVal = this.normalizeDateString(g?.rsvp_at ?? null);
+          const rsvpBoolRaw = g?.rsvp_confirmed !== undefined && g?.rsvp_confirmed !== null
+            ? this.toBool(g?.rsvp_confirmed)
+            : this.toBool(g?.rsvp);
+          const rsvpBool = rsvpBoolRaw || !!rsvpAtVal;
+          const checkInAt = this.normalizeDateString(g?.check_in_at ?? null);
 
-    this.eventService.createEventGuest(this.eventIdCode, payload).subscribe({
-      next: (g) => {
-        const normalizedImage = this.normalizeImageUrl(g?.avatar_url || undefined);
-        const rsvpAtVal = this.normalizeDateString(g?.rsvp_at ?? null);
-        const rsvpBoolRaw = g?.rsvp_confirmed !== undefined && g?.rsvp_confirmed !== null
-          ? this.toBool(g?.rsvp_confirmed)
-          : this.toBool(g?.rsvp);
-        const rsvpBool = rsvpBoolRaw || !!rsvpAtVal;
-        const checkInAt = this.normalizeDateString(g?.check_in_at ?? null);
+          const guest: Guest = {
+            id: g.id,
+            name: g.display_name,
+            email: g.email,
+            phone: g.phone || '',
+            image: normalizedImage,
+            status: 'Confirmado'
+          };
+          this.guests = [guest, ...this.guests];
 
-        const guest: Guest = {
-          id: g.id,
-          name: g.display_name,
-          email: g.email,
-          phone: g.phone || '',
-          image: normalizedImage,
-          status: g.check_in_at ? 'Confirmado' : 'Pendente'
-        };
-        this.guests = [guest, ...this.guests];
+          const row: TableRowData = {
+            id: g.id,
+            user: { image: guest.image, name: guest.name },
+            email: guest.email,
+            phone: guest.phone,
+            status: guest.status,
+            documentNumber: g?.document?.number || '',
+            guestType: g?.type || '',
+            rsvp: rsvpBool,
+            rsvpAt: rsvpAtVal,
+            checkin: !!checkInAt,
+            checkinAt: checkInAt
+          };
+          this.tableData = [row, ...this.tableData];
+          this.isAddGuestModalOpen = false;
+          this.triggerToast('success', 'Check-in realizado', 'Convidado criado como walk_in e check-in efetuado.');
+        },
+        error: (err) => {
+          let msg = (err?.error?.message || err?.message || 'Falha no check-in manual');
+          switch (err?.status) {
+            case 400: msg = 'Erro de validação: verifique os campos obrigatórios.'; break;
+            case 403: msg = 'Acesso negado: verifique o token e permissões.'; break;
+            case 404: msg = 'Evento não encontrado.'; break;
+            case 409: msg = 'Convidado duplicado: documento/telefone já cadastrados.'; break;
+          }
+          this.triggerToast('error', 'Erro no check-in', msg);
+        }
+      });
+    } else {
+      // Pré-lista: POST /guests (em lote)
+      const item: CreateGuestBatchItem = {
+        guest_name: newGuest.name,
+        guest_email: newGuest.email,
+        guest_phone: newGuest.phone,
+        guest_document_type: newGuest.documentType,
+        guest_document_number: newGuest.documentNumber,
+        type: newGuest.guestType,
+        source: 'invited' as const
+      };
+      this.eventService.createEventGuestsBatch(this.eventIdCode, [item]).subscribe({
+        next: (guests) => {
+          const g = guests[0];
+          if (!g) {
+            this.triggerToast('warning', 'Nenhum convidado criado', 'Resposta vazia da API.');
+            return;
+          }
+          const normalizedImage = this.normalizeImageUrl(g?.avatar_url || undefined);
+          const rsvpAtVal = this.normalizeDateString(g?.rsvp_at ?? null);
+          const rsvpBoolRaw = g?.rsvp_confirmed !== undefined && g?.rsvp_confirmed !== null
+            ? this.toBool(g?.rsvp_confirmed)
+            : this.toBool(g?.rsvp);
+          const rsvpBool = rsvpBoolRaw || !!rsvpAtVal;
+          const checkInAt = this.normalizeDateString(g?.check_in_at ?? null);
 
-        const row: TableRowData = {
-          id: g.id,
-          user: { image: guest.image, name: guest.name },
-          email: guest.email,
-          phone: guest.phone,
-          status: guest.status,
-          documentNumber: g?.document?.number || '',
-          guestType: g?.type || '',
-          rsvp: rsvpBool,
-          rsvpAt: rsvpAtVal,
-          checkin: !!checkInAt,
-          checkinAt: checkInAt
-        };
-        this.tableData = [row, ...this.tableData];
-        this.isAddGuestModalOpen = false;
-        this.triggerToast('success', 'Convidado adicionado', 'Pré-convidado cadastrado com sucesso.');
-      },
-      error: (err) => {
-        const msg = (err?.error?.message || err?.message || 'Falha ao cadastrar convidado');
-        this.triggerToast('error', 'Erro ao adicionar convidado', msg);
-      }
-    });
+          const guest: Guest = {
+            id: g.id,
+            name: g.display_name,
+            email: g.email,
+            phone: g.phone || '',
+            image: normalizedImage,
+            status: g.check_in_at ? 'Confirmado' : 'Pendente'
+          };
+          this.guests = [guest, ...this.guests];
+
+          const row: TableRowData = {
+            id: g.id,
+            user: { image: guest.image, name: guest.name },
+            email: guest.email,
+            phone: guest.phone,
+            status: guest.status,
+            documentNumber: g?.document?.number || '',
+            guestType: g?.type || '',
+            rsvp: rsvpBool,
+            rsvpAt: rsvpAtVal,
+            checkin: !!checkInAt,
+            checkinAt: checkInAt
+          };
+          this.tableData = [row, ...this.tableData];
+          this.isAddGuestModalOpen = false;
+          this.triggerToast('success', 'Convidado adicionado', 'Pré-convidado cadastrado com sucesso.');
+        },
+        error: (err) => {
+          let msg = (err?.error?.message || err?.message || 'Falha ao cadastrar convidado');
+          switch (err?.status) {
+            case 400: msg = 'Erro de validação: verifique os campos obrigatórios.'; break;
+            case 403: msg = 'Acesso negado: verifique o token e permissões.'; break;
+            case 404: msg = 'Evento não encontrado.'; break;
+            case 409: msg = 'Convidado duplicado: email/documento já cadastrados.'; break;
+          }
+          this.triggerToast('error', 'Erro ao adicionar convidado', msg);
+        }
+      });
+    }
   }
 
   private resetEventState() {
@@ -437,7 +510,10 @@ interface QuestionItem {
           email: g.email,
           phone: g.phone || '',
           image: this.normalizeImageUrl(g.avatar_url || undefined),
-          status: g.check_in_at ? 'Confirmado' : 'Pendente'
+          status: g.check_in_at ? 'Confirmado' : 'Pendente',
+          documentNumber: g?.document?.number || '',
+          documentType: (g?.document?.type as ('rg' | 'cpf' | 'passport') | undefined) || 'rg',
+          guestType: (g?.type as ('normal' | 'premium' | 'vip') | undefined) || 'normal'
         }));
 
         // Atualizar dados da tabela para DataTables
@@ -566,9 +642,15 @@ interface QuestionItem {
 
   private normalizeImageUrl(url?: string | null): string | undefined {
     const clean = (url || '').trim();
-    if (!clean) return undefined;
+    const defaultAvatar = '/images/user/default-avatar.jpg';
+    if (!clean) return defaultAvatar;
     if (/^https?:\/\//.test(clean)) return clean;
-    return clean.startsWith('/') ? clean : `/${clean}`;
+    const resolved = clean.startsWith('/') ? clean : `/${clean}`;
+    // Guard against placeholder-like values
+    if (resolved === '/' || resolved === '/null' || resolved === '/undefined') {
+      return defaultAvatar;
+    }
+    return resolved;
   }
 
   onImageUpload(event: any) {
@@ -852,30 +934,64 @@ interface QuestionItem {
   }
 
   saveGuestChanges(updatedGuest: Guest) {
-    // Encontrar o índice do convidado na lista
-    const index = this.guests.findIndex(g => g.id === updatedGuest.id);
-    if (index !== -1) {
-      // Atualizar o convidado na lista
-      this.guests[index] = updatedGuest;
+    const idCodeOrId: string | number = this.eventIdCode || this.event.id;
+    const payload = {
+      display_name: updatedGuest.name,
+      email: updatedGuest.email,
+      phone: updatedGuest.phone,
+      document: (updatedGuest.documentNumber || updatedGuest.documentType) ? {
+        number: updatedGuest.documentNumber || '',
+        type: updatedGuest.documentType
+      } : null,
+      type: updatedGuest.guestType
+    } as any;
 
-      // Atualizar também os dados da tabela
-      const tableIndex = this.tableData.findIndex(t => t.id === updatedGuest.id);
-      if (tableIndex !== -1) {
-        this.tableData[tableIndex] = {
-          id: updatedGuest.id,
-          user: {
-            image: updatedGuest.image,
-            name: updatedGuest.name
-          },
-          email: updatedGuest.email,
-          phone: updatedGuest.phone,
-          status: updatedGuest.status
+    this.eventService.updateEventGuest(idCodeOrId, updatedGuest.id, payload).subscribe({
+      next: (apiGuest) => {
+        // Atualiza o convidado local com os dados retornados/alterados
+        const index = this.guests.findIndex(g => g.id === updatedGuest.id);
+        const mergedGuest: Guest = {
+          ...updatedGuest,
+          name: apiGuest?.display_name || updatedGuest.name,
+          email: apiGuest?.email || updatedGuest.email,
+          phone: apiGuest?.phone || updatedGuest.phone,
+          documentNumber: apiGuest?.document?.number || updatedGuest.documentNumber,
+          documentType: (apiGuest?.document?.type as ('rg' | 'cpf' | 'passport') | undefined) || updatedGuest.documentType,
+          guestType: (apiGuest?.type as ('normal' | 'premium' | 'vip') | undefined) || updatedGuest.guestType,
+          image: this.normalizeImageUrl(apiGuest?.avatar_url || updatedGuest.image),
+          status: (apiGuest?.check_in_at ? 'Confirmado' : updatedGuest.status)
         };
-      }
-    }
 
-    // Fechar o modal
-    this.closeEditGuestModal();
+        if (index !== -1) {
+          this.guests[index] = mergedGuest;
+        }
+
+        const tableIndex = this.tableData.findIndex(t => t.id === updatedGuest.id);
+        if (tableIndex !== -1) {
+          this.tableData[tableIndex] = {
+            id: mergedGuest.id,
+            user: { image: mergedGuest.image, name: mergedGuest.name },
+            email: mergedGuest.email,
+            phone: mergedGuest.phone,
+            status: mergedGuest.status,
+            documentNumber: mergedGuest.documentNumber || '',
+            guestType: mergedGuest.guestType || ''
+          } as any;
+        }
+
+        this.triggerToast('success', 'Convidado atualizado', 'As alterações foram salvas com sucesso.');
+        this.closeEditGuestModal();
+      },
+      error: (err) => {
+        const status = err?.status;
+        let msg = err?.error?.message || err?.message || 'Falha ao atualizar convidado.';
+        if (status === 400) msg = 'Dados inválidos. Verifique os campos e tente novamente.';
+        if (status === 403) msg = 'Sem permissão para atualizar este convidado.';
+        if (status === 404) msg = 'Convidado não encontrado.';
+        if (status === 409) msg = 'Conflito: dados já utilizados por outro convidado.';
+        this.triggerToast('error', 'Erro ao salvar', msg);
+      }
+    });
   }
 
   // Métodos para configurações do cartão

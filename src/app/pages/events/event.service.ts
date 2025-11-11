@@ -109,6 +109,12 @@ export interface ApiGuestUpdatePayload {
   check_in_at?: string | null;
   check_in_method?: string | null;
   authorized_by_user?: number | null;
+  // Dados de perfil
+  display_name?: string;
+  email?: string;
+  phone?: string;
+  document?: ApiGuestDocument | null;
+  type?: string;
 }
 
 export interface GuestsApiResponse {
@@ -123,6 +129,26 @@ export interface CreateEventGuestPayload {
   phone?: string;
   document?: ApiGuestDocument | null;
   check_in_at?: string | null;
+}
+
+// Novo: criação em lote na pré-lista
+export interface CreateGuestBatchItem {
+  guest_name: string;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+  guest_document_type: 'rg' | 'cpf' | 'passport';
+  guest_document_number: string;
+  type: 'normal' | 'vip' | 'premium';
+  source?: 'invited' | 'walk_in';
+}
+
+// Novo: check-in manual imediato
+export interface CheckinManualPayload {
+  guest_name: string;
+  guest_phone?: string | null;
+  guest_document_type: 'rg' | 'cpf' | 'passport';
+  guest_document_number: string;
+  type: 'normal' | 'vip' | 'premium';
 }
 
 @Injectable({ providedIn: 'root' })
@@ -188,6 +214,27 @@ export class EventService {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
     const url = `${this.API_BASE_URL}/events/${idOrCode}/guests`;
+    return this.http.post<{ success: boolean; data: { guest: ApiGuest } }>(url, payload, { headers }).pipe(
+      map((resp) => resp?.data?.guest)
+    );
+  }
+
+  // Cria convidados na pré-lista (lote)
+  createEventGuestsBatch(idOrCode: string | number, guests: CreateGuestBatchItem[]): Observable<ApiGuest[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/guests`;
+    const body = { guests };
+    return this.http.post<GuestsApiResponse>(url, body, { headers }).pipe(
+      map((resp) => resp?.data?.guests ?? [])
+    );
+  }
+
+  // Check-in manual imediato
+  checkinManual(idOrCode: string | number, payload: CheckinManualPayload): Observable<ApiGuest> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idOrCode}/checkin/manual`;
     return this.http.post<{ success: boolean; data: { guest: ApiGuest } }>(url, payload, { headers }).pipe(
       map((resp) => resp?.data?.guest)
     );
