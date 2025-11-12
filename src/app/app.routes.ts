@@ -25,6 +25,7 @@ import { Error503Component } from './pages/other-page/error-503/error-503.compon
 import { ComingSoonComponent } from './pages/other-page/coming-soon/coming-soon.component';
 import { MaintenanceComponent } from './pages/other-page/maintenance/maintenance.component';
 import { SuccessComponent } from './pages/other-page/success/success.component';
+import { EndQuestSuccessComponent } from './pages/events/end-quest-success/end-quest-success.component';
 import { ChatsComponent } from './pages/chats/chats.component';
 import { EmailInboxComponent } from './pages/email/email-inbox/email-inbox.component';
 import { EmailDetailsComponent } from './pages/email/email-details/email-details.component';
@@ -633,6 +634,11 @@ export const routes: Routes = [
     path:'success',
     component:SuccessComponent,
     title:'Angular Success Dashboard'
+  },
+  {
+    path:'end-quest-success',
+    component:EndQuestSuccessComponent,
+    title:'Questionário Finalizado'
   },
   // auth pages
   {

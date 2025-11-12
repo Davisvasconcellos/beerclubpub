@@ -12,7 +12,7 @@ import { CardSettingsComponent, CardSettings } from '../../../shared/components/
 import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
-  import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem, GuestsStats, ApiResponseItem } from '../event.service';
+  import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem, GuestsStats, ApiResponseItem, AdminRespondentItem } from '../event.service';
 import { ImageUploadService } from '../../../shared/services/image-upload.service';
 import { AuthService } from '../../../shared/services/auth.service';
 
@@ -65,6 +65,17 @@ interface QuestionItem {
   title: string;
   type: QuestionType;
   answers: AnswerItem[];
+}
+
+// Linhas para DataTable de respondentes
+interface RespondentRowData {
+  id_code?: string;
+  user: { image?: string; name: string };
+  email?: string;
+  phone?: string;
+  guest_code?: string;
+  submittedAt?: string;
+  answersCount: number;
 }
 
 @Component({
@@ -247,6 +258,12 @@ interface QuestionItem {
   sortOrder: 'asc' | 'desc' = 'asc';
   searchTerm: string = '';
   isSaving: boolean = false;
+
+  private respondentsRaw: AdminRespondentItem[] = [];
+  respondentsTableData: RespondentRowData[] = [];
+  respondentsCurrentPage: number = 1;
+  respondentsItemsPerPage: number = 10;
+  respondentsSearchTerm: string = '';
   saveMessage: string = '';
   saveError: string = '';
 
@@ -594,6 +611,55 @@ interface QuestionItem {
       }
     });
   }
+
+  // -----------------
+  // Carregar respondentes agregados (admin)
+  // -----------------
+  private loadRespondents(idCode: string) {
+    this.eventService.getEventRespondentsAdmin(idCode, { page: 1, page_size: 100 }).subscribe({
+      next: (items) => {
+        this.respondentsRaw = items || [];
+        this.respondentsTableData = (this.respondentsRaw || []).map((r) => {
+          const user = r.user || {};
+          const answersObj = (r.answers || {}) as Record<string, string>;
+          const answersCount = Object.keys(answersObj).length;
+          return {
+            id_code: user.id_code,
+            user: { image: this.normalizeImageUrl(user.avatar_url || undefined), name: user.name || (user.id_code || 'Sem nome') },
+            email: user.email || undefined,
+            phone: user.phone || undefined,
+            guest_code: r.guest_code || undefined,
+            submittedAt: r.submitted_at ? this.toLocalDateTime(r.submitted_at) : undefined,
+            answersCount,
+          } as RespondentRowData;
+        });
+      },
+      error: (err) => {
+        const msg = (err?.error?.message || err?.message || 'Falha ao carregar respondentes');
+        this.triggerToast('error', 'Erro ao carregar respondentes', msg);
+      }
+    });
+  }
+
+  // DataTable helpers: respondentes
+  onRespondentsItemsPerPageChange() { this.respondentsCurrentPage = 1; }
+  updateRespondentsSearchTerm(term: string) { this.respondentsSearchTerm = term || ''; this.respondentsCurrentPage = 1; }
+  get respondentsFilteredData(): RespondentRowData[] {
+    const term = (this.respondentsSearchTerm || '').toLowerCase();
+    return (this.respondentsTableData || []).filter((row) => {
+      const name = (row.user?.name || '').toLowerCase();
+      const email = (row.email || '').toLowerCase();
+      const phone = (row.phone || '').toLowerCase();
+      const code = (row.guest_code || '').toLowerCase();
+      return name.includes(term) || email.includes(term) || phone.includes(term) || code.includes(term);
+    });
+  }
+  get respondentsTotalItems(): number { return this.respondentsFilteredData.length; }
+  get respondentsTotalPages(): number { return Math.ceil(this.respondentsTotalItems / this.respondentsItemsPerPage); }
+  get respondentsStartIndex(): number { return (this.respondentsCurrentPage - 1) * this.respondentsItemsPerPage; }
+  get respondentsEndIndex(): number { return Math.min(this.respondentsStartIndex + this.respondentsItemsPerPage, this.respondentsTotalItems); }
+  get respondentsPageData(): RespondentRowData[] { return this.respondentsFilteredData.slice(this.respondentsStartIndex, this.respondentsEndIndex); }
+  handleRespondentsPageChange(page: number) { const total = this.respondentsTotalPages; if (page >= 1 && page <= total) { this.respondentsCurrentPage = page; } }
 
   // Getters para exibir valores dos cards de KPI
   get totalGuestsKpi(): number {
@@ -1300,8 +1366,8 @@ interface QuestionItem {
               type: this.mapApiTypeToLocalType(q.type),
               answers: []
             }));
-          // Após carregar perguntas, carregar respostas por pergunta
-          this.loadResponsesForQuestions(idCode);
+          // Após carregar perguntas, se autenticado use agregação admin (user + answers); caso contrário, público
+          this.loadAnswersFromAdminRespondents(idCode);
         },
         error: (err) => {
           const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas');
@@ -1327,14 +1393,14 @@ interface QuestionItem {
                   type: this.mapApiTypeToLocalType(q.type),
                   answers: []
                 }));
-              // Após carregar perguntas, carregar respostas por pergunta (usa id_code)
+              // Após carregar perguntas em modo público, carregar respostas por pergunta (usa id_code)
               this.loadResponsesForQuestions(idCode);
-            },
-            error: (err) => {
-              const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas públicas');
-              this.triggerToast('error', 'Erro ao carregar perguntas', msg);
-            }
-          });
+        },
+        error: (err) => {
+          const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas públicas');
+          this.triggerToast('error', 'Erro ao carregar perguntas', msg);
+        }
+      });
         },
         error: (err) => {
           const msg = (err?.error?.message || err?.message || 'Falha ao listar eventos públicos');
@@ -1571,6 +1637,74 @@ interface QuestionItem {
         }
       });
     }
+  }
+
+  // Carrega respostas por pergunta a partir do endpoint administrativo agregado (user + answers)
+  private loadAnswersFromAdminRespondents(idCode: string) {
+    this.totalResponses = 0;
+    this.eventService.getEventRespondentsAdmin(idCode, { page_size: 1000 }).subscribe({
+      next: (respondents) => {
+        // Para cada pergunta, derive a lista de AnswerItem a partir de respondents.answers['q<id>']
+        for (const q of this.questions) {
+          const answersForQ: AnswerItem[] = [];
+          const key = `q${q.id}`;
+          for (const resp of respondents) {
+            const item = this.mapAdminRespondentToAnswerItem(resp, q);
+            if (item) answersForQ.push(item);
+          }
+          q.answers = answersForQ;
+          this.totalResponses += answersForQ.length;
+        }
+      },
+      error: (err) => {
+        const msg = (err?.error?.message || err?.message || 'Falha ao carregar respostas agregadas');
+        this.triggerToast('error', 'Erro ao carregar respostas', msg);
+      }
+    });
+  }
+
+  private mapAdminRespondentToAnswerItem(resp: AdminRespondentItem, q: QuestionItem): AnswerItem | null {
+    const key = `q${q.id}`;
+    const raw = resp?.answers?.[key];
+    if (raw === undefined || raw === null) return null;
+    const name = (resp.user?.name || 'Usuário');
+    const avatar = this.normalizeImageUrl(resp.user?.avatar_url || undefined) || '/images/user/default-avatar.jpg';
+
+    // Parse robusto: valores podem vir como string simples ("op1"),
+    // array em string ("[\"1\",\"2\"]"), ou array real.
+    const parseValue = (val: any, type: QuestionType): string | string[] => {
+      if (Array.isArray(val)) return val.map(v => String(v));
+      if (typeof val === 'string') {
+        const trimmed = val.trim();
+        // tenta JSON.parse
+        if ((trimmed.startsWith('[') && trimmed.endsWith(']')) || (trimmed.startsWith('{') && trimmed.endsWith('}'))) {
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) return parsed.map(v => String(v));
+            if (typeof parsed === 'string') return parsed;
+            // objetos com 'options' ou 'selected'
+            if (Array.isArray((parsed as any).options)) return (parsed as any).options.map((v: any) => String(v));
+            if (typeof (parsed as any).selected === 'string') return String((parsed as any).selected);
+            if (typeof (parsed as any).value === 'string') return String((parsed as any).value);
+          } catch (_) {
+            // não era JSON válido, segue
+          }
+        }
+        // fallback para lista separada por vírgula
+        if (type === 'multiple_choice' && trimmed.includes(',')) {
+          return trimmed.split(',').map(s => s.trim());
+        }
+        return trimmed;
+      }
+      // outros tipos
+      return String(val);
+    };
+
+    const value: string | string[] = parseValue(raw, q.type);
+    return {
+      user: { id: 0, image: avatar, name },
+      value
+    };
   }
 
   private mapApiResponseToAnswerItem(r: ApiResponseItem, qType: QuestionType): AnswerItem {

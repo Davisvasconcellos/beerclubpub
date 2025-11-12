@@ -34,6 +34,7 @@ export class AlternativeLayoutComponent {
   isMobileOpen$: Observable<boolean>;
 
   currentPageTitle = 'Dashboard';
+  hideBreadcrumb = false;
 
   private routeTitles: Record<string, string> = {
     '/text-generator': 'Text Generator',
@@ -52,11 +53,17 @@ export class AlternativeLayoutComponent {
     this.router.events.subscribe(event => {
       if (event instanceof NavigationEnd) {
         this.currentPageTitle = this.getPageTitle(event.urlAfterRedirects);
+        this.hideBreadcrumb = this.shouldHideBreadcrumb(event.urlAfterRedirects);
       }
     });
   }
 
   private getPageTitle(pathname: string): string {
     return this.routeTitles[pathname] || 'Dashboard';
+  }
+
+  private shouldHideBreadcrumb(pathname: string): boolean {
+    // Oculta breadcrumb na página de respostas do evento
+    return /^\/events\/answer\//.test(pathname);
   }
 }

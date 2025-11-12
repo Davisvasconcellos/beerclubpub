@@ -354,28 +354,19 @@
             </svg>
           </button>
 
-          <!-- Gráficos e cards de resumo (antes do colapse) -->
+          <!-- Resumo gráfico (antes do colapse) apenas para múltipla escolha -->
           <div class="px-4 pt-4 pb-2 bg-white dark:bg-gray-900">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Card total de respostas -->
-              <div class="rounded-xl border border-gray-100 dark:border-white/[0.06] p-4 bg-white dark:bg-gray-900">
-                <p class="text-xs text-gray-500 dark:text-gray-400">Total de respostas</p>
-                <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ getQuestionTotalResponses(question) }}</p>
-              </div>
-
-              <!-- Gráfico de barras horizontal (não renderiza para texto) -->
-              <div class="md:col-span-2" *ngIf="question.type !== 'text'">
-                <apx-chart
-                  [series]="getQuestionChartSeries(question)"
-                  [chart]="questionBarChart"
-                  [plotOptions]="questionBarPlotOptions"
-                  [dataLabels]="questionBarDataLabels"
-                  [xaxis]="getQuestionChartXAxis(question)"
-                  [yaxis]="questionBarYAxis"
-                  [legend]="questionBarLegend"
-                  [colors]="questionBarColors"
-                ></apx-chart>
-              </div>
+            <div *ngIf="question.type === 'multiple_choice'">
+              <apx-chart
+                [series]="getQuestionChartSeries(question)"
+                [chart]="questionBarChart"
+                [plotOptions]="questionBarPlotOptions"
+                [dataLabels]="questionBarDataLabels"
+                [xaxis]="getQuestionChartXAxis(question)"
+                [yaxis]="questionBarYAxis"
+                [legend]="questionBarLegend"
+                [colors]="questionBarColors"
+              ></apx-chart>
             </div>
           </div>
 

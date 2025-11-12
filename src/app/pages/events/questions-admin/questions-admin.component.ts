@@ -128,6 +128,11 @@ export class QuestionsAdminComponent implements OnInit {
       ? (typeof (this.newQuestion as any).config?.maxSelected === 'number' ? Math.max(0, Math.floor((this.newQuestion as any).config.maxSelected)) : undefined)
       : undefined;
 
+    // Se for rádio e houver correta, embute marcador na opção conforme documentação
+    if (this.newQuestion.type === 'radio' && correctIndex !== undefined && options) {
+      options = options.map((o, i) => i === correctIndex ? `${o} [c]` : o);
+    }
+
     const payload: any = {
       text,
       type,
@@ -141,9 +146,15 @@ export class QuestionsAdminComponent implements OnInit {
     };
 
     if (this.newQuestion.type === 'radio' && correctIndex !== undefined) {
+      // Persistir no campo top-level da tabela
+      payload.correct_option_index = correctIndex;
+      // Manter compat: também em config, se o backend aceitar
       payload.config = { ...(payload.config || {}), correct_option_index: correctIndex };
     }
     if (this.newQuestion.type === 'checkbox' && maxSelected !== undefined) {
+      // Persistir no campo top-level da tabela
+      (payload as any).max_choices = maxSelected;
+      // Manter compat: também em config, se o backend aceitar
       payload.config = { ...(payload.config || {}), max_selected_options: maxSelected };
     }
 

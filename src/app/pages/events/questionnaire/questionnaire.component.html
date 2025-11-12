@@ -17,11 +17,89 @@
       <div class="space-y-6" [@slideFade]="currentIndex">
         <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">{{ q.text || q.question_text }}</h1>
 
+        @if (showingResults) {
+          <!-- Tela de resultados -->
+          <div class="space-y-4">
+            <!-- Barra de tempo autoesvaindo -->
+            <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+              <div class="h-2 rounded-full bg-brand-500" [style.width.%]="autoProgress"></div>
+            </div>
+            @if (!resultError) {
+              @switch (getType(q)) {
+                @case ('radio') {
+                  <div class="space-y-3">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">
+                      Correta: <span class="font-medium text-green-500">{{ getRadioCorrectLabel(q) || '—' }}</span>
+                      · Você marcou: <span class="font-medium" [ngClass]="(getRadioSelectedLabel(q) === getRadioCorrectLabel(q)) ? 'text-green-500' : 'text-red-500'">{{ getRadioSelectedLabel(q) || '—' }}</span>
+                    </p>
+                    <div class="space-y-2">
+                      @for (opt of asOptions(q); track opt; let i = $index) {
+                        <div class="rounded-lg border p-3" [ngClass]="{ 'border-green-500': i === getCorrectIndex(q), 'border-gray-200 dark:border-gray-700': i !== getCorrectIndex(q) }">
+                          <div class="flex items-center justify-between">
+                            <span class="text-gray-800 dark:text-white/80">{{ opt }}</span>
+                            @if (opt === getRadioSelectedLabel(q)) {
+                              <span class="text-xs font-medium" [ngClass]="(opt === getRadioCorrectLabel(q)) ? 'text-green-600' : 'text-red-500'">sua escolha</span>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                }
+                @case ('checkbox') {
+                  <div class="space-y-3">
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Total de respostas: {{ resultTotal }}</p>
+                    @if (resultLoading) {
+                      <!-- Loader visual enquanto as stats chegam -->
+                      <div class="rounded-lg border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/30 p-4">
+                        <div class="animate-pulse space-y-3">
+                          <div class="h-4 w-2/5 rounded bg-gray-200 dark:bg-gray-700"></div>
+                          <div class="h-4 w-3/5 rounded bg-gray-200 dark:bg-gray-700"></div>
+                          <div class="h-36 w-full rounded bg-gray-200 dark:bg-gray-700"></div>
+                        </div>
+                      </div>
+                    } @else {
+                      <apx-chart
+                        [series]="chartSeries"
+                        [chart]="barChart"
+                        [plotOptions]="barPlot"
+                        [dataLabels]="barLabels"
+                        [xaxis]="chartXAxis"
+                        [yaxis]="chartYAxis"
+                        [legend]="barLegend"
+                        [colors]="barColors"
+                      ></apx-chart>
+                    }
+                  </div>
+                }
+                @default {
+                  <div class="rounded-lg border border-gray-200 dark:border-gray-700 p-3 text-sm text-gray-600 dark:text-gray-400">Sem resultados visuais para este tipo de pergunta.</div>
+                }
+              }
+            } @else {
+              <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ resultError }}</div>
+            }
+            <div class="flex items-center gap-3 pt-2">
+              <app-button className="ml-auto" variant="primary" (btnClick)="advanceFromResults()">Avançar</app-button>
+            </div>
+          </div>
+        } @else {
+        @if (isSubmitted(q)) {
+          <div class="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300">
+            <div class="font-medium">Pergunta já respondida</div>
+            <!-- <div class="mt-1">Suas opções estão bloqueadas para edição.</div> -->
+            @if (toStringAnswer(q.id)) {
+              <div class="mt-2 text-xs text-blue-700 dark:text-blue-400">Resposta: {{ toStringAnswer(q.id) }}</div>
+            }
+          </div>
+        }
+
         @switch (getType(q)) {
           @case ('text') {
             <app-input-field
               placeholder="Digite sua resposta"
               [value]="toStringAnswer(q.id)"
+              [disabled]="isSubmitted(q)"
               (valueChange)="answers[q.id] = $event"
             />
           }
@@ -30,6 +108,7 @@
               [rows]="8"
               placeholder="Digite sua resposta"
               [value]="toStringAnswer(q.id)"
+              [disabled]="isSubmitted(q)"
               (valueChange)="answers[q.id] = $event"
             ></app-text-area>
           }
@@ -43,6 +122,7 @@
                   [label]="opt"
                   [checked]="answers[q.id] === opt"
                   [className]="'py-2'"
+                  [disabled]="isSubmitted(q)"
                   (valueChange)="setRadio(opt)"
                 />
               }
@@ -50,8 +130,8 @@
           }
           @case ('checkbox') {
             <div class="space-y-4 md:space-y-3">
-              @if (q.config?.max_selected_options && q.config.max_selected_options > 0) {
-                <p class="text-xs text-gray-500 dark:text-gray-400">Você pode selecionar até {{ q.config.max_selected_options }} opção(ões).</p>
+              @if (getMaxSelected(q) > 0) {
+                <p class="text-xs text-gray-500 dark:text-gray-400">Você pode selecionar até {{ getMaxSelected(q) }} opção(ões).</p>
               }
               @for (opt of asOptions(q); track opt; let i = $index) {
                 <div class="py-2">
@@ -59,7 +139,7 @@
                     [id]="'q-' + q.id + '-chk-' + i"
                     [label]="opt"
                     [checked]="hasCheckbox(opt)"
-                    [disabled]="isCheckboxDisabled(opt)"
+                    [disabled]="isSubmitted(q) || isCheckboxDisabled(opt)"
                     (checkedChange)="toggleCheckbox(opt)"
                   ></app-checkbox>
                 </div>
@@ -75,6 +155,7 @@
                   (click)="setRating(star)"
                   [attr.title]="starLabel(star)"
                   [attr.aria-label]="starLabel(star)"
+                  [disabled]="isSubmitted(q)"
                 >
                   <svg class="h-7 w-7" [ngClass]="isStarActive(star) ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
@@ -92,6 +173,7 @@
                   [value]="opt"
                   [label]="opt"
                   [checked]="answers[q.id] === opt"
+                  [disabled]="isSubmitted(q)"
                   (valueChange)="setRadio(opt)"
                 />
               }
@@ -102,18 +184,20 @@
               [rows]="5"
               placeholder="Digite sua resposta"
               [value]="toStringAnswer(q.id)"
+              [disabled]="isSubmitted(q)"
               (valueChange)="answers[q.id] = $event"
             ></app-text-area>
           }
         }
 
         <div class="mt-10 flex gap-3">
-          <app-button variant="outline" (btnClick)="back()" [disabled]="currentIndex === 0">Voltar</app-button>
+          <app-button variant="outline" (btnClick)="back()" [disabled]="currentIndex === 0 || isSubmitted(q)">Voltar</app-button>
           <app-button variant="outline" (btnClick)="skip()" [disabled]="isRequired(q)">Pular</app-button>
           <app-button className="ml-auto" variant="primary" (btnClick)="next()" [disabled]="!canGoNext()">
             {{ currentIndex < questions.length - 1 ? 'Continuar' : 'Enviar' }}
           </app-button>
         </div>
+        }
       </div>
     }
   }

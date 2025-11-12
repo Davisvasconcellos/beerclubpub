@@ -106,6 +106,25 @@ export interface QuestionCreateApiResponse {
   message?: string;
 }
 
+// ================================
+// Stats por pergunta (público/admin)
+// ================================
+export interface QuestionOptionCount {
+  option_label: string;
+  count: number;
+}
+
+export interface QuestionStatsApiResponse {
+  success: boolean;
+  data: {
+    counts: QuestionOptionCount[];
+    total_responses: number;
+    correct_count?: number;
+    accuracy_percent?: number;
+  };
+  message?: string;
+}
+
 // Público: lista e detalhe com perguntas visíveis (show_results=true)
 export interface PublicEventsListApiResponse {
   success: boolean;
@@ -170,6 +189,31 @@ export interface ListResponsesParams {
   page?: number;
   page_size?: number;
   search?: string;
+}
+
+// ================================
+// Admin Respondents (aggregated list)
+// ================================
+export interface AdminRespondentItem {
+  guest_code: string;
+  selfie_url?: string | null;
+  submitted_at?: string | null;
+  answers: Record<string, string>;
+  user?: { id_code?: string; name?: string; email?: string; phone?: string; avatar_url?: string };
+  guest?: any | null;
+}
+
+export interface AdminRespondentsApiResponse {
+  success: boolean;
+  data: AdminRespondentItem[];
+  meta?: { total?: number; page?: number; limit?: number; pages?: number };
+  message?: string;
+}
+
+// Novo: retorno de perguntas com possível resposta pré-preenchida
+export interface QuestionWithAnswer {
+  question: ApiQuestion;
+  answer?: ApiResponseItem | null;
 }
 
 // ================================
@@ -516,6 +560,39 @@ export class EventService {
     );
   }
 
+  // Público: stats agregadas por pergunta visível
+  getPublicQuestionStats(idOrCode: string | number, questionId: number): Observable<{ options?: string[]; counts: QuestionOptionCount[]; total_responses: number; correct_count?: number; accuracy_percent?: number }> {
+    const url = `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/${idOrCode}/questions/${questionId}/stats`;
+    return this.http.get<QuestionStatsApiResponse>(url).pipe(
+      map((resp) => {
+        const data: any = resp?.data || {};
+        const options: string[] = Array.isArray(data.options) ? data.options.map((o: any) => String(o)) : [];
+        const rawCounts: any[] = Array.isArray(data.counts) ? data.counts : [];
+
+        // Normaliza o formato dos counts para { option_label, count }
+        const counts: QuestionOptionCount[] = rawCounts.map((c: any) => {
+          let label: string = '';
+          if (typeof c?.option_label === 'string') label = String(c.option_label);
+          else if (typeof c?.option === 'string') label = String(c.option);
+          else if (typeof c?.index === 'number' && options[c.index] !== undefined) label = String(options[c.index]);
+          return { option_label: label, count: Number(c?.count) || 0 };
+        });
+
+        const total = typeof data.total_responses === 'number'
+          ? data.total_responses
+          : (typeof data.total_answers === 'number' ? data.total_answers : 0);
+
+        return {
+          options,
+          counts,
+          total_responses: total,
+          correct_count: data?.correct_count,
+          accuracy_percent: data?.accuracy_percent,
+        };
+      })
+    );
+  }
+
   createEventQuestion(idOrCode: string | number, payload: {
     text: string;
     type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating';
@@ -524,6 +601,8 @@ export class EventService {
     show_results?: boolean;
     order_index?: number;
     is_public?: boolean | number;
+    correct_option_index?: number;
+    max_choices?: number;
     config?: any;
   }): Observable<ApiQuestion> {
     const token = this.authService.getAuthToken();
@@ -542,6 +621,8 @@ export class EventService {
     show_results: boolean;
     order_index: number;
     is_public: boolean | number;
+    correct_option_index: number;
+    max_choices: number;
     config: any;
   }>): Observable<ApiQuestion> {
     const token = this.authService.getAuthToken();
@@ -592,8 +673,56 @@ export class EventService {
         }
       }
     }
+    // Detectar marcador de opção correta embutido na string da opção
+    // Suportados: prefixo '*', sufixo '*', '[c]', '(c)', '[correct]', '#correct', sufixo '|correct'
+    let correctFromMarker = -1;
+    const cleanedOptions = options.map((label, i) => {
+      let cleaned = label;
+      let isCorrect = false;
+      if (/^\s*\*/.test(cleaned)) { isCorrect = true; cleaned = cleaned.replace(/^\s*\*\s*/, ''); }
+      if (/\*\s*$/.test(cleaned)) { isCorrect = true; cleaned = cleaned.replace(/\s*\*\s*$/, ''); }
+      if (/\[(c|ok|correct)\]/i.test(cleaned)) { isCorrect = true; cleaned = cleaned.replace(/\s*\[(?:c|ok|correct)\]\s*/ig, ''); }
+      if (/\((c|ok|correct)\)/i.test(cleaned)) { isCorrect = true; cleaned = cleaned.replace(/\s*\((?:c|ok|correct)\)\s*/ig, ''); }
+      if (/#correct/i.test(cleaned)) { isCorrect = true; cleaned = cleaned.replace(/\s*#correct\s*/ig, ''); }
+      if (/\|\s*correct\s*$/i.test(cleaned)) { isCorrect = true; cleaned = cleaned.replace(/\|\s*correct\s*$/ig, ''); }
+      if (isCorrect && correctFromMarker === -1) correctFromMarker = i;
+      return cleaned.trim();
+    });
+    options = cleanedOptions;
     const rawPublic: any = (api as any).is_public;
     const is_public = typeof rawPublic === 'boolean' ? rawPublic : Number(rawPublic) === 1;
+    // Propagar config e incluir índice correto se detectado pelo marcador
+    const baseConfig: any = (api as any).config ?? {};
+    const config = { ...baseConfig };
+    const topCorrect = (api as any).correct_option_index;
+    if (typeof topCorrect === 'number' && topCorrect >= 0) {
+      config.correct_option_index = Math.floor(topCorrect);
+    }
+    if (correctFromMarker >= 0 && typeof config.correct_option_index !== 'number') {
+      config.correct_option_index = correctFromMarker;
+    }
+    // Mapear limite de seleção múltipla a partir do campo top-level `max_choices`
+    const topMaxChoices = (api as any).max_choices;
+    if (typeof topMaxChoices === 'number' && topMaxChoices >= 0) {
+      config.max_selected_options = Math.floor(topMaxChoices);
+    }
+    // Preservar preseleções vindas do backend (ex.: selected_labels)
+    const selectedLabels: any = (api as any).selected_labels;
+    if (Array.isArray(selectedLabels) && selectedLabels.length > 0) {
+      try {
+        config.prefill_labels = selectedLabels.map((x: any) => String(x).trim()).filter((s: string) => !!s);
+      } catch {
+        config.prefill_labels = (selectedLabels as any[]).map((x: any) => String(x).trim()).filter((s: string) => !!s);
+      }
+    }
+    // Preservar preseleção específica de rating (ex.: selected_value)
+    const selectedValueRaw: any = (api as any).selected_value;
+    if (selectedValueRaw !== undefined && selectedValueRaw !== null) {
+      const num = typeof selectedValueRaw === 'number' ? selectedValueRaw : Number(String(selectedValueRaw).trim());
+      if (!isNaN(num)) {
+        config.prefill_rating_value = Math.floor(num);
+      }
+    }
     return {
       id: api.id,
       text,
@@ -603,7 +732,7 @@ export class EventService {
       show_results: api.show_results ?? true,
       order_index: api.order_index ?? 0,
       is_public,
-      config: (api as any).config ?? undefined,
+      config,
     };
   }
 
@@ -627,6 +756,71 @@ export class EventService {
     );
   }
 
+  // ================================
+  // Admin: Listagem de respondentes agregados
+  // ================================
+  /**
+   * Lista convidados/usuários que enviaram respostas para o evento (visão administrativa).
+   * Retorna itens agregados por respondente com campos como guest_code, submitted_at, user, answers.
+   */
+  getEventRespondentsAdmin(idOrCode: string | number, params?: { page?: number; page_size?: number; search?: string }): Observable<AdminRespondentItem[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const base = `${this.API_BASE_URL}/events/${idOrCode}/responses`;
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) {
+      query.set('page_size', String(params.page_size));
+      // compat: alguns endpoints usam "limit" na meta; enviamos ambos
+      query.set('limit', String(params.page_size));
+    }
+    if (params?.search) query.set('search', params.search);
+    const url = `${base}${query.toString() ? `?${query.toString()}` : ''}`;
+    return this.http.get<AdminRespondentsApiResponse>(url, { headers }).pipe(
+      map((resp) => resp?.data ?? [])
+    );
+  }
+
+  // ================================
+  // Novos endpoints: questions-with-answers e PATCH responses
+  // ================================
+  getQuestionsWithAnswers(idOrCode: string | number, guestCode?: string): Observable<QuestionWithAnswer[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const basePublic = this.API_BASE_URL.replace('/api/v1', '');
+    const url = token
+      ? `${this.API_BASE_URL}/events/${idOrCode}/questions-with-answers`
+      : `${basePublic}/api/events/${idOrCode}/questions-with-answers${guestCode ? `?guest_code=${encodeURIComponent(guestCode)}` : ''}`;
+
+    return this.http.get<any>(url, { headers }).pipe(
+      map((resp) => {
+        const raw = resp?.data?.questions ?? resp?.questions ?? [];
+        return (raw as any[]).map((item) => {
+          const q = this.normalizeQuestion(item?.question ?? item);
+          const answer: ApiResponseItem | null = (item?.answer ?? (Array.isArray(item?.answers) ? item.answers[0] : null)) || null;
+          return { question: q, answer } as QuestionWithAnswer;
+        });
+      })
+    );
+  }
+
+  patchEventResponses(idOrCode: string | number, data: { guest_code?: string; selfie_url?: string; answers: AnswerItemPayload[] }): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const basePublic = this.API_BASE_URL.replace('/api/v1', '');
+    const url = token
+      ? `${this.API_BASE_URL}/events/${idOrCode}/responses`
+      : `${basePublic}/api/events/${idOrCode}/responses`;
+
+    const body = token
+      ? ({ selfie_url: data.selfie_url, answers: data.answers } as SubmitResponsesAuthPayload)
+      : ({ guest_code: data.guest_code!, selfie_url: data.selfie_url, answers: data.answers } as SubmitResponsesPublicPayload);
+
+    return this.http.patch<SubmitResponsesResult>(url, body, { headers }).pipe(
+      map((resp) => !!resp?.success)
+    );
+  }
+
   submitEventResponses(idOrCode: string | number, data: { guest_code?: string; selfie_url?: string; answers: AnswerItemPayload[] }): Observable<boolean> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
@@ -640,6 +834,23 @@ export class EventService {
 
     return this.http.post<SubmitResponsesResult>(url, body, { headers }).pipe(
       map((resp) => !!resp?.success)
+    );
+  }
+
+  // Versão bruta: retorna o objeto completo (inclui response_id)
+  submitEventResponseRaw(idOrCode: string | number, data: { guest_code?: string; selfie_url?: string; answers: AnswerItemPayload[] }): Observable<SubmitResponsesResult> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = token
+      ? `${this.API_BASE_URL}/events/${idOrCode}/responses`
+      : `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/${idOrCode}/responses`;
+
+    const body = token
+      ? ({ selfie_url: data.selfie_url, answers: data.answers } as SubmitResponsesAuthPayload)
+      : ({ guest_code: data.guest_code!, selfie_url: data.selfie_url, answers: data.answers } as SubmitResponsesPublicPayload);
+
+    return this.http.post<SubmitResponsesResult>(url, body, { headers }).pipe(
+      map((resp) => resp || { success: false })
     );
   }
 }
