@@ -73,8 +73,36 @@ export class EventListAdminComponent implements OnInit {
   }
 
   openLinksModal(event: Event) {
-    this.selectedEventLinks = event.links.filter(link => link.text === 'Links do Evento' || link.text === 'Galeria de Fotos');
-    this.isModalOpen = true;
+    try {
+      const idCode = (event as any)?.id_code as string | undefined;
+      if (!idCode) {
+        this.loadError = 'Evento sem id_code para gerar links.';
+        return;
+      }
+
+      const origin = typeof window !== 'undefined' && window.location ? window.location.origin : '';
+
+      const primaryLinks: EventLink[] = [
+        {
+          text: 'Responder Perguntas do Evento',
+          url: `${origin}/events/answer/${idCode}`,
+          variant: 'primary',
+        },
+        {
+          text: 'Página do Evento (Admin)',
+          url: `${origin}/events/event-view/${idCode}`,
+          variant: 'outline',
+        },
+      ];
+
+      const extraLinks = (event.links || []).filter(l => !!l?.text && !!l?.url);
+
+      this.selectedEventLinks = [...primaryLinks, ...extraLinks];
+      this.isModalOpen = true;
+    } catch (e) {
+      console.error('Falha ao montar links do evento:', e);
+      this.loadError = 'Falha ao abrir links do evento.';
+    }
   }
 
   closeLinksModal() {

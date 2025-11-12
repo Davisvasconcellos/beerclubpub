@@ -1,0 +1,3 @@
+.progress {
+  transition: width 200ms ease-in-out;
+}

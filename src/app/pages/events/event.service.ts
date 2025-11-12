@@ -90,6 +90,8 @@ export interface ApiQuestion {
   is_required?: boolean;
   show_results?: boolean;
   order_index?: number;
+  is_public?: boolean | number;
+  config?: any;
 }
 
 export interface QuestionsListApiResponse {
@@ -102,6 +104,72 @@ export interface QuestionCreateApiResponse {
   success: boolean;
   data: { question: ApiQuestion };
   message?: string;
+}
+
+// Público: lista e detalhe com perguntas visíveis (show_results=true)
+export interface PublicEventsListApiResponse {
+  success: boolean;
+  data: { events: ApiEvent[] };
+  message?: string;
+}
+
+export interface PublicEventDetailWithQuestionsApiResponse {
+  success: boolean;
+  data: { event: ApiEvent & { questions?: ApiQuestion[] } };
+  message?: string;
+}
+
+// ================================
+// Responses API Types
+// ================================
+export interface AnswerItemPayload {
+  question_id: number;
+  answer_text?: string;
+  answer_json?: any;
+}
+
+export interface SubmitResponsesPublicPayload {
+  guest_code: string;
+  selfie_url?: string;
+  answers: AnswerItemPayload[];
+}
+
+export interface SubmitResponsesAuthPayload {
+  selfie_url?: string;
+  answers: AnswerItemPayload[];
+}
+
+export interface SubmitResponsesResult {
+  success: boolean;
+  response_id?: number;
+  message?: string;
+}
+
+// Listagem de respostas
+export interface ApiResponseItem {
+  id: number;
+  question_id: number;
+  answer_text?: string | null;
+  answer_json?: any;
+  created_at?: string;
+  // Informações do convidado/usuário (podem variar entre endpoints)
+  user?: { id?: number; name?: string; display_name?: string; avatar_url?: string };
+  guest_name?: string;
+  guest_avatar_url?: string;
+}
+
+export interface ListResponsesApiResponse {
+  success: boolean;
+  data: { responses: ApiResponseItem[] };
+  meta?: { total?: number };
+  message?: string;
+}
+
+export interface ListResponsesParams {
+  question_id?: number;
+  page?: number;
+  page_size?: number;
+  search?: string;
 }
 
 // ================================
@@ -432,13 +500,31 @@ export class EventService {
     );
   }
 
+  // Público: lista eventos para obter slug
+  getPublicEventsList(): Observable<ApiEvent[]> {
+    const url = `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/public`;
+    return this.http.get<PublicEventsListApiResponse>(url).pipe(
+      map((resp) => resp?.data?.events ?? [])
+    );
+  }
+
+  // Público: obter perguntas visíveis por slug
+  getPublicEventQuestionsBySlug(slug: string): Observable<ApiQuestion[]> {
+    const url = `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/public/${slug}`;
+    return this.http.get<PublicEventDetailWithQuestionsApiResponse>(url).pipe(
+      map((resp) => (resp?.data?.event?.questions ?? []).map((q) => this.normalizeQuestion(q)))
+    );
+  }
+
   createEventQuestion(idOrCode: string | number, payload: {
     text: string;
-    type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating' | 'music_preference';
+    type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating';
     options?: string[];
     is_required?: boolean;
     show_results?: boolean;
     order_index?: number;
+    is_public?: boolean | number;
+    config?: any;
   }): Observable<ApiQuestion> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
@@ -450,11 +536,13 @@ export class EventService {
 
   updateEventQuestion(idOrCode: string | number, questionId: number, changes: Partial<{
     text: string;
-    type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating' | 'music_preference';
+    type: 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating';
     options: string[];
     is_required: boolean;
     show_results: boolean;
     order_index: number;
+    is_public: boolean | number;
+    config: any;
   }>): Observable<ApiQuestion> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
@@ -472,10 +560,40 @@ export class EventService {
   }
 
   private normalizeQuestion(api: ApiQuestion | undefined): ApiQuestion {
-    if (!api) return { id: 0, text: '', type: 'text', options: [], is_required: true, show_results: true, order_index: 0 };
+    if (!api) return { id: 0, text: '', type: 'text', options: [], is_required: true, show_results: true, order_index: 0, is_public: 0 };
     const text = api.text ?? api.question_text ?? '';
-    const type = api.type ?? api.question_type ?? 'text';
-    const options = Array.isArray(api.options) ? api.options : [];
+    const rawType = api.type ?? api.question_type ?? 'text';
+    // Mapear possíveis nomes alternativos vindos da API
+    const type = ((): string => {
+      const t = String(rawType).toLowerCase();
+      if (['single', 'single_choice', 'radio'].includes(t)) return 'radio';
+      if (['multiple', 'multiple_choice', 'checkbox', 'check'].includes(t)) return 'checkbox';
+      if (['text_area', 'textarea'].includes(t)) return 'textarea';
+      if (['rate', 'rating', 'stars'].includes(t)) return 'rating';
+      return t || 'text';
+    })();
+
+    // Normalizar opções: aceitar array direto, JSON string ou CSV
+    let options: string[] = [];
+    const rawOpts: any = (api as any).options;
+    if (Array.isArray(rawOpts)) {
+      options = rawOpts.filter((o) => o != null).map((o) => String(o).trim()).filter(Boolean);
+    } else if (typeof rawOpts === 'string') {
+      const s = rawOpts.trim();
+      if (s) {
+        try {
+          const parsed = JSON.parse(s);
+          if (Array.isArray(parsed)) {
+            options = parsed.filter((o) => o != null).map((o) => String(o).trim()).filter(Boolean);
+          }
+        } catch {
+          // CSV/pipe/semicolon/newline
+          options = s.split(/[\n,;|]/).map((o) => o.trim()).filter(Boolean);
+        }
+      }
+    }
+    const rawPublic: any = (api as any).is_public;
+    const is_public = typeof rawPublic === 'boolean' ? rawPublic : Number(rawPublic) === 1;
     return {
       id: api.id,
       text,
@@ -484,6 +602,44 @@ export class EventService {
       is_required: api.is_required ?? true,
       show_results: api.show_results ?? true,
       order_index: api.order_index ?? 0,
+      is_public,
+      config: (api as any).config ?? undefined,
     };
+  }
+
+  // ================================
+  // Responses API Methods
+  // ================================
+  getEventResponses(idOrCode: string | number, params?: ListResponsesParams): Observable<ApiResponseItem[]> {
+    // Listagem de respostas é no namespace público, mesmo autenticado
+    const headers: HttpHeaders = new HttpHeaders({});
+    const base = `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/${idOrCode}/responses`;
+
+    const query = new URLSearchParams();
+    if (params?.question_id) query.set('question_id', String(params.question_id));
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.page_size) query.set('page_size', String(params.page_size));
+    if (params?.search) query.set('search', params.search);
+
+    const url = `${base}${query.toString() ? `?${query.toString()}` : ''}`;
+    return this.http.get<ListResponsesApiResponse>(url, { headers }).pipe(
+      map((resp) => resp?.data?.responses ?? [])
+    );
+  }
+
+  submitEventResponses(idOrCode: string | number, data: { guest_code?: string; selfie_url?: string; answers: AnswerItemPayload[] }): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = token
+      ? `${this.API_BASE_URL}/events/${idOrCode}/responses`
+      : `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/${idOrCode}/responses`;
+
+    const body = token
+      ? ({ selfie_url: data.selfie_url, answers: data.answers } as SubmitResponsesAuthPayload)
+      : ({ guest_code: data.guest_code!, selfie_url: data.selfie_url, answers: data.answers } as SubmitResponsesPublicPayload);
+
+    return this.http.post<SubmitResponsesResult>(url, body, { headers }).pipe(
+      map((resp) => !!resp?.success)
+    );
   }
 }

@@ -612,6 +612,11 @@ export const routes: Routes = [
         component:VideoGeneratorComponent,
         title:'Angular AI Video Generator'
       },
+      {
+        path: 'events/answer/:id_code',
+        loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
+        title: 'Responder Perguntas do Evento'
+      },
     ]
   },
   {

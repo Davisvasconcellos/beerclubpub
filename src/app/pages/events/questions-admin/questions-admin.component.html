@@ -5,16 +5,13 @@
       <span class="text-xs text-gray-500 dark:text-gray-400">Administração</span>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
+    <div class="grid grid-cols-1 gap-4">
+      <div class="md:col-span-2">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
         <select [(ngModel)]="newQuestion.event_id_code" (ngModelChange)="loadQuestionsForSelectedEvent()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option value="">— Escolha o evento —</option>
           <option *ngFor="let e of events" [value]="e.id_code">{{ e.eventName }}</option>
         </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ordem</label>
-        <input type="number" [(ngModel)]="newQuestion.order_index" min="1" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
       </div>
     </div>
 
@@ -36,18 +33,37 @@
         </div>
         <div class="space-y-2">
           <div *ngFor="let opt of newQuestion.options; let i = index; trackBy: trackOptionByIndex" class="flex items-center gap-2">
+            <!-- Marcador de correta apenas para 'uma opção' -->
+            <ng-container *ngIf="newQuestion.type === 'radio'">
+              <input type="radio"
+                     name="correctOption"
+                     [checked]="newQuestion.config.correctIndex === i"
+                     (change)="newQuestion.config.correctIndex = i"
+                     class="h-4 w-4 text-green-600 border-gray-300 dark:border-gray-600">
+            </ng-container>
             <input
               type="text"
               name="option-{{ i }}"
               [ngModel]="opt"
               (ngModelChange)="newQuestion.options[i] = $event"
-              [ngModelOptions]="{ standalone: true }"
               placeholder="Texto da opção"
               class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
             <button type="button" (click)="removeOption(i)" class="px-2 py-1 text-xs rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600">Remover</button>
           </div>
         </div>
-        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+        <!-- Limite de opções apenas para 'várias opções' (checkbox) -->
+        <div *ngIf="newQuestion.type === 'checkbox'" class="mt-3">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Limite de opções selecionáveis</label>
+          <div class="flex items-center gap-2">
+            <input type="number"
+                   min="0"
+                   [(ngModel)]="newQuestion.config.maxSelected"
+                   placeholder="0 (sem limite)"
+                   class="w-32 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+            <span class="text-xs text-gray-500 dark:text-gray-400">0 significa sem limite</span>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
           - Para "Múltipla escolha (uma opção)", as respostas são únicas.<br>
           - Para "Múltipla escolha (várias opções)", as respostas podem conter várias opções.<br>
         </p>
@@ -59,9 +75,13 @@
         <input type="checkbox" [(ngModel)]="newQuestion.is_required" class="rounded border-gray-300 dark:border-gray-600">
         <span class="text-sm text-gray-700 dark:text-gray-300">Obrigatória</span>
       </label>
-      <label class="flex items-center gap-2">
+      <label class="flex items-center gap-2" *ngIf="newQuestion.type === 'radio' || newQuestion.type === 'checkbox'">
         <input type="checkbox" [(ngModel)]="newQuestion.show_results" class="rounded border-gray-300 dark:border-gray-600">
         <span class="text-sm text-gray-700 dark:text-gray-300">Mostrar resultados</span>
+      </label>
+      <label class="flex items-center gap-2">
+        <input type="checkbox" [(ngModel)]="newQuestion.is_public" class="rounded border-gray-300 dark:border-gray-600">
+        <span class="text-sm text-gray-700 dark:text-gray-300">Pública (sem login)</span>
       </label>
       <!-- Config adicional removido: backend não utiliza no payload -->
       </div>
@@ -74,21 +94,96 @@
 
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Perguntas cadastradas</h3>
-    <div class="divide-y divide-gray-200 dark:divide-gray-700">
-      <div *ngFor="let q of questions" class="py-3">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-gray-900 dark:text-white font-medium">{{ q.text }}</p>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-              Evento: {{ getEventNameByCode(q.event_id_code) }} • Tipo: {{ q.type }}
-              <span *ngIf="q.options?.length">• Opções:
-                <ng-container *ngFor="let opt of q.options; let last = last">
-                  {{ opt }}<span *ngIf="!last">, </span>
-                </ng-container>
-              </span>
-            </p>
+    <!-- Loader de perguntas -->
+    <div *ngIf="isLoadingQuestions" class="py-6">
+      <div class="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
+        <svg class="animate-spin h-5 w-5 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        Carregando perguntas...
+      </div>
+    </div>
+
+    <!-- Placeholder quando nenhum evento selecionado -->
+    <div *ngIf="!isLoadingQuestions && !newQuestion.event_id_code" class="py-4 text-sm text-gray-600 dark:text-gray-300">
+      Selecione um evento para visualizar as perguntas.
+    </div>
+
+    <!-- Mensagem quando não houver perguntas -->
+    <div *ngIf="!isLoadingQuestions && newQuestion.event_id_code && hasLoadedQuestions && questions.length === 0" class="py-4 text-sm text-gray-600 dark:text-gray-300">
+      Evento sem perguntas cadastradas.
+    </div>
+
+    <!-- Estado de salvamento da nova ordem -->
+    <div *ngIf="!isLoadingQuestions && questions.length > 0 && isSavingOrder" class="py-2 text-sm text-gray-600 dark:text-gray-300">
+      Salvando ordem...
+    </div>
+
+    <!-- Lista de perguntas -->
+    <div *ngIf="!isLoadingQuestions && questions.length > 0" class="divide-y divide-gray-200 dark:divide-gray-700">
+      <div *ngFor="let q of questions; let i = index; trackBy: trackQuestionById" class="py-3 cursor-move"
+           draggable="true" (dragstart)="onDragStart(i)" (dragover)="onDragOver(i, $event)" (drop)="onDrop(i)">
+        <div class="flex items-center justify-between" [class.opacity-60]="!q.show_results">
+          <div class="flex items-start gap-3">
+            <span class="mt-1 inline-flex h-5 w-5 items-center justify-center text-gray-400 dark:text-gray-500">⋮⋮</span>
+            <div>
+              <p class="text-gray-900 dark:text-white font-medium">{{ q.text }}</p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                Evento: {{ getEventNameByCode(q.event_id_code) }} • Tipo: {{ q.type }}
+                • Permissão: {{ q.show_results ? 'Ativa' : 'Inativa' }}
+                • Visibilidade: {{ q.is_public ? 'Pública' : 'Privada' }}
+                <span *ngIf="q.options?.length">• Opções:
+                  <ng-container *ngFor="let opt of q.options; let last = last">
+                    {{ opt }}<span *ngIf="!last">, </span>
+                  </ng-container>
+                </span>
+                <span *ngIf="q.type === 'checkbox' && q.config?.max_selected_options">
+                  • Limite: {{ q.config.max_selected_options }}
+                </span>
+                <span *ngIf="q.type === 'radio' && q.config?.correct_option_index != null && q.options && q.options[q.config.correct_option_index]">
+                  • Resposta correta: <strong>{{ q.options[q.config.correct_option_index] }}</strong>
+                </span>
+              </p>
+            </div>
           </div>
-          <span class="text-xs text-gray-500 dark:text-gray-400">Ordem: {{ q.order_index }}</span>
+          <div class="flex items-center gap-3">
+            <!-- Número da ordem, sem texto -->
+            <span class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200 text-xs font-medium">{{ q.order_index }}</span>
+
+            <!-- Toggle visibilidade: cadeado (pública/privada) com contraste sólido/contorno -->
+            <button type="button" (click)="toggleQuestionVisibility(q)" class="inline-flex items-center justify-center h-8 w-8 rounded hover:bg-gray-100 dark:hover:bg-gray-700" [attr.aria-label]="q.is_public ? 'Tornar privada' : 'Tornar pública'">
+              <!-- Pública: cadeado aberto sólido -->
+              <svg *ngIf="q.is_public" class="h-5 w-5 text-green-600 dark:text-green-400" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                <!-- Corpo do cadeado -->
+                <path d="M5 11h14a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2z" />
+                <!-- Arco aberto -->
+                <path d="M16.5 10.5V7.5a4.5 4.5 0 10-9 0v1.25a.75.75 0 01-1.5 0V7.5a6 6 0 1112 0v3a.75.75 0 01-1.5 0z" />
+              </svg>
+              <!-- Privada: cadeado fechado em contorno -->
+              <svg *ngIf="!q.is_public" class="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <!-- Arco fechado -->
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 10.5V7.5a3.75 3.75 0 117.5 0v3" />
+                <!-- Corpo do cadeado -->
+                <rect x="4.75" y="10.5" width="14.5" height="9" rx="2" ry="2"></rect>
+                <!-- Pequeno pino -->
+                <circle cx="12" cy="15" r="1"></circle>
+              </svg>
+            </button>
+
+            <!-- Toggle permissão: olho aberto/fechado (ativa/inativa) -->
+            <button type="button" (click)="toggleQuestionActive(q)" class="inline-flex items-center justify-center h-8 w-8 rounded hover:bg-gray-100 dark:hover:bg-gray-700" [attr.aria-label]="q.show_results ? 'Desativar pergunta' : 'Ativar pergunta'">
+              <!-- Olho aberto quando ativa -->
+              <svg *ngIf="q.show_results" class="h-5 w-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <!-- Olho cortado quando inativa -->
+              <svg *ngIf="!q.show_results" class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a10.058 10.058 0 012.563-4.263m3.64-2.293A9.956 9.956 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.06 10.06 0 01-4.144 5.119M3 3l18 18" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

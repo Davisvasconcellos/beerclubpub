@@ -12,7 +12,7 @@ import { CardSettingsComponent, CardSettings } from '../../../shared/components/
 import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { Guest } from '../../../shared/interfaces/guest.interface';
 import { TranslateModule } from '@ngx-translate/core';
-  import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem, GuestsStats } from '../event.service';
+  import { EventService, ApiEvent, ApiGuest, CreateGuestBatchItem, GuestsStats, ApiResponseItem } from '../event.service';
 import { ImageUploadService } from '../../../shared/services/image-upload.service';
 import { AuthService } from '../../../shared/services/auth.service';
 
@@ -1288,22 +1288,60 @@ interface QuestionItem {
   }
 
   private loadQuestions(idCode: string) {
-    this.eventService.getEventQuestions(idCode).subscribe({
-      next: (apiQuestions) => {
-        this.questions = apiQuestions
-          .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
-          .map((q) => ({
-            id: q.id,
-            title: q.text || '',
-            type: this.mapApiTypeToLocalType(q.type),
-            answers: []
-          }));
-      },
-      error: (err) => {
-        const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas');
-        this.triggerToast('error', 'Erro ao carregar perguntas', msg);
-      }
-    });
+    const token = this.authService.getAuthToken();
+    if (token) {
+      this.eventService.getEventQuestions(idCode).subscribe({
+        next: (apiQuestions) => {
+          this.questions = apiQuestions
+            .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+            .map((q) => ({
+              id: q.id,
+              title: q.text || '',
+              type: this.mapApiTypeToLocalType(q.type),
+              answers: []
+            }));
+          // Após carregar perguntas, carregar respostas por pergunta
+          this.loadResponsesForQuestions(idCode);
+        },
+        error: (err) => {
+          const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas');
+          this.triggerToast('error', 'Erro ao carregar perguntas', msg);
+        }
+      });
+    } else {
+      // Público: precisamos do slug para obter perguntas visíveis (show_results=true)
+      this.eventService.getPublicEventsList().subscribe({
+        next: (events) => {
+          const ev = events.find(e => String(e.id_code) === String(idCode));
+          if (!ev || !ev.slug) {
+            this.triggerToast('warning', 'Evento público não encontrado', 'Não foi possível localizar o slug para carregar perguntas.');
+            return;
+          }
+          this.eventService.getPublicEventQuestionsBySlug(ev.slug!).subscribe({
+            next: (apiQuestions) => {
+              this.questions = apiQuestions
+                .sort((a, b) => (a.order_index ?? 0) - (b.order_index ?? 0))
+                .map((q) => ({
+                  id: q.id,
+                  title: q.text || '',
+                  type: this.mapApiTypeToLocalType(q.type),
+                  answers: []
+                }));
+              // Após carregar perguntas, carregar respostas por pergunta (usa id_code)
+              this.loadResponsesForQuestions(idCode);
+            },
+            error: (err) => {
+              const msg = (err?.error?.message || err?.message || 'Falha ao carregar perguntas públicas');
+              this.triggerToast('error', 'Erro ao carregar perguntas', msg);
+            }
+          });
+        },
+        error: (err) => {
+          const msg = (err?.error?.message || err?.message || 'Falha ao listar eventos públicos');
+          this.triggerToast('error', 'Erro ao carregar eventos públicos', msg);
+        }
+      });
+    }
   }
 
   private expandedQuestionIds = new Set<number>();
@@ -1512,5 +1550,54 @@ interface QuestionItem {
 
   getQuestionTotalResponses(question: QuestionItem): number {
     return question.answers.length;
+  }
+
+  // -----------------
+  // Carregar respostas por pergunta
+  // -----------------
+  private loadResponsesForQuestions(idCode: string) {
+    // zera total antes
+    this.totalResponses = 0;
+    for (const q of this.questions) {
+      this.eventService.getEventResponses(idCode, { question_id: q.id }).subscribe({
+        next: (items) => {
+          const mapped = items.map((r) => this.mapApiResponseToAnswerItem(r, q.type));
+          q.answers = mapped;
+          this.totalResponses += mapped.length;
+        },
+        error: (err) => {
+          const msg = (err?.error?.message || err?.message || 'Falha ao carregar respostas');
+          this.triggerToast('error', 'Erro ao carregar respostas', msg);
+        }
+      });
+    }
+  }
+
+  private mapApiResponseToAnswerItem(r: ApiResponseItem, qType: QuestionType): AnswerItem {
+    const name = (r.user?.display_name || r.user?.name || r.guest_name || 'Convidado');
+    const avatar = this.normalizeImageUrl(r.user?.avatar_url || r.guest_avatar_url || undefined);
+
+    const value = ((): string | string[] => {
+      const txt = (r.answer_text || '').trim();
+      if (txt) return txt;
+      const j = r.answer_json;
+      if (Array.isArray(j)) return j.map(v => String(v));
+      if (j && typeof j === 'object') {
+        if (Array.isArray((j as any).options)) return (j as any).options.map((v: any) => String(v));
+        if (typeof (j as any).selected === 'string') return String((j as any).selected);
+        if (typeof (j as any).value === 'string') return String((j as any).value);
+        const strVals = Object.values(j).filter(v => typeof v === 'string') as string[];
+        if (strVals.length > 1) return strVals;
+        if (strVals.length === 1) return strVals[0];
+      }
+      if (typeof j === 'string') return j as string;
+      // fallback por tipo
+      return qType === 'multiple_choice' ? [] : '';
+    })();
+
+    return {
+      user: { id: r.user?.id || 0, image: avatar || '/images/user/default-avatar.jpg', name },
+      value
+    };
   }
 }

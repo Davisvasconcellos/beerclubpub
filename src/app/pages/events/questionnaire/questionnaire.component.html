@@ -1,0 +1,127 @@
+<div class="mx-auto max-w-2xl px-4 py-10">
+  <div class="mb-6 flex items-center justify-between">
+    <div class="w-full">
+      <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
+        <div class="h-2 rounded-full bg-brand-500" [style.width.%]="progressPercent"></div>
+      </div>
+      <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">{{ currentIndex + 1 }} / {{ questions.length }}</div>
+    </div>
+  </div>
+
+  @if (loadError) {
+    <div class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{{ loadError }}</div>
+  }
+
+  @if (!loadError && !done) {
+    @if (currentQuestion(); as q) {
+      <div class="space-y-6" [@slideFade]="currentIndex">
+        <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">{{ q.text || q.question_text }}</h1>
+
+        @switch (getType(q)) {
+          @case ('text') {
+            <app-input-field
+              placeholder="Digite sua resposta"
+              [value]="toStringAnswer(q.id)"
+              (valueChange)="answers[q.id] = $event"
+            />
+          }
+          @case ('textarea') {
+            <app-text-area
+              [rows]="8"
+              placeholder="Digite sua resposta"
+              [value]="toStringAnswer(q.id)"
+              (valueChange)="answers[q.id] = $event"
+            ></app-text-area>
+          }
+          @case ('radio') {
+            <div class="space-y-4 md:space-y-3">
+              @for (opt of asOptions(q); track opt; let i = $index) {
+                <app-radio
+                  [id]="'q-' + q.id + '-opt-' + i"
+                  [name]="'radio-' + q.id"
+                  [value]="opt"
+                  [label]="opt"
+                  [checked]="answers[q.id] === opt"
+                  [className]="'py-2'"
+                  (valueChange)="setRadio(opt)"
+                />
+              }
+            </div>
+          }
+          @case ('checkbox') {
+            <div class="space-y-4 md:space-y-3">
+              @if (q.config?.max_selected_options && q.config.max_selected_options > 0) {
+                <p class="text-xs text-gray-500 dark:text-gray-400">Você pode selecionar até {{ q.config.max_selected_options }} opção(ões).</p>
+              }
+              @for (opt of asOptions(q); track opt; let i = $index) {
+                <div class="py-2">
+                  <app-checkbox
+                    [id]="'q-' + q.id + '-chk-' + i"
+                    [label]="opt"
+                    [checked]="hasCheckbox(opt)"
+                    [disabled]="isCheckboxDisabled(opt)"
+                    (checkedChange)="toggleCheckbox(opt)"
+                  ></app-checkbox>
+                </div>
+              }
+            </div>
+          }
+          @case ('rating') {
+            <div class="flex items-center gap-2">
+              @for (star of [1,2,3,4,5]; track star) {
+                <button
+                  type="button"
+                  class="rounded-md p-2 focus:outline-none focus:ring-0 cursor-pointer select-none transition-transform duration-150 ease-out hover:scale-105 active:scale-95"
+                  (click)="setRating(star)"
+                  [attr.title]="starLabel(star)"
+                  [attr.aria-label]="starLabel(star)"
+                >
+                  <svg class="h-7 w-7" [ngClass]="isStarActive(star) ? 'text-yellow-500' : 'text-gray-400 dark:text-gray-500'" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
+                  </svg>
+                </button>
+              }
+            </div>
+          }
+          @case ('music_preference') {
+            <div class="space-y-2">
+              @for (opt of asOptions(q); track opt; let i = $index) {
+                <app-radio
+                  [id]="'q-' + q.id + '-music-' + i"
+                  [name]="'music-' + q.id"
+                  [value]="opt"
+                  [label]="opt"
+                  [checked]="answers[q.id] === opt"
+                  (valueChange)="setRadio(opt)"
+                />
+              }
+            </div>
+          }
+          @default {
+            <app-text-area
+              [rows]="5"
+              placeholder="Digite sua resposta"
+              [value]="toStringAnswer(q.id)"
+              (valueChange)="answers[q.id] = $event"
+            ></app-text-area>
+          }
+        }
+
+        <div class="mt-10 flex gap-3">
+          <app-button variant="outline" (btnClick)="back()" [disabled]="currentIndex === 0">Voltar</app-button>
+          <app-button variant="outline" (btnClick)="skip()" [disabled]="isRequired(q)">Pular</app-button>
+          <app-button className="ml-auto" variant="primary" (btnClick)="next()" [disabled]="!canGoNext()">
+            {{ currentIndex < questions.length - 1 ? 'Continuar' : 'Enviar' }}
+          </app-button>
+        </div>
+      </div>
+    }
+  }
+
+  @if (done) {
+    <div class="space-y-4 text-center">
+      <h2 class="text-2xl font-semibold text-gray-800 dark:text-white/90">Obrigado pelas respostas!</h2>
+      <p class="text-gray-600 dark:text-gray-400">Suas respostas foram registradas. Você pode fechar esta página.</p>
+      <a routerLink="/" class="inline-block rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-gray-700 dark:text-gray-400">Voltar ao início</a>
+    </div>
+  }
