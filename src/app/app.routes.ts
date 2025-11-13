@@ -65,6 +65,7 @@ import { LogisticsComponent } from './pages/dashboard/logistics/logistics.compon
 import { CalenderComponent } from './pages/calender/calender.component';
 import { TextGeneratorComponent } from './pages/ai/text-generator/text-generator.component';
 import { AlternativeLayoutComponent } from './shared/layout/alternative-layout/alternative-layout.component';
+import { BlankLayoutComponent } from './shared/layout/blank-layout/blank-layout.component';
 import { ImageGeneratorComponent } from './pages/ai/image-generator/image-generator.component';
 import { CodeGeneratorComponent } from './pages/ai/code-generator/code-generator.component';
 import { VideoGeneratorComponent } from './pages/ai/video-generator/video-generator.component';
@@ -617,6 +618,22 @@ export const routes: Routes = [
         path: 'events/answer/:id_code',
         loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
         title: 'Responder Perguntas do Evento'
+      },
+    ]
+  },
+  {
+    path:'',
+    component:BlankLayoutComponent,
+    children:[
+      {
+        path:'blank-no-layout',
+        component: BlankComponent,
+        title:'Página em Branco (sem layout)'
+      },
+      {
+        path: 'events/answer-plain/:id_code',
+        loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
+        title: 'Responder Perguntas (Sem layout)'
       },
     ]
   },
