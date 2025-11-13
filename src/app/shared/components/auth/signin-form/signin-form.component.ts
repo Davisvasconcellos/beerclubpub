@@ -4,7 +4,7 @@ import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { InputFieldComponent } from '../../form/input/input-field.component';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
@@ -29,13 +29,16 @@ export class SigninFormComponent {
   isChecked = false;
   isLoading = false;
   errorMessage = '';
+  showKioskError = false;
+  kioskErrorMessage = '';
 
   email = '';
   password = '';
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   togglePasswordVisibility() {
@@ -56,7 +59,22 @@ export class SigninFormComponent {
         console.log('Login realizado com sucesso:', response);
         this.isLoading = false;
         
-        // Redireciona baseado no papel do usuário
+        // Primeiro, honrar o fluxo de quiosque usando returnUrl
+        const returnUrl = this.getReturnUrl();
+        const isKiosk = this.isKioskFlow();
+        if (isKiosk) {
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+            return;
+          } else {
+            // Sem returnUrl em fluxo quiosque: exibir erro e não redirecionar
+            this.showKioskError = true;
+            this.kioskErrorMessage = 'Não foi possível recuperar o questionário. Por favor, escaneie o QR Code novamente ou acesse o link de perguntas do evento.';
+            return;
+          }
+        }
+
+        // Caso não seja fluxo de quiosque, redireciona baseado no papel do usuário
         const user = this.authService.getCurrentUser();
         if (user) {
           switch (user.role) {
@@ -103,7 +121,22 @@ export class SigninFormComponent {
       this.authService.loginWithGoogle(idToken).subscribe({
         next: () => {
           this.isLoading = false;
-          // Redireciona baseado no papel do usuário, igual ao login tradicional
+          // Primeiro, honrar o fluxo de quiosque usando returnUrl
+          const returnUrl = this.getReturnUrl();
+          const isKiosk = this.isKioskFlow();
+          if (isKiosk) {
+            if (returnUrl) {
+              this.router.navigateByUrl(returnUrl);
+              return;
+            } else {
+              // Sem returnUrl em fluxo quiosque: exibir erro e não redirecionar
+              this.showKioskError = true;
+              this.kioskErrorMessage = 'Não foi possível recuperar o questionário. Por favor, escaneie o QR Code novamente ou acesse o link de perguntas do evento.';
+              return;
+            }
+          }
+
+          // Caso não seja fluxo de quiosque, redireciona baseado no papel do usuário, igual ao login tradicional
           const user = this.authService.getCurrentUser();
           if (user) {
             switch (user.role) {
@@ -139,5 +172,17 @@ export class SigninFormComponent {
       this.isLoading = false;
       this.errorMessage = 'Não foi possível autenticar com Google.';
     }
+  }
+
+  private getReturnUrl(): string | null {
+    const url = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (url && url.startsWith('/') && !url.includes('://')) {
+      return url;
+    }
+    return null;
+  }
+
+  private isKioskFlow(): boolean {
+    return this.route.snapshot.queryParamMap.get('flow') === 'kiosk';
   }
 }

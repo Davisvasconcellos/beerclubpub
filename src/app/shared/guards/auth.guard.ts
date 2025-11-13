@@ -26,8 +26,13 @@ export class AuthGuard implements CanActivate {
           return true;
         } else {
           // Redireciona para login se não estiver autenticado
+          const isKioskFlow = state.url.startsWith('/events/answer/') || state.url.startsWith('/events/answer-plain/');
+          const queryParams: { [key: string]: string } = { returnUrl: state.url };
+          if (isKioskFlow) {
+            queryParams['flow'] = 'kiosk';
+          }
           this.router.navigate(['/signin'], { 
-            queryParams: { returnUrl: state.url } 
+            queryParams
           });
           return false;
         }

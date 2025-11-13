@@ -617,6 +617,7 @@ export const routes: Routes = [
       {
         path: 'events/answer/:id_code',
         loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
+        canActivate: [AuthGuard],
         title: 'Responder Perguntas do Evento'
       },
     ]
@@ -633,6 +634,7 @@ export const routes: Routes = [
       {
         path: 'events/answer-plain/:id_code',
         loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
+        canActivate: [AuthGuard],
         title: 'Responder Perguntas (Sem layout)'
       },
     ]
