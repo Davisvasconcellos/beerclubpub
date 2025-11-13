@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { ButtonComponent } from '../../ui/button/button.component';
@@ -23,7 +23,7 @@ import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
   templateUrl: './signin-form.component.html',
   styles: ``
 })
-export class SigninFormComponent {
+export class SigninFormComponent implements OnInit {
 
   showPassword = false;
   isChecked = false;
@@ -31,6 +31,9 @@ export class SigninFormComponent {
   errorMessage = '';
   showKioskError = false;
   kioskErrorMessage = '';
+  currentReturnUrl: string | null = null;
+  currentFlow: string | null = null;
+  signupQueryParams: any = {};
 
   email = '';
   password = '';
@@ -40,6 +43,21 @@ export class SigninFormComponent {
     private router: Router,
     private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const returnUrl = params.get('returnUrl');
+      const flow = params.get('flow');
+
+      this.currentReturnUrl = returnUrl && returnUrl.startsWith('/') && !returnUrl.includes('://') ? returnUrl : null;
+      this.currentFlow = flow;
+
+      const qp: any = {};
+      if (this.currentReturnUrl) qp.returnUrl = this.currentReturnUrl;
+      if (this.currentFlow) qp.flow = this.currentFlow;
+      this.signupQueryParams = qp;
+    });
+  }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;

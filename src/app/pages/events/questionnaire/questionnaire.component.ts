@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { EventService, ApiQuestion, AnswerItemPayload, QuestionOptionCount, ApiResponseItem, QuestionWithAnswer } from '../event.service';
 import { AuthService } from '../../../shared/services/auth.service';
+import { ThemeService } from '../../../shared/services/theme.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { TextAreaComponent } from '../../../shared/components/form/input/text-area.component';
@@ -12,6 +13,7 @@ import { InputFieldComponent } from '../../../shared/components/form/input/input
 import { RadioComponent } from '../../../shared/components/form/input/radio.component';
 import { CheckboxComponent } from '../../../shared/components/form/input/checkbox.component';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { ThemeToggleTwoComponent } from '../../../shared/components/common/theme-toggle-two/theme-toggle-two.component';
 import { NgApexchartsModule, ApexAxisChartSeries, ApexChart, ApexPlotOptions, ApexDataLabels, ApexXAxis, ApexLegend, ApexYAxis } from 'ng-apexcharts';
 
 type QuestionType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating' | 'music_preference';
@@ -32,6 +34,8 @@ type QuestionType = 'text' | 'textarea' | 'radio' | 'checkbox' | 'rating' | 'mus
     ButtonComponent,
     // Gráficos para resultados de múltipla escolha
     NgApexchartsModule,
+    // Botão flutuante de tema
+    ThemeToggleTwoComponent,
   ],
   templateUrl: './questionnaire.component.html',
   styleUrl: './questionnaire.component.css',
@@ -62,6 +66,9 @@ export class QuestionnaireComponent implements OnInit {
   done = false;
   // Loader para checagem da pergunta atual
   checkingCurrent = false;
+
+  // Flag: rota plain sem layout
+  isPlain: boolean = false;
 
   // Resultado da pergunta atual (quando show_results=true)
   showingResults = false;
@@ -101,9 +108,21 @@ export class QuestionnaireComponent implements OnInit {
   existingAnswersByQuestion: Record<number, ApiResponseItem | null> = {};
   existingCheckDone: boolean = false;
 
-  constructor(private route: ActivatedRoute, private eventService: EventService, private router: Router, private authService: AuthService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private eventService: EventService,
+    private router: Router,
+    private authService: AuthService,
+    private themeService: ThemeService,
+  ) {}
 
   ngOnInit(): void {
+    // Detecta se está na rota sem layout e inicia em modo escuro
+    this.isPlain = this.router.url.includes('/events/answer-plain/');
+    if (this.isPlain) {
+      this.themeService.setTheme('dark');
+    }
+
     this.route.paramMap.subscribe((pm) => {
       const id = pm.get('id_code');
       if (id) {

@@ -4,7 +4,8 @@
       <img
         [src]="image || '/images/cards/card-01.png'"
         alt="card"
-        class="overflow-hidden rounded-lg w-full object-cover h-48"
+        class="overflow-hidden rounded-lg w-full object-cover h-48 cursor-pointer"
+        (click)="onEditClick()"
       />
     </div>
     <div class="flex flex-col flex-grow p-2">

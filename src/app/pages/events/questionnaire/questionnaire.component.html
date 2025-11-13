@@ -39,8 +39,14 @@
                             <span class="text-gray-800 dark:text-white/80">{{ opt }}</span>
                             @if (opt === getRadioSelectedLabel(q)) {
                               <span class="text-xs font-medium" [ngClass]="(opt === getRadioCorrectLabel(q)) ? 'text-green-600' : 'text-red-500'">sua escolha</span>
-                            }
-                          </div>
+  }
+
+  @if (isPlain) {
+    <div class="fixed z-50 hidden bottom-6 right-6 sm:block">
+      <app-theme-toggle-two />
+    </div>
+  }
+</div>
                         </div>
                       }
                     </div>

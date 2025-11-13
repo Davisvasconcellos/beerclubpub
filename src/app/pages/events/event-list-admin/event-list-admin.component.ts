@@ -85,7 +85,7 @@ export class EventListAdminComponent implements OnInit {
       const primaryLinks: EventLink[] = [
         {
           text: 'Responder Perguntas do Evento',
-          url: `${origin}/events/answer/${idCode}`,
+          url: `${origin}/events/answer-plain/${idCode}`,
           variant: 'primary',
         },
         {

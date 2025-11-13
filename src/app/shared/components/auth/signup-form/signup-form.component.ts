@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { InputFieldComponent } from '../../form/input/input-field.component';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule, Router, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, RegisterRequest } from '../../../services/auth.service';
 
@@ -21,7 +21,7 @@ import { AuthService, RegisterRequest } from '../../../services/auth.service';
   templateUrl: './signup-form.component.html',
   styles: ``
 })
-export class SignupFormComponent {
+export class SignupFormComponent implements OnInit {
 
   showPassword = false;
   showConfirmPassword = false;
@@ -34,11 +34,28 @@ export class SignupFormComponent {
   email = '';
   password = '';
   confirmPassword = '';
+  currentReturnUrl: string | null = null;
+  currentFlow: string | null = null;
+  signinQueryParams: any = {};
 
   constructor(
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
+
+  ngOnInit(): void {
+    this.route.queryParamMap.subscribe((params) => {
+      const returnUrl = params.get('returnUrl');
+      const flow = params.get('flow');
+      this.currentReturnUrl = returnUrl && returnUrl.startsWith('/') && !returnUrl.includes('://') ? returnUrl : null;
+      this.currentFlow = flow;
+      const qp: any = {};
+      if (this.currentReturnUrl) qp.returnUrl = this.currentReturnUrl;
+      if (this.currentFlow) qp.flow = this.currentFlow;
+      this.signinQueryParams = qp;
+    });
+  }
 
   togglePasswordVisibility() {
     this.showPassword = !this.showPassword;
@@ -109,13 +126,21 @@ export class SignupFormComponent {
       next: (response) => {
         this.isLoading = false;
         if (response.success) {
-          // Redirect based on user role
-        const userRole = response.data.user.role;
-        if (userRole === 'admin' || userRole === 'master' || userRole === 'manager') {
-          this.router.navigate(['/admin']);
-        } else {
-          this.router.navigate(['/pub/user']);
-        }
+          // Se veio com returnUrl (p.ex. fluxo quiosque), priorizar retornar ao questionário
+          if (this.currentReturnUrl) {
+            this.router.navigateByUrl(this.currentReturnUrl);
+            return;
+          }
+
+          // Caso contrário, redirecionar baseado no papel
+          const userRole = response.data.user.role;
+          if (userRole === 'admin' || userRole === 'master' || userRole === 'manager') {
+            this.router.navigate(['/pub/admin']);
+          } else if (userRole === 'waiter') {
+            this.router.navigate(['/pub/waiter']);
+          } else {
+            this.router.navigate(['/pub/user']);
+          }
         }
       },
       error: (error) => {
