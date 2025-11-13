@@ -1,4 +1,15 @@
 <div class="mx-auto max-w-2xl px-4 py-10">
+  @if (eventName || eventBannerUrl) {
+    <div class="mb-8 overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800">
+      @if (eventBannerUrl) {
+        <img [src]="eventBannerUrl" [alt]="eventName || 'Banner do evento'" class="h-40 w-full object-cover dark:opacity-90" />
+      }
+      <div class="p-4">
+        <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ eventName }}</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Responder perguntas do evento</p>
+      </div>
+    </div>
+  }
   <div class="mb-6 flex items-center justify-between">
     <div class="w-full">
       <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
@@ -22,7 +33,7 @@
           <div class="space-y-4">
             <!-- Barra de tempo autoesvaindo -->
             <div class="h-2 w-full rounded-full bg-gray-200 dark:bg-gray-800">
-              <div class="h-2 rounded-full bg-brand-500" [style.width.%]="autoProgress"></div>
+              <div class="h-2 rounded-full" [ngClass]="timerBarClass" [style.width.%]="autoProgress"></div>
             </div>
             @if (!resultError) {
               @switch (getType(q)) {
@@ -39,14 +50,8 @@
                             <span class="text-gray-800 dark:text-white/80">{{ opt }}</span>
                             @if (opt === getRadioSelectedLabel(q)) {
                               <span class="text-xs font-medium" [ngClass]="(opt === getRadioCorrectLabel(q)) ? 'text-green-600' : 'text-red-500'">sua escolha</span>
-  }
-
-  @if (isPlain) {
-    <div class="fixed z-50 hidden bottom-6 right-6 sm:block">
-      <app-theme-toggle-two />
-    </div>
-  }
-</div>
+                            }
+                          </div>
                         </div>
                       }
                     </div>
@@ -213,5 +218,11 @@
       <h2 class="text-2xl font-semibold text-gray-800 dark:text-white/90">Obrigado pelas respostas!</h2>
       <p class="text-gray-600 dark:text-gray-400">Suas respostas foram registradas. Você pode fechar esta página.</p>
       <a routerLink="/" class="inline-block rounded-lg border border-gray-300 dark:border-gray-700 px-4 py-2 text-gray-700 dark:text-gray-400">Voltar ao início</a>
+    </div>
+  }
+
+  @if (isPlain) {
+    <div class="fixed z-50 bottom-6 right-6">
+      <app-theme-toggle-two />
     </div>
   }

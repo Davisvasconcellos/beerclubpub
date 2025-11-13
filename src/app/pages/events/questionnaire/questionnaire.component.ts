@@ -70,6 +70,10 @@ export class QuestionnaireComponent implements OnInit {
   // Flag: rota plain sem layout
   isPlain: boolean = false;
 
+  // Dados do evento para banner
+  eventName: string = '';
+  eventBannerUrl: string = '';
+
   // Resultado da pergunta atual (quando show_results=true)
   showingResults = false;
   resultError = '';
@@ -79,9 +83,12 @@ export class QuestionnaireComponent implements OnInit {
   // Loading dos resultados (evita render instável do gráfico)
   resultLoading = false;
   // Controle de autoavanço
-  autoAdvanceMs = 9000;
+  autoAdvanceMs = 4000;
   autoProgress = 0; // 0..100
   private autoTimer?: any;
+
+  // Classe de cor da barra do temporizador nos resultados
+  timerBarClass: string = 'bg-amber-500';
 
   // Config do gráfico horizontal (reuso do estilo do event-view)
   barChart: ApexChart = { fontFamily: 'Outfit, sans-serif', type: 'bar', height: 220, toolbar: { show: false } };
@@ -130,7 +137,23 @@ export class QuestionnaireComponent implements OnInit {
         try { console.log('[Questionário] init \u2192 id_code:', this.idCode); } catch {}
         // guest_code único para o ciclo do questionário
         this.guestCode = this.uuidv4();
+        // Carrega dados do evento para banner
+        this.loadEventDetail(id);
         this.loadQuestions(id);
+      }
+    });
+  }
+
+  private loadEventDetail(idCode: string) {
+    this.eventService.getEventByIdCodeDetail(idCode).subscribe({
+      next: ({ event }) => {
+        const name = event.name || event.title || '';
+        const banner = (event.banner_url || event.image || '') as string;
+        this.eventName = name;
+        this.eventBannerUrl = banner || '/images/cards/event2.jpg';
+      },
+      error: (err) => {
+        try { console.warn('[Questionário] Falha ao obter evento para banner:', err?.message || err); } catch {}
       }
     });
   }
