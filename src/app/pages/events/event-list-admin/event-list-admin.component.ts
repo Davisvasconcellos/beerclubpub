@@ -89,6 +89,11 @@ export class EventListAdminComponent implements OnInit {
           variant: 'primary',
         },
         {
+          text: 'Check-in do Evento',
+          url: `${origin}/events/checkin/${idCode}`,
+          variant: 'info',
+        },
+        {
           text: 'Página do Evento (Admin)',
           url: `${origin}/events/event-view/${idCode}`,
           variant: 'outline',

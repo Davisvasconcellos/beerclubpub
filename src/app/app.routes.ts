@@ -109,6 +109,7 @@ import { MapTestComponent } from './pages/pub/admin/config/map-test.component';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { RoleGuard } from './shared/guards/role.guard';
 import { GuestGuard } from './shared/guards/guest.guard';
+import { AutoCheckinGuard } from './shared/guards/auto-checkin.guard';
 
 export const routes: Routes = [
   {
@@ -617,7 +618,7 @@ export const routes: Routes = [
       {
         path: 'events/answer/:id_code',
         loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, AutoCheckinGuard],
         title: 'Responder Perguntas do Evento'
       },
     ]
@@ -634,8 +635,20 @@ export const routes: Routes = [
       {
         path: 'events/answer-plain/:id_code',
         loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
-        canActivate: [AuthGuard],
+        canActivate: [AuthGuard, AutoCheckinGuard],
         title: 'Responder Perguntas (Sem layout)'
+      },
+      {
+        path: 'events/checkin/:id_code',
+        loadComponent: () => import('./pages/events/checkin/checkin.component').then(m => m.CheckinComponent),
+        canActivate: [AuthGuard],
+        title: 'Check-in do Evento'
+      },
+      {
+        path: 'events/home-guest',
+        loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
+        canActivate: [AuthGuard],
+        title: 'Home do Convidado (Sem layout)'
       },
     ]
   },

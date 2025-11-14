@@ -77,19 +77,19 @@ export class SigninFormComponent implements OnInit {
         console.log('Login realizado com sucesso:', response);
         this.isLoading = false;
         
-        // Primeiro, honrar o fluxo de quiosque usando returnUrl
+        // 1) Sempre priorizar returnUrl quando presente (sobrepõe regras de role)
         const returnUrl = this.getReturnUrl();
+        if (returnUrl) {
+          this.router.navigateByUrl(returnUrl);
+          return;
+        }
+
+        // 2) Se for fluxo de quiosque e não há returnUrl, exibir erro específico
         const isKiosk = this.isKioskFlow();
-        if (isKiosk) {
-          if (returnUrl) {
-            this.router.navigateByUrl(returnUrl);
-            return;
-          } else {
-            // Sem returnUrl em fluxo quiosque: exibir erro e não redirecionar
-            this.showKioskError = true;
-            this.kioskErrorMessage = 'Não foi possível recuperar o questionário. Por favor, escaneie o QR Code novamente ou acesse o link de perguntas do evento.';
-            return;
-          }
+        if (isKiosk && !returnUrl) {
+          this.showKioskError = true;
+          this.kioskErrorMessage = 'Não foi possível recuperar o questionário. Por favor, escaneie o QR Code novamente ou acesse o link de perguntas do evento.';
+          return;
         }
 
         // Caso não seja fluxo de quiosque, redireciona baseado no papel do usuário
@@ -139,19 +139,19 @@ export class SigninFormComponent implements OnInit {
       this.authService.loginWithGoogle(idToken).subscribe({
         next: () => {
           this.isLoading = false;
-          // Primeiro, honrar o fluxo de quiosque usando returnUrl
+          // 1) Sempre priorizar returnUrl quando presente (sobrepõe regras de role)
           const returnUrl = this.getReturnUrl();
+          if (returnUrl) {
+            this.router.navigateByUrl(returnUrl);
+            return;
+          }
+
+          // 2) Se for fluxo de quiosque e não há returnUrl, exibir erro específico
           const isKiosk = this.isKioskFlow();
-          if (isKiosk) {
-            if (returnUrl) {
-              this.router.navigateByUrl(returnUrl);
-              return;
-            } else {
-              // Sem returnUrl em fluxo quiosque: exibir erro e não redirecionar
-              this.showKioskError = true;
-              this.kioskErrorMessage = 'Não foi possível recuperar o questionário. Por favor, escaneie o QR Code novamente ou acesse o link de perguntas do evento.';
-              return;
-            }
+          if (isKiosk && !returnUrl) {
+            this.showKioskError = true;
+            this.kioskErrorMessage = 'Não foi possível recuperar o questionário. Por favor, escaneie o QR Code novamente ou acesse o link de perguntas do evento.';
+            return;
           }
 
           // Caso não seja fluxo de quiosque, redireciona baseado no papel do usuário, igual ao login tradicional

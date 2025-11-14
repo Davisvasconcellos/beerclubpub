@@ -273,6 +273,30 @@ export class ImageUploadService {
   }
 
   /**
+   * Prepara a estrutura de pastas do evento no servidor de utilidades.
+   * Cria `images/events/<id_code>/`, com subpastas `gallery` e `guests`.
+   */
+  async prepareEventFolders(idCode: string): Promise<{ success: boolean; paths?: any; error?: string }> {
+    try {
+      if (!idCode) {
+        return { success: false, error: 'id_code inválido para preparar pastas.' };
+      }
+
+      const response = await this.http
+        .post<any>(`${this.utilityServerUrl}/events/prepare`, { id_code: idCode })
+        .toPromise();
+
+      if (response?.success) {
+        return { success: true, paths: response.paths };
+      }
+      return { success: false, error: response?.message || 'Falha ao preparar pastas do evento.' };
+    } catch (error) {
+      console.warn('Aviso: falha ao preparar pastas do evento:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
+    }
+  }
+
+  /**
    * Remove avatar antigo
    */
   private async removeOldAvatar(oldAvatarUrl: string): Promise<void> {

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { AuthService } from '../../shared/services/auth.service';
 
 export interface ApiEvent {
@@ -20,6 +21,9 @@ export interface ApiEvent {
   image?: string | null;
   slug?: string;
   id_code?: string;
+  // Auto-checkin
+  requires_auto_checkin?: boolean | number;
+  auto_checkin_flow_quest?: boolean | number;
   // Card background fields
   color_1?: string | null;
   color_2?: string | null;
@@ -43,6 +47,19 @@ export interface EventDetailApiResponse {
     total_responses?: number;
   };
 }
+// Auto-checkin: resposta do convidado atual
+export interface EventGuestMeApiResponse {
+  success: boolean;
+  data: { guest?: ApiGuest | null };
+  message?: string;
+}
+
+// Auto-checkin: resultado do check-in
+export interface EventCheckinApiResponse {
+  success: boolean;
+  data: { guest: ApiGuest; checked_in: boolean };
+  message?: string;
+}
 
 export interface CreateEventPayload {
   name: string;
@@ -59,6 +76,9 @@ export interface CreateEventPayload {
   color_2: string;
   card_background?: string | null;
   card_background_type?: number | null; // 0 colors, 1 image
+  // Auto-checkin flags
+  requires_auto_checkin?: boolean | number;
+  auto_checkin_flow_quest?: boolean | number;
 }
 
 export interface EventCreateApiResponse {
@@ -483,8 +503,34 @@ export class EventService {
   getEventByIdCodeDetail(idCode: string): Observable<{ event: ApiEvent; total_responses?: number }> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    return this.http.get<EventDetailApiResponse>(`${this.API_BASE_URL}/events/${idCode}`, { headers }).pipe(
-      map((resp) => ({ event: resp?.data?.event as ApiEvent, total_responses: resp?.data?.total_responses }))
+    const privateUrl = `${this.API_BASE_URL}/events/${idCode}`;
+    const publicUrl = `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/${idCode}`;
+
+    return this.http.get<EventDetailApiResponse>(privateUrl, { headers }).pipe(
+      map((resp) => ({ event: resp?.data?.event as ApiEvent, total_responses: resp?.data?.total_responses })),
+      catchError((err) => {
+        // Fallback para endpoint público em caso de 401/403
+        if (err?.status === 401 || err?.status === 403) {
+          return this.http.get<any>(publicUrl).pipe(
+            map((resp) => ({
+              event: (resp?.data?.event || resp?.event) as ApiEvent,
+              total_responses: resp?.data?.total_responses ?? resp?.total_responses
+            }))
+          );
+        }
+        return throwError(() => err);
+      })
+    );
+  }
+
+  // Endpoint público para detalhe do evento por id_code (sem necessidade de token)
+  getPublicEventByIdCodeDetail(idCode: string): Observable<{ event: ApiEvent; total_responses?: number }> {
+    const url = `http://localhost:4000/api/public/v1/events/${idCode}`;
+    return this.http.get<any>(url).pipe(
+      map((resp) => ({
+        event: (resp?.data || resp?.event) as ApiEvent,
+        total_responses: resp?.data?.total_responses ?? resp?.total_responses
+      }))
     );
   }
 
@@ -590,6 +636,26 @@ export class EventService {
           accuracy_percent: data?.accuracy_percent,
         };
       })
+    );
+  }
+
+  // Auto-checkin: obter convidado atual do evento (associado ao usuário autenticado)
+  getEventGuestMe(idCode: string): Observable<ApiGuest | null> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idCode}/guest/me`;
+    return this.http.get<EventGuestMeApiResponse>(url, { headers }).pipe(
+      map((resp) => resp?.data?.guest ?? null)
+    );
+  }
+
+  // Auto-checkin: realizar check-in do convidado autenticado
+  postEventCheckin(idCode: string, payload: { display_name?: string; email?: string; phone?: string; selfie_url?: string; document?: ApiGuestDocument | null }): Observable<{ guest: ApiGuest; checked_in: boolean }> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${idCode}/checkin`;
+    return this.http.post<EventCheckinApiResponse>(url, payload, { headers }).pipe(
+      map((resp) => ({ guest: resp?.data?.guest as ApiGuest, checked_in: !!resp?.data?.checked_in }))
     );
   }
 

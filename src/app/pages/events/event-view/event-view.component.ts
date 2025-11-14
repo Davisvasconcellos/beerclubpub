@@ -50,6 +50,9 @@ interface EventData {
   image: string;
   cardBackgroundType: 'gradient' | 'image';
   cardBackgroundImage?: string;
+  // Auto-checkin config
+  requiresAutoCheckin?: boolean;
+  autoCheckinFlowQuest?: boolean; // true: questionário, false: home-guest
 }
 
 // Tipos para perguntas e respostas
@@ -109,7 +112,9 @@ interface RespondentRowData {
     showQRCode: true,
     image: '/images/cards/event2.jpg',
     cardBackgroundType: 'image',
-    cardBackgroundImage: '/images/cards/event3.jpg'
+    cardBackgroundImage: '/images/cards/event3.jpg',
+    requiresAutoCheckin: false,
+    autoCheckinFlowQuest: true
   }
 
   private toBool(value: any): boolean {
@@ -502,6 +507,8 @@ interface RespondentRowData {
         const respEmail = (ev as any).resp_email || '';
         const respPhone = (ev as any).resp_phone || '';
         const id_code = (ev as any).id_code || idCode;
+        const requiresAutoCheckin = this.toBool((ev as any).requires_auto_checkin);
+        const autoCheckinFlowQuest = this.toBool((ev as any).auto_checkin_flow_quest);
 
         // Determina o tipo com fallbacks recomendados
         const hasImage = !!cardBg;
@@ -532,7 +539,9 @@ interface RespondentRowData {
           showQRCode: true,
           image: banner,
           cardBackgroundType,
-          cardBackgroundImage: cardBg
+          cardBackgroundImage: cardBg,
+          requiresAutoCheckin,
+          autoCheckinFlowQuest
         };
         this.eventIdCode = id_code;
         this.bannerOriginalUrl = (ev.banner_url || ev.image || undefined) || undefined;
@@ -923,7 +932,9 @@ interface RespondentRowData {
       resp_phone: respPhone,
       color_1,
       color_2,
-      card_background_type
+      card_background_type,
+      requires_auto_checkin: !!this.event.requiresAutoCheckin,
+      auto_checkin_flow_quest: !!this.event.autoCheckinFlowQuest
     };
 
     // Enviar card_background somente quando definido (evita enviar null quando sujo)

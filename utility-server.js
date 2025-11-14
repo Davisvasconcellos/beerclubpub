@@ -215,20 +215,31 @@ const handleUpload = async (req, res) => {
     const requestedFormat = req.body.format ? String(req.body.format).toLowerCase() : undefined;
     const q = req.body.q ? parseInt(req.body.q, 10) : undefined;
     const rawFolder = req.body.folder ? String(req.body.folder) : undefined;
-    const customFolder = sanitizeFolderName(rawFolder);
+  const customFolder = sanitizeFolderName(rawFolder);
+  const safeEntityId = sanitizeFolderName(entityId);
 
-    let subfolder = 'user';
-    if (customFolder) {
-      subfolder = customFolder;
-    } else if (uploadType.startsWith('store-')) {
-      subfolder = 'stores';
-    }
-    const destDir = path.join(DIRECTORIES.images, subfolder);
+  // Determinar pasta base
+  let baseFolder = 'user';
+  if (customFolder) {
+    baseFolder = customFolder; // ex.: 'events', 'stores', 'user'
+  } else if (uploadType.startsWith('store-')) {
+    baseFolder = 'stores';
+  }
+
+  // Se for events e houver entityId, usar subpasta events/<id>
+  let folderPathForUrl = baseFolder; // para montar a URL
+  let destDir = path.join(DIRECTORIES.images, baseFolder);
+  ensureDirExists(destDir);
+
+  if (baseFolder === 'events' && safeEntityId) {
+    destDir = path.join(destDir, safeEntityId);
     ensureDirExists(destDir);
+    folderPathForUrl = path.join(baseFolder, safeEntityId);
+  }
 
     // Gerar nome de arquivo simples: (user|store)-timestamp.ext
     const extension = path.extname(req.file.originalname).toLowerCase();
-    const baseType = subfolder;
+  const baseType = baseFolder;
     
     // Processar imagem com limite de 500KB
     const { buffer: outBuffer, ext: finalExt } = await processImageToLimit(req.file.buffer, {
@@ -241,8 +252,8 @@ const handleUpload = async (req, res) => {
     });
 
     const filename = `${baseType}-${Date.now()}${finalExt}`;
-    const finalPath = path.join(destDir, filename);
-    const fileUrl = `${req.protocol}://${req.get('host')}/images/${subfolder}/${filename}`;
+  const finalPath = path.join(destDir, filename);
+  const fileUrl = `${req.protocol}://${req.get('host')}/images/${folderPathForUrl}/${filename}`;
 
     // Salvar o buffer processado no disco
     fs.writeFileSync(finalPath, outBuffer);
@@ -252,7 +263,7 @@ const handleUpload = async (req, res) => {
       filename: filename,
       size: outBuffer.length,
       url: fileUrl,
-      folder: subfolder
+      folder: folderPathForUrl
     });
 
     res.json({
@@ -261,7 +272,7 @@ const handleUpload = async (req, res) => {
       filename: filename,
       url: fileUrl,
       size: outBuffer.length,
-      folder: subfolder
+      folder: folderPathForUrl
     });
 
   } catch (error) {
@@ -308,6 +319,45 @@ app.delete('/delete-avatar/:filename', (req, res) => {
       message: 'Erro ao deletar arquivo',
       error: error.message 
     });
+  }
+});
+
+// ============================================
+// PREPARO DE PASTAS DE EVENTO
+// ============================================
+// Cria: images/events/<id_code>, e subpastas images/events/<id_code>/gallery e /guests
+app.post('/events/prepare', (req, res) => {
+  try {
+    // Aceita tanto camelCase quanto snake_case
+    const rawId = req.body?.idCode || req.body?.id_code || req.body?.entityId || '';
+    const id = sanitizeFolderName(rawId);
+    if (!id) {
+      return res.status(400).json({ success: false, message: 'id_code inválido' });
+    }
+
+    const baseEventsDir = path.join(DIRECTORIES.images, 'events');
+    ensureDirExists(baseEventsDir);
+
+    const eventDir = path.join(baseEventsDir, id);
+    ensureDirExists(eventDir);
+
+    const galleryDir = path.join(eventDir, 'gallery');
+    const guestsDir = path.join(eventDir, 'guests');
+    ensureDirExists(galleryDir);
+    ensureDirExists(guestsDir);
+
+    res.json({
+      success: true,
+      message: 'Pastas do evento preparadas com sucesso',
+      paths: {
+        base: `/images/events/${id}/`,
+        gallery: `/images/events/${id}/gallery/`,
+        guests: `/images/events/${id}/guests/`
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erro ao preparar pastas do evento:', error);
+    res.status(500).json({ success: false, message: 'Erro ao preparar pastas', error: error.message });
   }
 });
 

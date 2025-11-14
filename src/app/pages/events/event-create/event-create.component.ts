@@ -48,6 +48,9 @@ interface EventData {
   image: string;
   cardBackgroundType: 'gradient' | 'image';
   cardBackgroundImage?: string;
+  // Auto-checkin config
+  requiresAutoCheckin?: boolean;
+  autoCheckinFlowQuest?: boolean; // true: questionário, false: home-guest
 }
 
 @Component({
@@ -76,7 +79,9 @@ export class EventCreateComponent {
     showQRCode: true,
     image: '',
     cardBackgroundType: 'image',
-    cardBackgroundImage: '/images/cards/event3.jpg'
+    cardBackgroundImage: '/images/cards/event3.jpg',
+    requiresAutoCheckin: false,
+    autoCheckinFlowQuest: true
   };
 
   cardSettings: CardSettings = {
@@ -277,14 +282,24 @@ export class EventCreateComponent {
       color_1: this.cardSettings.primaryColor,
       color_2: this.cardSettings.secondaryColor,
       card_background: this.normalizeBannerUrl(bgImg),
-      card_background_type: effectiveBgType === 'image' ? 1 : 0
+      card_background_type: effectiveBgType === 'image' ? 1 : 0,
+      requires_auto_checkin: !!this.event.requiresAutoCheckin,
+      auto_checkin_flow_quest: !!this.event.autoCheckinFlowQuest
     };
 
     this.eventService.createEventRaw(payload).subscribe({
       next: async (created: ApiEvent) => {
         try {
-          // Se houver arquivo selecionado, faz upload e atualiza banner_url no evento criado
+          // Obtém id_code do evento criado e prepara as pastas do evento
           const idCode = created?.id_code as string | undefined;
+          if (idCode) {
+            try {
+              await this.imageUploadService.prepareEventFolders(idCode);
+            } catch (prepErr) {
+              console.warn('Falha ao preparar pastas do evento, seguindo com fluxo:', prepErr);
+            }
+          }
+          // Se houver arquivo selecionado, faz upload e atualiza banner_url no evento criado
           if (this.imageFile && idCode) {
             const upload = await this.imageUploadService.uploadImage(
               this.imageFile,

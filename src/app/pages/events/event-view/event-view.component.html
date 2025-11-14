@@ -201,6 +201,29 @@
               </div>
             </div>
           </div>
+
+          <!-- Opções de Check-in -->
+          <div class="mt-6 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-800">
+            <h4 class="text-sm font-semibold text-gray-900 dark:text-white mb-3">Opções de Check-in</h4>
+            <div class="flex items-center gap-3 mb-3">
+              <input id="requiresAutoCheckin" type="checkbox" [(ngModel)]="event.requiresAutoCheckin" class="h-4 w-4">
+              <label for="requiresAutoCheckin" class="text-sm text-gray-700 dark:text-gray-300">Ativar check-in automático</label>
+            </div>
+            <div *ngIf="event.requiresAutoCheckin" class="mt-2">
+              <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-2">Fluxo do check-in</label>
+              <div class="flex items-center gap-6">
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="radio" name="checkinFlowView" [value]="true" [(ngModel)]="event.autoCheckinFlowQuest" class="h-4 w-4">
+                  Questionário
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                  <input type="radio" name="checkinFlowView" [value]="false" [(ngModel)]="event.autoCheckinFlowQuest" class="h-4 w-4">
+                  Home Guest
+                </label>
+              </div>
+              <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Se "Questionário" for escolhido, enviaremos <code>auto_checkin_flow_quest = true</code>. Caso contrário, irá para a página Home Guest.</p>
+            </div>
+          </div>
         </div>
 
         <!-- Coluna 2: Localização e Responsável -->
