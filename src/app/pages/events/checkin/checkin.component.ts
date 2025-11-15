@@ -32,6 +32,9 @@ export class CheckinComponent implements OnInit, OnDestroy {
   // Evento
   eventName: string = '';
   eventBannerUrl: string = '';
+  // Fluxo
+  autoCheckinFlowQuest: boolean = false;
+  hasQuestions: boolean = false;
 
   // Câmera
   cameraOpen = false;
@@ -65,6 +68,12 @@ export class CheckinComponent implements OnInit, OnDestroy {
       this.idCode = pm.get('id_code') || '';
       if (this.idCode) {
         this.loadEventDetails(this.idCode);
+        // Carregar flags do evento e existência de perguntas
+        this.loadEventConfigAndQuestions(this.idCode);
+        // Se já estiver autenticado, verificar se convidado já está checado para pular tela
+        if (this.authService.isAuthenticated()) {
+          this.precheckSkipIfAlreadyChecked(this.idCode);
+        }
       }
     });
   }
@@ -80,9 +89,118 @@ export class CheckinComponent implements OnInit, OnDestroy {
         const ev = res?.event || res;
         this.eventName = ev?.title || ev?.name || '';
         this.eventBannerUrl = ev?.banner_url || ev?.image || '';
+        try {
+          console.log('[CHECKIN][Detalhes] Recebido', { idCode, title: this.eventName, banner: !!this.eventBannerUrl });
+        } catch {}
       },
       error: () => {
         // Silencioso: banner/nome são complementares
+      }
+    });
+  }
+
+  private loadEventConfigAndQuestions(idCode: string): void {
+    try {
+      console.log('[CHECKIN][Config] Início', { idCode, esperado: { auto_checkin_flow_quest: true, perguntas: '> 0' } });
+    } catch {}
+    this.eventService.getEventByIdCodeDetail(idCode).subscribe({
+      next: ({ event }) => {
+        const autoFlowRaw = (event as any)?.auto_checkin_flow_quest;
+        this.autoCheckinFlowQuest = typeof autoFlowRaw === 'boolean' ? autoFlowRaw : (Number(autoFlowRaw) === 1);
+        const fromEvent = Array.isArray((event as any)?.questions) ? (event as any).questions : [];
+        try {
+          console.log('[CHECKIN][Config] Recebido do /events/:id_code', {
+            idCode,
+            recebido: {
+              auto_checkin_flow_quest_raw: autoFlowRaw,
+              auto_checkin_flow_quest: this.autoCheckinFlowQuest,
+              perguntas_event_len: fromEvent?.length || 0,
+            }
+          });
+        } catch {}
+        if (fromEvent && fromEvent.length > 0) {
+          this.hasQuestions = true;
+          try {
+            console.log('[CHECKIN][Config] Perguntas detectadas no evento (fromEvent)', { perguntas_event_len: fromEvent.length });
+          } catch {}
+        } else {
+          this.hasQuestions = false;
+          try {
+            console.log('[CHECKIN][Config] Sem perguntas inline no evento. Não verificarei públicas aqui.');
+          } catch {}
+        }
+      },
+      error: () => {
+        this.autoCheckinFlowQuest = false;
+        this.hasQuestions = false;
+        try {
+          console.log('[CHECKIN][Config] Erro ao carregar /events/:id_code', { idCode });
+        } catch {}
+      }
+    });
+  }
+
+  private decidePostCheckinDestination(returnUrl?: string): void {
+    try {
+      console.log('[CHECKIN][Destino] Início decisão pós-checkin', { idCode: this.idCode, returnUrl });
+    } catch {}
+    if (returnUrl) {
+      try { console.log('[CHECKIN][Destino] Navegando via returnUrl', { returnUrl }); } catch {}
+      this.router.navigateByUrl(returnUrl);
+      return;
+    }
+    // Sempre revalida flags e existência de perguntas para evitar corrida de dados
+    const idCode = this.idCode;
+    if (!idCode) {
+      try { console.log('[CHECKIN][Destino] idCode ausente. Redirecionando home-guest'); } catch {}
+      this.router.navigate([`/events/home-guest`]);
+      return;
+    }
+    this.eventService.getEventByIdCodeDetail(idCode).subscribe({
+      next: ({ event }) => {
+        const autoRaw = (event as any)?.auto_checkin_flow_quest;
+        const requiresAutoQuest = typeof autoRaw === 'boolean' ? autoRaw : (Number(autoRaw) === 1);
+        try {
+          console.log('[CHECKIN][Destino] Recebido /events/:id_code', {
+            idCode,
+            recebido: {
+              auto_checkin_flow_quest_raw: autoRaw,
+              auto_checkin_flow_quest: requiresAutoQuest,
+            }
+          });
+        } catch {}
+
+        if (!requiresAutoQuest) {
+          try { console.log('[CHECKIN][Destino] auto_checkin_flow_quest=false. Redirecionando home-guest'); } catch {}
+          this.router.navigate([`/events/home-guest`]);
+          return;
+        }
+        // Fluxo simplificado: se flag true, abre questionário sem layout; caso contrário, home-guest.
+        try { console.log('[CHECKIN][Destino] Flag auto_checkin_flow_quest=true. Navegando para answer-plain (sem layout)'); } catch {}
+        this.router.navigate([`/events/answer-plain/${idCode}`]);
+      },
+      error: () => {
+        try { console.log('[CHECKIN][Destino] Erro ao carregar /events/:id_code. Navegando home-guest', { idCode }); } catch {}
+        this.router.navigate([`/events/home-guest`]);
+      }
+    });
+  }
+
+  private precheckSkipIfAlreadyChecked(idCode: string): void {
+    this.eventService.getEventGuestMe(idCode).subscribe({
+      next: (guest) => {
+        const isChecked = !!guest?.check_in_at;
+        try { console.log('[CHECKIN][Pré-skip] guest.me recebido', { idCode, isChecked, check_in_at: guest?.check_in_at }); } catch {}
+        if (isChecked) {
+          // Se já checado, não exibir tela de check-in
+          const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || undefined;
+          try { console.log('[CHECKIN][Pré-skip] Convidado já checado. Decidindo destino.', { returnUrl }); } catch {}
+          this.decidePostCheckinDestination(returnUrl);
+        }
+      },
+      error: () => {
+        // Silencioso: sem convidado atual, segue fluxo normal
+        try { console.log('[CHECKIN][Pré-skip] Erro guest.me. Mantendo tela de check-in.', { idCode }); } catch {}
       }
     });
   }
@@ -119,19 +237,17 @@ export class CheckinComponent implements OnInit, OnDestroy {
       next: ({ guest, checked_in }) => {
         this.submitting = false;
         this.submitSuccess = checked_in;
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+        try { console.log('[CHECKIN][Submit] Resposta check-in', { idCode: this.idCode, checked_in, guest_id: guest?.id, guest }); } catch {}
+        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || undefined;
         if (checked_in) {
-          // Se veio de um fluxo guardado, seguir para a página original
-          if (returnUrl) {
-            this.router.navigateByUrl(returnUrl);
-          } else {
-            this.router.navigate([`/events/answer/${this.idCode}`]);
-          }
+          try { console.log('[CHECKIN][Submit] Check-in confirmado. Decidindo destino.', { returnUrl }); } catch {}
+          this.decidePostCheckinDestination(returnUrl);
         }
       },
       error: (err) => {
         this.submitting = false;
         this.submitError = err?.error?.message || 'Falha ao realizar check-in.';
+        try { console.log('[CHECKIN][Submit] Erro no check-in', { idCode: this.idCode, error: this.submitError }); } catch {}
       }
     });
   }

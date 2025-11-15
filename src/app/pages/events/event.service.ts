@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { throwError, of } from 'rxjs';
 import { AuthService } from '../../shared/services/auth.service';
 
 export interface ApiEvent {
@@ -490,36 +490,22 @@ export class EventService {
     return this.http.patch<ApiEvent>(`${this.API_BASE_URL}/events/${idOrCode}`, changes, { headers });
   }
 
-  // Busca detalhes de um evento por id_code público
+  // Busca detalhes de um evento por id_code (rota pública)
   getEventByIdCode(idCode: string): Observable<ApiEvent> {
-    const token = this.authService.getAuthToken();
-    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    return this.http.get<EventDetailApiResponse>(`${this.API_BASE_URL}/events/${idCode}`, { headers }).pipe(
-      map((resp) => resp?.data?.event as ApiEvent)
+    const url = `http://localhost:4000/api/public/v1/events/${idCode}`;
+    return this.http.get<any>(url).pipe(
+      map((resp) => (resp?.data?.event || resp?.data || resp?.event) as ApiEvent)
     );
   }
 
-  // Versão que retorna também total_responses (para KPIs)
+  // Versão pública que retorna também total_responses (para KPIs)
   getEventByIdCodeDetail(idCode: string): Observable<{ event: ApiEvent; total_responses?: number }> {
-    const token = this.authService.getAuthToken();
-    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const privateUrl = `${this.API_BASE_URL}/events/${idCode}`;
-    const publicUrl = `${this.API_BASE_URL.replace('/api/v1', '')}/api/public/v1/events/${idCode}`;
-
-    return this.http.get<EventDetailApiResponse>(privateUrl, { headers }).pipe(
-      map((resp) => ({ event: resp?.data?.event as ApiEvent, total_responses: resp?.data?.total_responses })),
-      catchError((err) => {
-        // Fallback para endpoint público em caso de 401/403
-        if (err?.status === 401 || err?.status === 403) {
-          return this.http.get<any>(publicUrl).pipe(
-            map((resp) => ({
-              event: (resp?.data?.event || resp?.event) as ApiEvent,
-              total_responses: resp?.data?.total_responses ?? resp?.total_responses
-            }))
-          );
-        }
-        return throwError(() => err);
-      })
+    const url = `http://localhost:4000/api/public/v1/events/${idCode}`;
+    return this.http.get<any>(url).pipe(
+      map((resp) => ({
+        event: (resp?.data?.event || resp?.data || resp?.event) as ApiEvent,
+        total_responses: resp?.data?.total_responses ?? resp?.total_responses
+      }))
     );
   }
 
@@ -639,13 +625,26 @@ export class EventService {
     );
   }
 
-  // Auto-checkin: obter convidado atual do evento (associado ao usuário autenticado)
+  // Auto-checkin: obter status do convidado atual (rota pública, requer JWT)
   getEventGuestMe(idCode: string): Observable<ApiGuest | null> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const url = `${this.API_BASE_URL}/events/${idCode}/guest/me`;
-    return this.http.get<EventGuestMeApiResponse>(url, { headers }).pipe(
-      map((resp) => resp?.data?.guest ?? null)
+    const url = `http://localhost:4000/api/public/v1/events/${idCode}/guest/me`;
+    return this.http.get<any>(url, { headers }).pipe(
+      map((resp) => {
+        const data = resp?.data ?? resp ?? null;
+        if (!data) return null;
+        // Criar objeto mínimo compatível apenas para leitura de check_in_at
+        const checkInAt = data?.checkin_at ?? null;
+        const guestId = data?.guest_id ?? 0;
+        const minimal: Partial<ApiGuest> = { id: guestId, display_name: '', email: '', check_in_at: checkInAt };
+        return minimal as ApiGuest;
+      }),
+      catchError((err) => {
+        // 404 → usuário não está na lista de convidados
+        if (err?.status === 404) return of(null);
+        throw err;
+      })
     );
   }
 
@@ -653,9 +652,24 @@ export class EventService {
   postEventCheckin(idCode: string, payload: { display_name?: string; email?: string; phone?: string; selfie_url?: string; document?: ApiGuestDocument | null }): Observable<{ guest: ApiGuest; checked_in: boolean }> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const url = `${this.API_BASE_URL}/events/${idCode}/checkin`;
-    return this.http.post<EventCheckinApiResponse>(url, payload, { headers }).pipe(
-      map((resp) => ({ guest: resp?.data?.guest as ApiGuest, checked_in: !!resp?.data?.checked_in }))
+    // Corrigir para rota pública de check-in do cliente
+    const base = this.API_BASE_URL.replace('/api/v1', '');
+    const url = `${base}/api/public/v1/events/${idCode}/checkin`;
+
+    // A API pública espera { name, email, selfie_url }
+    const body: any = {
+      name: payload.display_name ?? payload.email ?? undefined,
+      email: payload.email,
+      selfie_url: payload.selfie_url,
+    };
+
+    return this.http.post<any>(url, body, { headers }).pipe(
+      map((resp: any) => {
+        const data = resp?.data ?? resp ?? {};
+        const guest = data?.guest as ApiGuest;
+        const checked_in = !!(data?.checked_in ?? data?.checkedIn ?? (data?.status === 'checked_in'));
+        return { guest, checked_in };
+      })
     );
   }
 

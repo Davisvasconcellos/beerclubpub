@@ -17,6 +17,17 @@ export class AutoCheckinGuard implements CanActivate {
     const idCode = route.paramMap.get('id_code') || '';
     if (!idCode) return of(true);
 
+    // Força layout kiosk: se tentar acessar answer com flow=kiosk, redireciona para answer-plain
+    const path = route.routeConfig?.path || '';
+    const isAnswerRoute = path.includes('events/answer/:id_code') || state.url.startsWith('/events/answer/');
+    const isAnswerPlainRoute = path.includes('events/answer-plain/:id_code') || state.url.startsWith('/events/answer-plain/');
+    const flow = route.queryParamMap.get('flow');
+    if (isAnswerRoute && flow === 'kiosk') {
+      try { console.log('[AutoCheckinGuard] Forçando kiosk: redirecionando answer → answer-plain', { idCode, flow }); } catch {}
+      this.router.navigate([`/events/answer-plain/${idCode}`], { queryParams: route.queryParams });
+      return of(false);
+    }
+
     // Garante que o usuário esteja autenticado antes de checar convidado
     return this.authService.isAuthenticated$.pipe(
       take(1),
@@ -25,6 +36,14 @@ export class AutoCheckinGuard implements CanActivate {
         return this.eventService.getEventByIdCodeDetail(idCode).pipe(
           switchMap(({ event }) => {
             const requiresAuto = this.toBool(event?.requires_auto_checkin);
+            const autoQuest = this.toBool((event as any)?.auto_checkin_flow_quest);
+
+            // Se está indo para answer (com layout) e auto_checkin_flow_quest ativo, força kiosk (sem layout)
+            if (isAnswerRoute && autoQuest && !isAnswerPlainRoute) {
+              try { console.log('[AutoCheckinGuard] auto_checkin_flow_quest=true. Redirecionando answer → answer-plain'); } catch {}
+              this.router.navigate([`/events/answer-plain/${idCode}`], { queryParams: route.queryParams });
+              return of(false);
+            }
             if (!requiresAuto) {
               return of(true);
             }

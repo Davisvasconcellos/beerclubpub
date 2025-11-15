@@ -112,6 +112,13 @@ import { GuestGuard } from './shared/guards/guest.guard';
 import { AutoCheckinGuard } from './shared/guards/auto-checkin.guard';
 
 export const routes: Routes = [
+  // Force check-in to render without any layout wrappers
+  {
+    path: 'events/checkin/:id_code',
+    loadComponent: () => import('./pages/events/checkin/checkin.component').then(m => m.CheckinComponent),
+    canActivate: [AuthGuard],
+    title: 'Check-in do Evento'
+  },
   {
     path:'',
     component:AppLayoutComponent,
@@ -637,12 +644,6 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/events/questionnaire/questionnaire.component').then(m => m.QuestionnaireComponent),
         canActivate: [AuthGuard, AutoCheckinGuard],
         title: 'Responder Perguntas (Sem layout)'
-      },
-      {
-        path: 'events/checkin/:id_code',
-        loadComponent: () => import('./pages/events/checkin/checkin.component').then(m => m.CheckinComponent),
-        canActivate: [AuthGuard],
-        title: 'Check-in do Evento'
       },
       {
         path: 'events/home-guest',
