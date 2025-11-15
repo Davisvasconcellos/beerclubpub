@@ -1,5 +1,8 @@
 # See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
 
+# Ignorar a pasta de imagens públicas
+public/images/
+
 # Compiled output
 /dist
 /tmp
