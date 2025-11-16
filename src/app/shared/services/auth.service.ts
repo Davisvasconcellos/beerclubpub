@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, throwError, of, timeout, finalize } from '
 import { catchError, tap } from 'rxjs/operators';
 import { LocalStorageService } from './local-storage.service';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 // Interfaces para tipagem
 export interface User {
@@ -81,7 +82,7 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
+  private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
   
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();

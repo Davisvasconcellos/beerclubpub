@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { throwError, of } from 'rxjs';
 import { AuthService } from '../../shared/services/auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface ApiEvent {
   id: number | string;
@@ -336,7 +337,8 @@ export interface CheckinManualPayload {
 
 @Injectable({ providedIn: 'root' })
 export class EventService {
-  private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
+  private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
+  private readonly PUBLIC_API_BASE_URL = `${environment.apiUrl}/api/public/v1`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -492,7 +494,7 @@ export class EventService {
 
   // Busca detalhes de um evento por id_code (rota pública)
   getEventByIdCode(idCode: string): Observable<ApiEvent> {
-    const url = `http://localhost:4000/api/public/v1/events/${idCode}`;
+    const url = `${this.PUBLIC_API_BASE_URL}/events/${idCode}`;
     return this.http.get<any>(url).pipe(
       map((resp) => (resp?.data?.event || resp?.data || resp?.event) as ApiEvent)
     );
@@ -500,7 +502,7 @@ export class EventService {
 
   // Versão pública que retorna também total_responses (para KPIs)
   getEventByIdCodeDetail(idCode: string): Observable<{ event: ApiEvent; total_responses?: number }> {
-    const url = `http://localhost:4000/api/public/v1/events/${idCode}`;
+    const url = `${this.PUBLIC_API_BASE_URL}/events/${idCode}`;
     return this.http.get<any>(url).pipe(
       map((resp) => ({
         event: (resp?.data?.event || resp?.data || resp?.event) as ApiEvent,
@@ -511,7 +513,7 @@ export class EventService {
 
   // Endpoint público para detalhe do evento por id_code (sem necessidade de token)
   getPublicEventByIdCodeDetail(idCode: string): Observable<{ event: ApiEvent; total_responses?: number }> {
-    const url = `http://localhost:4000/api/public/v1/events/${idCode}`;
+    const url = `${this.PUBLIC_API_BASE_URL}/events/${idCode}`;
     return this.http.get<any>(url).pipe(
       map((resp) => ({
         event: (resp?.data || resp?.event) as ApiEvent,
@@ -629,7 +631,7 @@ export class EventService {
   getEventGuestMe(idCode: string): Observable<ApiGuest | null> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const url = `http://localhost:4000/api/public/v1/events/${idCode}/guest/me`;
+    const url = `${this.PUBLIC_API_BASE_URL}/events/${idCode}/guest/me`;
     return this.http.get<any>(url, { headers }).pipe(
       map((resp) => {
         const data = resp?.data ?? resp ?? null;

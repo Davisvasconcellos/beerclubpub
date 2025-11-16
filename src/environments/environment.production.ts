@@ -1,7 +1,9 @@
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:4000',
-  utilityUrl: 'http://localhost:3001',
+  production: true,
+  // API pública em produção
+  apiUrl: 'https://beerclub-api.onrender.com',
+  // Utilitário (upload/imagens/PDFs) dentro da própria aplicação
+  utilityUrl: 'https://app.vibesessionsproject.com',
   firebase: {
     apiKey: 'AIzaSyA7zvzWRs48FC9zytDxTzTQNagVCyQmOGI',
     authDomain: 'auth-eb4ce.firebaseapp.com',

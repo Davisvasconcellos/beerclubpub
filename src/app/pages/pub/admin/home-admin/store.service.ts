@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators'; 
 import { AuthService } from '../../../../shared/services/auth.service';
+import { environment } from '../../../../../environments/environment';
 
 // Interfaces para tipagem forte
 export interface Store {
@@ -23,7 +24,7 @@ export interface StoresResponse {
   providedIn: 'root'
 })
 export class StoreService {
-  private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
+  private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

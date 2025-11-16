@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { LocalStorageService } from './local-storage.service';
+import { environment } from '../../../environments/environment';
 
 export interface Team {
   id: number;
@@ -22,7 +23,7 @@ export interface TeamsResponse {
   providedIn: 'root'
 })
 export class TeamService {
-  private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
+  private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
 
   constructor(
     private http: HttpClient,

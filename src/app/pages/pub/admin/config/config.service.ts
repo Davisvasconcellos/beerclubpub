@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { AuthService } from '../../../../shared/services/auth.service';
+import { environment } from '../../../../../environments/environment';
 
 export interface StoreDetails {
   name: string;
@@ -33,7 +34,7 @@ export interface StoreDetails {
   providedIn: 'root'
 })
 export class ConfigService {
-  private readonly API_BASE_URL = 'http://localhost:4000/api/v1';
+  private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 

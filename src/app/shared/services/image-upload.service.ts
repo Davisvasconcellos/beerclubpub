@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
+import { environment } from '../../../environments/environment';
 
 export interface ImageProcessingOptions {
   maxWidth?: number;
@@ -27,7 +28,7 @@ export class ImageUploadService {
     format: 'jpeg'
   };
 
-  private readonly utilityServerUrl = 'http://localhost:3001'; // Frontend Utility Server
+  private readonly utilityServerUrl = environment.utilityUrl; // Frontend Utility Server
 
   constructor(
     private authService: AuthService,
@@ -368,7 +369,7 @@ export class ImageUploadService {
         headers = headers.set('Authorization', `Bearer ${token}`);
       }
 
-      const result = await this.http.put<any>(`http://localhost:4000/api/v1/stores/${storeId}`, { logo_url: logoUrl }, { headers, responseType: 'json' }).toPromise();
+      const result = await this.http.put<any>(`${environment.apiUrl}/api/v1/stores/${storeId}`, { logo_url: logoUrl }, { headers, responseType: 'json' }).toPromise();
       
       if (result?.success) {
         console.log('✅ API da loja atualizada com sucesso');
