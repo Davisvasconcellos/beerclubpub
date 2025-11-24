@@ -1,0 +1,82 @@
+<div class="space-y-6">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selecionar Evento</h2>
+      <span class="text-xs text-gray-500 dark:text-gray-400">Administração</span>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
+        <select [(ngModel)]="selectedEventIdCode" (ngModelChange)="loadJamsForEvent()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option value="">— Escolha o evento —</option>
+          <option *ngFor="let e of events" [value]="e.id_code">{{ e.eventName }}</option>
+        </select>
+      </div>
+    </div>
+
+    
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-1 gap-6">
+
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Cadastro de Música</h3>
+        <div class="flex items-center gap-2">
+          <button (click)="toggleSse()" class="px-3 py-1.5 text-xs font-medium rounded-md" [class.bg-blue-500]="!isSseConnected" [class.text-white]="!isSseConnected" [class.bg-gray-200]="isSseConnected" [class.text-gray-700]="isSseConnected">{{ isSseConnected ? 'SSE conectado' : 'Conectar SSE' }}</button>
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Título</label>
+            <input type="text" [(ngModel)]="songForm.title" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Banda/Artista</label>
+            <input type="text" [(ngModel)]="songForm.artist" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          </div>
+          
+        </div>
+
+        <div class="mt-4">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Instrumentos</label>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div *ngFor="let ins of instrumentChoices" class="flex items-center gap-3">
+              <label class="flex items-center gap-2 w-full">
+                <input type="checkbox" [(ngModel)]="instrumentForm[ins.key].enabled" class="rounded border-gray-300 dark:border-gray-600">
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ ins.label }}</span>
+              </label>
+              <input type="number" [(ngModel)]="instrumentForm[ins.key].slots" min="1" class="w-20 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+            </div>
+          </div>
+          
+        </div>
+
+        <div class="mt-4">
+          <button (click)="insertSong()" class="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg">Inserir música</button>
+        </div>
+      </div>
+
+      <div *ngIf="!selectedJam" class="text-sm text-gray-600 dark:text-gray-300">Nenhuma Jam encontrada para o evento. Insira uma música para criar automaticamente.</div>
+      <div *ngIf="selectedJam && songs.length === 0" class="text-sm text-gray-600 dark:text-gray-300">Nenhuma música cadastrada nesta Jam.</div>
+      <div *ngIf="selectedJam && songs.length > 0" class="divide-y divide-gray-200 dark:divide-gray-700">
+        <div *ngFor="let s of songs" class="py-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-gray-900 dark:text-white font-medium">{{ s.title }} <span *ngIf="s.artist">— {{ s.artist }}</span></p>
+              <p class="text-sm text-gray-500 dark:text-gray-400">Status: {{ s.status || 'planned' }}</p>
+              <p *ngIf="s.slots && s.slots.length" class="text-xs text-gray-500 dark:text-gray-400 mt-1">Instrumentos:
+                <ng-container *ngFor="let slot of s.slots; let last = last">
+                  {{ slot.instrument }} ({{ slot.slots }})<span *ngIf="!last">, </span>
+                </ng-container>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,67 @@
+<div class="space-y-6">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selecionar Evento</h2>
+      <button (click)="openAddModal()" class="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 text-white">Adicionar música</button>
+    </div>
+    <div class="grid grid-cols-1 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
+        <select [(ngModel)]="selectedEventIdCode" (ngModelChange)="onSelectEvent()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option value="">— Escolha o evento —</option>
+          <option *ngFor="let e of events" [value]="e.id_code">{{ e.eventName }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Setlist da Jam</h3>
+    </div>
+    <div class="grid grid-cols-1 border-t border-gray-200 divide-x divide-gray-200 dark:divide-white/[0.05] mt-7 dark:border-white/[0.05] sm:mt-0 sm:grid-cols-2 xl:grid-cols-4">
+      <app-board-column title="Planned" [tasks]="plannedTasks" status="planned" (taskDropped)="handleTaskDrop($event)" />
+      <app-board-column title="Open for Candidates" [tasks]="openTasks" status="open_for_candidates" (taskDropped)="handleTaskDrop($event)" />
+      <app-board-column title="On Stage" [tasks]="onStageTasks" status="on_stage" (taskDropped)="handleTaskDrop($event)" />
+      <app-board-column title="Played" [tasks]="playedTasks" status="played" (taskDropped)="handleTaskDrop($event)" />
+    </div>
+  </div>
+
+  <app-modal [isOpen]="showAddModal" (close)="closeAddModal()" className="max-w-[700px] p-5 lg:p-10 m-4">
+    <div class="px-2">
+      <h4 class="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">Adicionar música</h4>
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400 lg:mb-7">Preencha os dados e selecione instrumentos com slots.</p>
+    </div>
+    <form class="flex flex-col" (ngSubmit)="insertSong()">
+      <div class="custom-scrollbar h-[450px] overflow-y-auto px-2">
+        <div class="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2">
+          <div class="sm:col-span-2">
+            <app-label>Título</app-label>
+            <app-input-field type="text" placeholder="Nome da música" [value]="newSong.title" (valueChange)="onTitleChange($event)" />
+          </div>
+          <div class="sm:col-span-2">
+            <app-label>Artista</app-label>
+            <app-input-field type="text" placeholder="Banda/Artista" [value]="newSong.artist" (valueChange)="onArtistChange($event)" />
+          </div>
+          <div class="sm:col-span-2">
+            <app-label>Instrumentos</app-label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <div *ngFor="let ins of instrumentChoices" class="flex items-center gap-3">
+                <label class="flex items-center gap-2 w-full">
+                  <input type="checkbox" [(ngModel)]="instrumentForm[ins.key].enabled" name="chk-{{ins.key}}" class="rounded border-gray-300 dark:border-gray-600" />
+                  <span class="text-sm text-gray-700 dark:text-gray-300">{{ ins.label }}</span>
+                </label>
+                <input type="number" [(ngModel)]="instrumentForm[ins.key].slots" name="slots-{{ins.key}}" min="1" class="w-20 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center w-full gap-3 px-2 mt-6">
+        <button type="button" (click)="closeAddModal()" class="flex w-full justify-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03] sm:w-auto">Cancelar</button>
+        <button type="submit" class="flex w-full justify-center rounded-lg bg-brand-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-600 sm:w-auto">Inserir</button>
+      </div>
+    </form>
+  </app-modal>
+</div>

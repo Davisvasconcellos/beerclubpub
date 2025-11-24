@@ -590,6 +590,16 @@ export const routes: Routes = [
         component: QuestionsAdminComponent,
         title: 'Cadastro de Perguntas'
       },
+      {
+        path: 'events/jam-kanban',
+        loadComponent: () => import('./pages/events/jam-kanban/jam-kanban.component').then(m => m.JamKanbanComponent),
+        title: 'Jam Kanban'
+      },
+      {
+        path: 'events/criar-jam',
+        loadComponent: () => import('./pages/events/jam-admin/jam-admin.component').then(m => m.JamAdminComponent),
+        title: 'Criar Jam'
+      },
   {
     path: 'map-test',
     component: MapTestComponent,

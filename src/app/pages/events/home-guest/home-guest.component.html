@@ -1,5 +1,53 @@
-<div class="container">
-  <!-- Página em branco para convidado -->
-  <h1 class="title">Home do Convidado</h1>
-  <p class="subtitle">Conteúdo da home do convidado ficará aqui.</p>
+<div class="space-y-6">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Jam - Músicas planejadas</h2>
+    </div>
+    <div class="grid grid-cols-1 gap-4">
+      <div class="md:col-span-2">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Evento</label>
+        <select [(ngModel)]="selectedEventIdCode" (ngModelChange)="onSelectEvent()" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+          <option value="">— Escolha o evento —</option>
+          <option *ngFor="let e of events" [value]="e.id_code">{{ e.eventName }}</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+    <app-card *ngFor="let s of plannedSongs">
+      <app-card-title>{{ s.title }}</app-card-title>
+      <app-card-description>
+        {{ s.artist || 'Sem artista' }}
+      </app-card-description>
+      <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">Status: {{ s.status }}</div>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button *ngFor="let b of getInstrumentBuckets(s)"
+                type="button"
+                (click)="toggleRequest(s,b)"
+                [disabled]="isLocked(getSongId(s))"
+                class="inline-flex items-center justify-center size-10 rounded-md border"
+                [ngClass]="
+                  isRequested(getSongId(s), b.instrument)
+                    ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30'
+                    : (isLocked(getSongId(s)) ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-60 dark:bg-white/5 dark:text-gray-600 dark:border-gray-700' : 'bg-white text-gray-700 border-gray-200 dark:bg-white/5 dark:text-gray-300 dark:border-gray-700')
+                "
+                [attr.title]="instrumentLabel(b.instrument)">
+          <img [src]="iconForInstrument(b.instrument)"
+               alt="icon"
+               class="size-6 dark:invert" />
+        </button>
+      </div>
+
+      <div class="mt-2">
+        <div class="relative h-0.5">
+          <div class="absolute inset-0 bg-gray-200 dark:bg-gray-700"></div>
+          <div *ngIf="hasDeadline(getSongId(s)) && !isLocked(getSongId(s))"
+               class="absolute inset-y-0 left-0 bg-yellow-500 dark:bg-yellow-400"
+               [style.width]="getRemainingPercent(getSongId(s))"></div>
+        </div>
+      </div>
+    </app-card>
+    <div *ngIf="plannedSongs.length === 0" class="col-span-full text-sm text-gray-500 dark:text-gray-400 px-2">Nenhuma música aberta para candidaturas.</div>
+  </div>
 </div>

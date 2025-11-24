@@ -45,4 +45,85 @@ export class KanbanTaskItemComponent {
     console.log('Task drag ended');
   }
 
+  toggleExpand() {
+    this.task.expanded = !this.task.expanded;
+  }
+
+  getApprovedUsers(): any[] {
+    const buckets = this.task.song?.instrument_buckets || [];
+    return buckets.flatMap((b: any) => Array.isArray(b.approved) ? b.approved : []);
+  }
+
+  getApprovedCount(): number {
+    const buckets = this.task.song?.instrument_buckets || [];
+    return buckets.reduce((sum: number, b: any) => sum + (Array.isArray(b.approved) ? b.approved.length : 0), 0);
+  }
+
+  getPendingCount(): number {
+    const buckets = this.task.song?.instrument_buckets || [];
+    return buckets.reduce((sum: number, b: any) => sum + (Array.isArray(b.pending) ? b.pending.length : 0), 0);
+  }
+
+  getApprovedUsersDetailed(): Array<{ user: any; instrument: string; bucket: any }> {
+    const buckets = this.task.song?.instrument_buckets || [];
+    const res: Array<{ user: any; instrument: string; bucket: any }> = [];
+    for (const b of buckets) {
+      const approved = Array.isArray(b.approved) ? b.approved : [];
+      for (const u of approved) res.push({ user: u, instrument: b.instrument, bucket: b });
+    }
+    return res;
+  }
+
+  isUserApproved(bucket: any, user: any): boolean {
+    const approved = bucket?.approved || [];
+    return approved.some((u: any) => String(u.id) === String(user.id));
+  }
+
+  onCandidateClick(bucket: any, user: any) {
+    const approved = bucket?.approved || [];
+    const pending = bucket?.pending || [];
+    if (approved.some((u: any) => String(u.id) === String(user.id))) return;
+    const slots = Number(bucket?.slots || 0);
+    if (approved.length >= slots) return;
+    bucket.approved = [...approved, user];
+    bucket.pending = pending.filter((u: any) => String(u.id) !== String(user.id));
+  }
+
+  onApprovedClick(bucket: any, user: any) {
+    const approved = bucket?.approved || [];
+    const pending = bucket?.pending || [];
+    if (!approved.some((u: any) => String(u.id) === String(user.id))) return;
+    bucket.approved = approved.filter((u: any) => String(u.id) !== String(user.id));
+    bucket.pending = [...pending, user];
+  }
+
+  getUserName(user: any): string {
+    return user?.display_name || user?.name || user?.username || `#${user?.id}`;
+  }
+
+  getUserAvatar(user: any): string {
+    return user?.avatar_url || user?.photo_url || '/images/user/user-01.jpg';
+  }
+
+  getInstrumentLabel(bucket: any): string {
+    const map: any = { guitar: 'Guitarra', bass: 'Baixo', vocals: 'Voz', drums: 'Bateria', keys: 'Teclado' };
+    const base = map[bucket?.instrument] || bucket?.instrument || '';
+    const slots = Number(bucket?.slots || 0);
+    return `${base} - ${slots} slot${slots > 1 ? 's' : ''}`;
+  }
+
+  getInstrumentShort(bucketOrKey: any): string {
+    const key = typeof bucketOrKey === 'string' ? bucketOrKey : bucketOrKey?.instrument;
+    const map: any = { guitar: 'Guitarra', bass: 'Baixo', vocals: 'Voz', drums: 'Bateria', keys: 'Teclado' };
+    return map[key] || key || '';
+  }
+
+  getInstrumentRemainingLabel(bucket: any): string {
+    const base = this.getInstrumentShort(bucket);
+    const slots = Number(bucket?.slots || 0);
+    const approvedCount = Array.isArray(bucket?.approved) ? bucket.approved.length : 0;
+    const remaining = Math.max(0, slots - approvedCount);
+    return `${base} - ${remaining}`;
+  }
+
 }

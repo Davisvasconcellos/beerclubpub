@@ -99,6 +99,76 @@ export interface EventListItem {
 }
 
 // ================================
+// Jam Module API Types
+// ================================
+export interface ApiJam {
+  id: number;
+  name?: string;
+  slug?: string;
+  notes?: string | null;
+  status?: string | null;
+  order_index?: number | null;
+  event_id?: number | string;
+  songs?: ApiSong[];
+}
+
+export interface ApiSong {
+  id: number;
+  title: string;
+  artist?: string | null;
+  key?: string | null; // tom
+  tempo_bpm?: number | null;
+  notes?: string | null;
+  status?: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled';
+  instrument_buckets?: any[];
+}
+
+export interface InstrumentSlotPayload {
+  instrument: string;
+  slots: number;
+  required?: boolean;
+  fallback?: string | null;
+}
+
+export interface InstrumentSlotResult {
+  instrument: string;
+  slots: number;
+  required?: boolean;
+  fallback?: string | null;
+  filled_count?: number;
+}
+
+export interface AutoInstrumentSlotPayload {
+  instrument: string;
+  slots: number;
+  required?: boolean;
+  fallback_allowed?: boolean;
+}
+
+export interface CreateSongAutoPayload {
+  title: string;
+  artist?: string;
+  key?: string;
+  tempo_bpm?: number;
+  notes?: string;
+  release_batch?: number;
+  status?: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled';
+  order_index?: number;
+  instrument_slots: AutoInstrumentSlotPayload[];
+}
+
+export interface CreateSongAutoResult {
+  jam: ApiJam;
+  song: ApiSong;
+}
+
+export interface OpenSongAggregate extends ApiSong {
+  slots?: InstrumentSlotResult[];
+  candidates?: any[];
+  rating?: { average?: number; count?: number };
+}
+
+// ================================
 // Questions API Types
 // ================================
 export interface ApiQuestion {
@@ -339,6 +409,7 @@ export interface CheckinManualPayload {
 export class EventService {
   private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
   private readonly PUBLIC_API_BASE_URL = `${environment.apiUrl}/api/public/v1`;
+  private readonly NON_VERSIONED_API_BASE_URL = `${environment.apiUrl}/api`;
 
   constructor(private http: HttpClient, private authService: AuthService) {}
 
@@ -351,6 +422,97 @@ export class EventService {
         const events = resp?.data?.events ?? [];
         return events.map((ev) => this.mapApiEventToListItem(ev));
       })
+    );
+  }
+
+  // ================================
+  // Jam Module API Methods
+  // ================================
+  createJam(eventId: string | number, payload: { name: string; slug: string; notes?: string; status?: string; order_index?: number }): Observable<ApiJam> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams`;
+    return this.http.post<{ success: boolean; data: { jam: ApiJam } }>(url, payload, { headers }).pipe(
+      map((resp) => resp?.data?.jam as ApiJam)
+    );
+  }
+
+  getEventJams(eventId: string | number): Observable<ApiJam[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams`;
+    return this.http.get<any>(url, { headers }).pipe(
+      map((resp) => {
+        if (Array.isArray(resp?.data?.jams)) return resp.data.jams as ApiJam[];
+        if (Array.isArray(resp?.data)) return resp.data as ApiJam[];
+        if (Array.isArray(resp)) return resp as ApiJam[];
+        return [] as ApiJam[];
+      })
+    );
+  }
+
+  createJamSong(eventId: string | number, jamId: string | number, payload: {
+    title: string;
+    artist?: string;
+    key?: string;
+    tempo_bpm?: number;
+    notes?: string;
+  }): Observable<ApiSong> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs`;
+    return this.http.post<{ success: boolean; data: { song: ApiSong } }>(url, payload, { headers }).pipe(
+      map((resp) => resp?.data?.song as ApiSong)
+    );
+  }
+
+  getJamSongs(eventId: string | number, jamId: string | number): Observable<ApiSong[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs`;
+    return this.http.get<{ success: boolean; data: { songs: ApiSong[] } }>(url, { headers }).pipe(
+      map((resp) => resp?.data?.songs ?? [])
+    );
+  }
+
+  createSongAuto(eventId: string | number, payload: CreateSongAutoPayload): Observable<CreateSongAutoResult> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' });
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/songs`;
+    return this.http.post<{ success: boolean; data: { jam: ApiJam; song: ApiSong } }>(url, payload, { headers }).pipe(
+      map((resp) => ({ jam: resp?.data?.jam as ApiJam, song: resp?.data?.song as ApiSong }))
+    );
+  }
+
+  setSongInstrumentSlots(eventId: string | number, jamId: string | number, songId: string | number, slots: InstrumentSlotPayload[]): Observable<InstrumentSlotResult[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/instrument-slots`;
+    return this.http.post<{ success: boolean; data: { slots: InstrumentSlotResult[] } }>(url, { slots }, { headers }).pipe(
+      map((resp) => resp?.data?.slots ?? [])
+    );
+  }
+
+  getOpenSongs(eventId: string | number, jamId: string | number): Observable<OpenSongAggregate[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/open`;
+    return this.http.get<{ success: boolean; data: { songs: OpenSongAggregate[] } }>(url, { headers }).pipe(
+      map((resp) => resp?.data?.songs ?? [])
+    );
+  }
+
+  streamJam(eventId: string | number, jamId: string | number): EventSource {
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/${jamId}/stream`;
+    return new EventSource(url);
+  }
+
+  moveSongStatus(eventId: string | number, jamId: string | number, songId: string | number, status: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled'): Observable<ApiSong> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/move`;
+    return this.http.post<{ success: boolean; data: { song: ApiSong } }>(url, { status }, { headers }).pipe(
+      map((resp) => resp?.data?.song as ApiSong)
     );
   }
 

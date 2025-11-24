@@ -67,6 +67,8 @@ export class AppSidebarComponent {
         { name: 'Cadastro de Perguntas', path: '/events/questions-admin' },
         { name: 'Criar Evento', path: '/events/event-create' },
         { name: 'Home Guest (sem layout)', path: '/events/home-guest' },
+        { name: 'Criar Jam', path: '/events/criar-jam' },
+        { name: 'Jam Kanban', path: '/events/jam-kanban' },
       ],
     },
     {

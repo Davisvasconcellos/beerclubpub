@@ -12,6 +12,8 @@ export interface Task {
     name: string;
     color: string;
   };
+  expanded?: boolean;
+  song?: any;
 }
 
 export interface DropResult {
