@@ -8,6 +8,9 @@ import { CardTitleComponent } from '../../../shared/components/ui/card/card-titl
 import { CardDescriptionComponent } from '../../../shared/components/ui/card/card-description.component';
 import { ThemeToggleTwoComponent } from '../../../shared/components/common/theme-toggle-two/theme-toggle-two.component';
 import { EventService, EventListItem, ApiJam, ApiSong } from '../event.service';
+import { forkJoin, of } from 'rxjs';
+import { AuthService } from '../../../shared/services/auth.service';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home-guest',
@@ -20,6 +23,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   eventIdCode = '';
   jams: ApiJam[] = [];
   plannedSongs: ApiSong[] = [];
+  onStageSongs: ApiSong[] = [];
   selections: Record<number, string | null> = {};
   lockDeadline: Record<number, number> = {};
   submitted: Record<number, boolean> = {};
@@ -32,7 +36,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   songJamMap: Record<number, number> = {};
   eventName = '';
 
-  constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector) {}
+  constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector, private authService: AuthService) {}
 
   ngOnInit(): void {
     this.tickHandle = setInterval(() => {
@@ -47,6 +51,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           error: () => { this.eventName = ''; }
         });
         this.loadJams();
+        this.loadOnStageOnce();
       } else {
         this.jams = [];
         this.plannedSongs = [];
@@ -89,6 +94,39 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         else this.triggerToast('error', 'Erro ao carregar', 'Não foi possível listar as músicas abertas.');
       }
     });
+  }
+
+  private loadOnStageOnce(): void {
+    if (!this.eventIdCode) { this.onStageSongs = []; return; }
+    this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
+      next: (songs: ApiSong[]) => {
+        this.onStageSongs = Array.isArray(songs) ? songs : [];
+      },
+      error: (err) => {
+        const status = Number(err?.status || 0);
+        if (status === 401) this.onStageSongs = [];
+        else if (status === 403) this.onStageSongs = [];
+        else this.onStageSongs = [];
+      }
+    });
+  }
+
+  private isSongOnStageApprovedForMe(song: ApiSong): boolean {
+    const s: any = song as any;
+    const st = String(s?.status || '');
+    if (st !== 'on_stage') return false;
+    const me = this.authService.getCurrentUser();
+    if (!me) return false;
+    const myKeys = [me?.id, me?.id_code, me?.email].map(v => String((v ?? '') as any));
+    const buckets: any[] = Array.isArray(s?.instrument_buckets) ? s.instrument_buckets : [];
+    for (const b of buckets) {
+      const approved = Array.isArray(b?.approved) ? b.approved : [];
+      for (const u of approved) {
+        const uKey = String(((u?.candidate_id ?? u?.id ?? u?.id_code ?? u?.user_id ?? u?.email) ?? '') as any);
+        if (uKey && myKeys.includes(String(uKey))) return true;
+      }
+    }
+    return false;
   }
 
   // removido: carregamento por jam, substituído por endpoint agregado

@@ -8,7 +8,33 @@
     <app-theme-toggle-two />
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
+  <div *ngIf="onStageSongs.length" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">On Stage</h3>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
+      <app-card *ngFor="let s of onStageSongs">
+        <div>
+          <div class="-mx-5 -mt-5 sm:-mx-6 sm:-mt-6">
+            <div class="h-1 rounded-t bg-green-500 dark:bg-green-400"></div>
+          </div>
+          <app-card-title>{{ s.title }}</app-card-title>
+          <app-card-description>
+            {{ s.artist || 'Sem artista' }}
+          </app-card-description>
+          <div class="mt-3">
+            <span class="inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium bg-green-100 text-green-700 border-green-200 dark:bg-green-600/30 dark:text-green-200 dark:border-green-500/40">approved</span>
+          </div>
+        </div>
+      </app-card>
+    </div>
+  </div>
+
+  <div *ngIf="plannedSongs.length" class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Open candidates</h3>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
     <app-card *ngFor="let s of plannedSongs">
       <div>
         <div class="-mx-5 -mt-5 sm:-mx-6 sm:-mt-6">
@@ -55,6 +81,6 @@
         </div>
       </div>
     </app-card>
-    <div *ngIf="plannedSongs.length === 0" class="col-span-full text-sm text-gray-500 dark:text-gray-400 px-2">Nenhuma música aberta para candidaturas.</div>
+    </div>
   </div>
 </div>

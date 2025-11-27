@@ -546,6 +546,18 @@ export class EventService {
     );
   }
 
+  getEventMyOnStage(eventId: string | number): Observable<ApiSong[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/my/on-stage`;
+    return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
+      map((resp) => {
+        const songs = resp?.data?.songs || resp?.data || [];
+        return (Array.isArray(songs) ? songs : []) as ApiSong[];
+      })
+    );
+  }
+
   getEventJamsPublic(eventId: string | number): Observable<ApiJam[]> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
