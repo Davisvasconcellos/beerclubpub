@@ -661,6 +661,12 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         title: 'Home do Convidado (Sem layout)'
       },
+      {
+        path: 'events/home-guest/:id_code',
+        loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
+        canActivate: [AuthGuard],
+        title: 'Home do Convidado (Sem layout)'
+      },
     ]
   },
   {

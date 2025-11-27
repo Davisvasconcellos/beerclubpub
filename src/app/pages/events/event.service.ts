@@ -475,6 +475,15 @@ export class EventService {
     );
   }
 
+  applySongCandidate(eventId: string | number, jamId: string | number, songId: string | number, instrument: string): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/apply`;
+    return this.http.post<{ success: boolean; data?: any; message?: string }>(url, { instrument }, { headers }).pipe(
+      map((resp) => !!resp?.success)
+    );
+  }
+
   createSongAuto(eventId: string | number, payload: CreateSongAutoPayload): Observable<CreateSongAutoResult> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' });

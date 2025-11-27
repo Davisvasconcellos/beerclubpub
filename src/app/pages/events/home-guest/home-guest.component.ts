@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
+import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { CardTitleComponent } from '../../../shared/components/ui/card/card-title.component';
@@ -14,28 +16,32 @@ import { EventService, EventListItem, ApiJam, ApiSong } from '../event.service';
   styleUrls: ['./home-guest.component.css']
 })
 export class HomeGuestComponent implements OnInit, OnDestroy {
-  events: EventListItem[] = [];
-  selectedEventIdCode = '';
+  eventIdCode = '';
   jams: ApiJam[] = [];
   plannedSongs: ApiSong[] = [];
   selections: Record<number, string | null> = {};
   lockDeadline: Record<number, number> = {};
+  submitted: Record<number, boolean> = {};
+  attempting: Record<number, boolean> = {};
   now: number = Date.now();
   tickHandle: any;
+  songJamMap: Record<number, number> = {};
 
-  constructor(private eventService: EventService) {}
+  constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector) {}
 
   ngOnInit(): void {
-    this.tickHandle = setInterval(() => { this.now = Date.now(); }, 100);
-    this.eventService.getEvents().subscribe({
-      next: (items) => {
-        this.events = items;
-        if (this.events.length && !this.selectedEventIdCode) {
-          this.selectedEventIdCode = this.events[0]?.id_code || '';
-          this.onSelectEvent();
-        }
-      },
-      error: () => { this.events = []; }
+    this.tickHandle = setInterval(() => {
+      this.now = Date.now();
+      this.checkAndSubmitLockedSelections();
+    }, 100);
+    this.route.paramMap.subscribe(pm => {
+      this.eventIdCode = pm.get('id_code') || '';
+      if (this.eventIdCode) {
+        this.loadJams();
+      } else {
+        this.jams = [];
+        this.plannedSongs = [];
+      }
     });
   }
 
@@ -43,12 +49,18 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     if (this.tickHandle) clearInterval(this.tickHandle);
   }
 
-  onSelectEvent(): void {
-    if (!this.selectedEventIdCode) { this.jams = []; this.plannedSongs = []; return; }
-    this.eventService.getEventJams(this.selectedEventIdCode).subscribe({
+  private loadJams(): void {
+    if (!this.eventIdCode) { this.jams = []; this.plannedSongs = []; return; }
+    this.eventService.getEventJams(this.eventIdCode).subscribe({
       next: (jams) => {
         this.jams = jams || [];
         const songs = this.flattenSongsFromJams(this.jams);
+        // mapear song -> jam
+        this.songJamMap = {};
+        (this.jams || []).forEach(j => {
+          const jsongs = Array.isArray(j.songs) ? (j.songs as ApiSong[]) : [];
+          jsongs.forEach(s => { this.songJamMap[Number((s as any).id)] = Number(j.id); });
+        });
         this.plannedSongs = songs.filter(s => (s.status as any) === 'open_for_candidates');
       },
       error: () => { this.jams = []; this.plannedSongs = []; }
@@ -86,6 +98,8 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     if (!deadline) this.lockDeadline[songId] = this.now + 5000;
     const current = this.selections[songId] || null;
     this.selections[songId] = current === key ? null : key;
+    // reinicia submitted flag enquanto dentro da janela
+    this.submitted[songId] = false;
   }
 
   getSongId(song: ApiSong): number {
@@ -119,5 +133,68 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     const rem = Math.max(0, d - this.now);
     const pct = Math.max(0, Math.min(100, Math.round((rem / 5000) * 100)));
     return pct + '%';
+  }
+
+  private checkAndSubmitLockedSelections(): void {
+    const ids = Object.keys(this.lockDeadline).map((k) => Number(k));
+    ids.forEach((songId) => {
+      const deadline = this.lockDeadline[songId] || 0;
+      const sel = this.selections[songId] || null;
+      if (!sel) return; // nada selecionado
+      if (!deadline || this.now < deadline) return; // ainda dentro da janela
+      if (this.submitted[songId] || this.attempting[songId]) return; // já enviado ou em andamento
+      // marca tentativa imediatamente para evitar loop
+      this.attempting[songId] = true;
+      const jamId = this.songJamMap[songId];
+      if (!jamId) return;
+      // validação de instrumentos válidos
+      const valid: Record<string, true> = { vocals: true, guitar: true, bass: true, drums: true, keys: true, horns: true, percussion: true, strings: true, other: true };
+      if (!valid[sel]) { this.attempting[songId] = false; return; }
+      this.eventService.applySongCandidate(this.eventIdCode, jamId, songId, sel).subscribe({
+        next: (ok) => {
+          this.submitted[songId] = !!ok;
+          this.attempting[songId] = false;
+          if (ok) this.triggerToast('success', 'Candidatura enviada', 'Sua candidatura foi enviada com sucesso.');
+          else this.triggerToast('error', 'Falha ao enviar', 'Não foi possível enviar sua candidatura.');
+        },
+        error: (err) => {
+          this.submitted[songId] = false;
+          this.attempting[songId] = false;
+          const msg = (err?.error?.message || err?.message || 'Erro ao enviar candidatura');
+          this.triggerToast('error', 'Erro', msg);
+        }
+      });
+    });
+  }
+
+  private triggerToast(
+    variant: 'success' | 'info' | 'warning' | 'error',
+    title: string,
+    description?: string
+  ) {
+    const compRef = createComponent(NotificationComponent, {
+      environmentInjector: this.envInjector,
+      elementInjector: this.injector,
+    });
+    try {
+      compRef.setInput('variant', variant);
+      compRef.setInput('title', title);
+      compRef.setInput('description', description);
+      compRef.setInput('hideDuration', 3000);
+
+      this.appRef.attachView(compRef.hostView);
+      const host = compRef.location.nativeElement as HTMLElement;
+      host.style.position = 'fixed';
+      host.style.top = '16px';
+      host.style.right = '16px';
+      host.style.zIndex = '2147483647';
+      host.style.pointerEvents = 'auto';
+      document.body.appendChild(host);
+
+      setTimeout(() => {
+        this.appRef.detachView(compRef.hostView);
+        compRef.destroy();
+      }, 3200);
+    } catch { /* noop */ }
   }
 }
