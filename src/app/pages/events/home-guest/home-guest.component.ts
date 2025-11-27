@@ -6,12 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { CardTitleComponent } from '../../../shared/components/ui/card/card-title.component';
 import { CardDescriptionComponent } from '../../../shared/components/ui/card/card-description.component';
+import { ThemeToggleTwoComponent } from '../../../shared/components/common/theme-toggle-two/theme-toggle-two.component';
 import { EventService, EventListItem, ApiJam, ApiSong } from '../event.service';
 
 @Component({
   selector: 'app-home-guest',
   standalone: true,
-  imports: [CommonModule, FormsModule, CardComponent, CardTitleComponent, CardDescriptionComponent],
+  imports: [CommonModule, FormsModule, CardComponent, CardTitleComponent, CardDescriptionComponent, ThemeToggleTwoComponent],
   templateUrl: './home-guest.component.html',
   styleUrls: ['./home-guest.component.css']
 })

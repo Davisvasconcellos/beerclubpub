@@ -4,6 +4,9 @@
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ eventName || 'Jam - Músicas abertas' }}</h2>
     </div>
   </div>
+  <div class="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6">
+    <app-theme-toggle-two />
+  </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
     <app-card *ngFor="let s of plannedSongs">

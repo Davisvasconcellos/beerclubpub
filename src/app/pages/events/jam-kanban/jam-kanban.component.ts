@@ -66,9 +66,8 @@ export class JamKanbanComponent implements OnInit {
         this.selectedJam = jams && jams.length ? jams[0] : null;
         const jam = this.selectedJam as (ApiJam & { songs?: ApiSong[] }) | null;
         if (jam && Array.isArray(jam.songs) && jam.songs.length) {
-          const seeded = jam.songs.map(s => this.seedFakeCandidates(s));
-          this.songs = seeded;
-          this.tasks = seeded.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s }));
+          this.songs = jam.songs;
+          this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s }));
         } else {
           this.loadSongs();
         }
@@ -82,9 +81,8 @@ export class JamKanbanComponent implements OnInit {
     if (!jam || !this.selectedEventIdCode) { this.songs = []; this.tasks = []; return; }
     this.eventService.getJamSongs(this.selectedEventIdCode, jam.id).subscribe({
       next: (items) => {
-        const seeded = items.map(s => this.seedFakeCandidates(s));
-        this.songs = seeded;
-        this.tasks = seeded.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s }));
+        this.songs = items;
+        this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s }));
       },
       error: () => { this.songs = []; this.tasks = []; }
     });
@@ -125,7 +123,7 @@ export class JamKanbanComponent implements OnInit {
     this.eventService.createSongAuto(this.selectedEventIdCode, payload).subscribe({
       next: (res) => {
         this.selectedJam = res.jam;
-        const song = this.seedFakeCandidates(res.song);
+        const song = res.song;
         this.tasks.unshift({ id: String(song.id), title: song.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (song.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song });
         this.resetForm();
         this.closeAddModal();
@@ -142,22 +140,4 @@ export class JamKanbanComponent implements OnInit {
   onTitleChange(val: string | number) { this.newSong.title = String(val || ''); }
   onArtistChange(val: string | number) { this.newSong.artist = String(val || ''); }
 
-  private seedFakeCandidates(song: ApiSong): ApiSong {
-    const s: any = { ...song };
-    const buckets = Array.isArray((s as any).instrument_buckets) ? [...(s as any).instrument_buckets] : [];
-    const fakeUsers = [
-      { id: 101, display_name: 'User 1', avatar_url: '/images/user/user-01.jpg' },
-      { id: 102, display_name: 'User 2', avatar_url: '/images/user/user-02.jpg' },
-      { id: 103, display_name: 'User 3', avatar_url: '/images/user/user-03.jpg' }
-    ];
-    const seededBuckets = buckets.map((b: any, idx: number) => {
-      const pending = Array.isArray(b.pending) ? b.pending : [];
-      const approved = Array.isArray(b.approved) ? b.approved : [];
-      const seedPool = fakeUsers.slice(0, Math.min(2, fakeUsers.length)).map(u => ({ ...u, id: u.id + idx }));
-      const nextPending = pending.length ? pending : seedPool;
-      return { ...b, pending: nextPending, approved };
-    });
-    s.instrument_buckets = seededBuckets;
-    return s as ApiSong;
-  }
 }

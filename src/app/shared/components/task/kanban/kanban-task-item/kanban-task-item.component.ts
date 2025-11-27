@@ -74,27 +74,37 @@ export class KanbanTaskItemComponent {
     return res;
   }
 
+  getUserKey(user: any): string {
+    const base = user?.id ?? user?.id_code ?? user?.user_id ?? user?.email ?? `${user?.display_name || user?.name || user?.username || 'user'}_${user?.instrument || ''}`;
+    return String(base);
+  }
+
   isUserApproved(bucket: any, user: any): boolean {
     const approved = bucket?.approved || [];
-    return approved.some((u: any) => String(u.id) === String(user.id));
+    const key = this.getUserKey(user);
+    return approved.some((u: any) => this.getUserKey(u) === key);
   }
 
   onCandidateClick(bucket: any, user: any) {
-    const approved = bucket?.approved || [];
-    const pending = bucket?.pending || [];
-    if (approved.some((u: any) => String(u.id) === String(user.id))) return;
+    const approved = Array.isArray(bucket?.approved) ? bucket.approved : [];
+    const pending = Array.isArray(bucket?.pending) ? bucket.pending : [];
+    const key = this.getUserKey(user);
+    if (approved.some((u: any) => this.getUserKey(u) === key)) return;
     const slots = Number(bucket?.slots || 0);
     if (approved.length >= slots) return;
     bucket.approved = [...approved, user];
-    bucket.pending = pending.filter((u: any) => String(u.id) !== String(user.id));
+    bucket.pending = pending.filter((u: any) => this.getUserKey(u) !== key);
   }
 
   onApprovedClick(bucket: any, user: any) {
-    const approved = bucket?.approved || [];
-    const pending = bucket?.pending || [];
-    if (!approved.some((u: any) => String(u.id) === String(user.id))) return;
-    bucket.approved = approved.filter((u: any) => String(u.id) !== String(user.id));
-    bucket.pending = [...pending, user];
+    const approved = Array.isArray(bucket?.approved) ? bucket.approved : [];
+    const pending = Array.isArray(bucket?.pending) ? bucket.pending : [];
+    const key = this.getUserKey(user);
+    if (!approved.some((u: any) => this.getUserKey(u) === key)) return;
+    bucket.approved = approved.filter((u: any) => this.getUserKey(u) !== key);
+    // Evita duplicar no pending se já estiver
+    const existsInPending = pending.some((u: any) => this.getUserKey(u) === key);
+    bucket.pending = existsInPending ? pending : [...pending, user];
   }
 
   getUserName(user: any): string {
