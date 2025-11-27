@@ -3,10 +3,12 @@ import { Task } from '../types/types';
 import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { DndModule } from 'ngx-drag-drop';
+import { EventService } from '../../../../../pages/events/event.service';
 
 
 @Component({
   selector: 'app-kanban-task-item',
+  standalone: true,
   imports: [
     CommonModule,
     DragDropModule,
@@ -19,6 +21,10 @@ export class KanbanTaskItemComponent {
 
   @Input() task: Task = {} as Task;
   @Input() index: number = 0;
+  @Input() eventIdCode: string = '';
+  @Input() jamId?: number | null;
+
+  constructor(private eventService: EventService) {}
 
   getCategoryStyles(color: string): string {
     switch (color) {
@@ -75,7 +81,7 @@ export class KanbanTaskItemComponent {
   }
 
   getUserKey(user: any): string {
-    const base = user?.id ?? user?.id_code ?? user?.user_id ?? user?.email ?? `${user?.display_name || user?.name || user?.username || 'user'}_${user?.instrument || ''}`;
+    const base = user?.candidate_id ?? user?.id ?? user?.id_code ?? user?.user_id ?? user?.email ?? `${user?.display_name || user?.name || user?.username || 'user'}_${user?.instrument || ''}`;
     return String(base);
   }
 
@@ -92,8 +98,31 @@ export class KanbanTaskItemComponent {
     if (approved.some((u: any) => this.getUserKey(u) === key)) return;
     const slots = Number(bucket?.slots || 0);
     if (approved.length >= slots) return;
+    const prevApproved = [...approved];
+    const prevPending = [...pending];
     bucket.approved = [...approved, user];
     bucket.pending = pending.filter((u: any) => this.getUserKey(u) !== key);
+    const songId = this.task?.song?.id;
+    const jamId = this.jamId ?? (this.task?.song?.jam?.id ?? this.task?.song?.jam_id);
+    const eventId = this.eventIdCode;
+    const instrument = String(bucket?.instrument || '');
+    const candidateId = user?.candidate_id ?? user?.application_id ?? user?.id ?? user?.user_id;
+    console.log('[Kanban] Approve candidate payload', {
+      eventId,
+      jamId,
+      songId,
+      instrument,
+      candidateId,
+      status: 'approved'
+    });
+    if (eventId && jamId && songId && candidateId) {
+      this.eventService.approveSongCandidate(eventId, jamId, songId, candidateId).subscribe({
+        error: () => {
+          bucket.approved = prevApproved;
+          bucket.pending = prevPending;
+        }
+      });
+    }
   }
 
   onApprovedClick(bucket: any, user: any) {
@@ -101,10 +130,32 @@ export class KanbanTaskItemComponent {
     const pending = Array.isArray(bucket?.pending) ? bucket.pending : [];
     const key = this.getUserKey(user);
     if (!approved.some((u: any) => this.getUserKey(u) === key)) return;
+    const prevApproved = [...approved];
+    const prevPending = [...pending];
     bucket.approved = approved.filter((u: any) => this.getUserKey(u) !== key);
-    // Evita duplicar no pending se já estiver
     const existsInPending = pending.some((u: any) => this.getUserKey(u) === key);
     bucket.pending = existsInPending ? pending : [...pending, user];
+    const songId = this.task?.song?.id;
+    const jamId = this.jamId ?? (this.task?.song?.jam?.id ?? this.task?.song?.jam_id);
+    const eventId = this.eventIdCode;
+    const instrument = String(bucket?.instrument || '');
+    const candidateId = user?.candidate_id ?? user?.application_id ?? user?.id ?? user?.user_id;
+    console.log('[Kanban] Revert candidate to pending payload', {
+      eventId,
+      jamId,
+      songId,
+      instrument,
+      candidateId,
+      status: 'pending'
+    });
+    if (eventId && jamId && songId && candidateId) {
+      this.eventService.rejectSongCandidate(eventId, jamId, songId, candidateId).subscribe({
+        error: () => {
+          bucket.approved = prevApproved;
+          bucket.pending = prevPending;
+        }
+      });
+    }
   }
 
   getUserName(user: any): string {
@@ -134,6 +185,14 @@ export class KanbanTaskItemComponent {
     const approvedCount = Array.isArray(bucket?.approved) ? bucket.approved.length : 0;
     const remaining = Math.max(0, slots - approvedCount);
     return `${base} - ${remaining}`;
+  }
+
+  getTrackKey(user: any, bucket?: any, index?: number): string {
+    const base = this.getUserKey(user);
+    const inst = typeof bucket?.instrument === 'string' ? bucket.instrument : '';
+    if (base && base.trim().length) return `${base}:${inst}`;
+    if (typeof index === 'number') return `idx:${index}:${inst}`;
+    return `unknown:${inst}`;
   }
 
 }

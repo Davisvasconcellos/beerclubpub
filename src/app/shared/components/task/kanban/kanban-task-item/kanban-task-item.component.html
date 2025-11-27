@@ -31,13 +31,13 @@
       <div class="mt-4 space-y-4">
         <div class="flex items-center gap-2">
           <div class="flex -space-x-2">
-            @for (u of getApprovedUsers(); track u.id) {
+            @for (u of getApprovedUsers(); track $index) {
             <img [src]="getUserAvatar(u)" class="size-7 rounded-full border border-gray-200 dark:border-gray-700" alt="user"/>
             }
           </div>
         </div>
         <div class="space-y-1">
-          @for (item of getApprovedUsersDetailed(); track item.user.id) {
+          @for (item of getApprovedUsersDetailed(); track $index) {
           <div (click)="onApprovedClick(item.bucket, item.user)" class="flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/10">
             <img [src]="getUserAvatar(item.user)" class="size-6 rounded-full border border-green-300" alt="user"/>
             <span class="text-sm text-gray-700 dark:text-gray-300">{{ getUserName(item.user) }}</span>
@@ -51,17 +51,17 @@
           }
         </div>
         <div class="space-y-3">
-          @for (bucket of (task.song?.instrument_buckets || []); track bucket.instrument) {
+          @for (bucket of (task.song?.instrument_buckets || []); track $index) {
           <div class="space-y-2">
             <div class="text-sm font-medium text-gray-800 dark:text-white/90">{{ getInstrumentRemainingLabel(bucket) }}</div>
             <div class="space-y-1">
-              @for (user of (bucket.pending || []); track user.id) {
+              @for (user of (bucket.pending || []); track $index) {
               <button (click)="onCandidateClick(bucket, user)" class="flex items-center gap-2 w-full text-left px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-white/10">
                 <img [src]="getUserAvatar(user)" class="size-6 rounded-full border border-gray-200 dark:border-gray-700" alt="user"/>
                 <span class="text-sm text-gray-700 dark:text-gray-300">{{ getUserName(user) }}</span>
               </button>
               }
-              @for (user of (bucket.approved || []); track user.id) {
+              @for (user of (bucket.approved || []); track $index) {
               <div (click)="onApprovedClick(bucket, user)" class="flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/10">
                 <img [src]="getUserAvatar(user)" class="size-6 rounded-full border border-green-300" alt="user"/>
                 <span class="text-sm text-gray-700 dark:text-gray-300">{{ getUserName(user) }}</span>

@@ -499,6 +499,29 @@ export class EventService {
     );
   }
 
+  setSongApplicationStatus(
+    eventId: string | number,
+    jamId: string | number,
+    songId: string | number,
+    instrument: string,
+    candidate: { id?: number | string; id_code?: string; email?: string },
+    status: 'pending' | 'approved' | 'rejected'
+  ): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/applications/status`;
+    const body: any = {
+      instrument,
+      status,
+      user_id: candidate?.id,
+      user_id_code: candidate?.id_code,
+      user_email: candidate?.email
+    };
+    return this.http.post<{ success: boolean; data?: any; message?: string }>(url, body, { headers }).pipe(
+      map((resp) => !!resp?.success)
+    );
+  }
+
   getOpenSongsWithMyApplication(eventId: string | number, jamId: string | number): Observable<any[]> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
@@ -1156,5 +1179,18 @@ export class EventService {
     return this.http.post<SubmitResponsesResult>(url, body, { headers }).pipe(
       map((resp) => resp || { success: false })
     );
+  }
+  approveSongCandidate(eventId: string | number, jamId: string | number, songId: string | number, candidateId: string | number): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/candidates/${candidateId}/approve`;
+    return this.http.post<{ success: boolean }>(url, {}, { headers }).pipe(map((resp) => !!resp?.success));
+  }
+
+  rejectSongCandidate(eventId: string | number, jamId: string | number, songId: string | number, candidateId: string | number): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/candidates/${candidateId}/reject`;
+    return this.http.post<{ success: boolean }>(url, {}, { headers }).pipe(map((resp) => !!resp?.success));
   }
 }

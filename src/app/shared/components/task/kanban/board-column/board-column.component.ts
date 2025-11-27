@@ -19,6 +19,8 @@ export class BoardColumnComponent {
   @Input() title: string = '';
   @Input() tasks: Task[] = [];
   @Input() status: string = '';
+  @Input() eventIdCode: string = '';
+  @Input() jamId?: number | null;
   @Output() taskDropped = new EventEmitter<{ event: DndDropEvent, status: string }>();
 
   isOpen = false;
