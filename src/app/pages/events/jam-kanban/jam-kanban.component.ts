@@ -8,6 +8,7 @@ import { ModalComponent } from '../../../shared/components/ui/modal/modal.compon
 import { LabelComponent } from '../../../shared/components/form/label/label.component';
 import { InputFieldComponent } from '../../../shared/components/form/input/input-field.component';
 import { EventService, EventListItem, ApiJam, ApiSong } from '../event.service';
+import { forkJoin, of } from 'rxjs';
 
 type SongStatus = 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled';
 
@@ -101,6 +102,23 @@ export class JamKanbanComponent implements OnInit {
     this.eventService.moveSongStatus(this.selectedEventIdCode, jam.id, songId, status as SongStatus).subscribe({
       next: (updated) => {
         this.tasks = this.tasks.map(t => t.id === songId ? { ...t, status: status as SongStatus } : t);
+        if (status === 'on_stage') {
+          const task = this.tasks.find(t => t.id === songId);
+          const buckets = task?.song?.instrument_buckets || [];
+          const rejects: any[] = [];
+          for (const b of buckets as any[]) {
+            const pend = Array.isArray(b?.pending) ? b.pending : [];
+            for (const u of pend) {
+              const cid = (u?.candidate_id ?? u?.application_id ?? u?.id ?? u?.user_id);
+              if (cid !== undefined && cid !== null) {
+                rejects.push(this.eventService.rejectSongCandidate(this.selectedEventIdCode, jam.id, songId, cid));
+              }
+            }
+          }
+          if (rejects.length) {
+            forkJoin(rejects).subscribe({ next: () => {}, error: () => {} });
+          }
+        }
       },
       error: () => {
         // fallback: revert UI by reloading
