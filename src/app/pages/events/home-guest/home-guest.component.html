@@ -1,36 +1,48 @@
 <div class="space-y-6">
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-    <div class="flex items-center justify-between mb-2">
-      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Jam - Músicas abertas</h2>
+    <div class="flex items-center justify-center mb-2">
+      <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ eventName || 'Jam - Músicas abertas' }}</h2>
     </div>
-    <p class="text-xs text-gray-500 dark:text-gray-400">Evento: {{ eventIdCode || 'não informado' }}</p>
   </div>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 px-4 sm:px-6 lg:px-8">
     <app-card *ngFor="let s of plannedSongs">
-      <app-card-title>{{ s.title }}</app-card-title>
-      <app-card-description>
-        {{ s.artist || 'Sem artista' }}
-      </app-card-description>
-      <div class="mt-3 text-xs text-gray-500 dark:text-gray-400">Status: {{ s.status }}</div>
-      <div class="mt-4 flex flex-wrap gap-2">
-        <button *ngFor="let b of getInstrumentBuckets(s)"
-                type="button"
-                (click)="toggleRequest(s,b)"
-                [disabled]="isLocked(getSongId(s))"
-                class="inline-flex items-center justify-center size-10 rounded-md border"
-                [ngClass]="
-                  isRequested(getSongId(s), b.instrument)
-                    ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30'
-                    : (isLocked(getSongId(s)) ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed opacity-60 dark:bg-white/5 dark:text-gray-600 dark:border-gray-700' : 'bg-white text-gray-700 border-gray-200 dark:bg-white/5 dark:text-gray-300 dark:border-gray-700')
-                "
-                [attr.title]="instrumentLabel(b.instrument)">
-          <img [src]="iconForInstrument(b.instrument)"
-               alt="icon"
-               class="size-6 dark:invert" />
-        </button>
+      <div>
+        <div class="-mx-5 -mt-5 sm:-mx-6 sm:-mt-6">
+          <div class="h-1 rounded-t" [ngClass]="getCardBarClass(getSongId(s))"></div>
+        </div>
+        <app-card-title>{{ s.title }}</app-card-title>
+        <app-card-description>
+          {{ s.artist || 'Sem artista' }}
+        </app-card-description>
+        <div class="mt-3">
+          <span [ngClass]="getBadge(s).classes">{{ getBadge(s).label }}</span>
+        </div>
       </div>
-
+      <div class="mt-4 flex flex-wrap gap-2">
+         <button *ngFor="let b of getInstrumentBuckets(s)"
+                 type="button"
+                 (click)="toggleRequest(s,b)"
+                 class="relative inline-flex items-center justify-center size-10 rounded-md border"
+                 [ngClass]="
+                   isRequested(getSongId(s), b.instrument)
+                     ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30'
+                     : 'bg-white text-gray-700 border-gray-200 dark:bg-white/5 dark:text-gray-300 dark:border-gray-700'
+                 "
+                 [attr.title]="instrumentLabel(b.instrument)">
+            <img [src]="iconForInstrument(b.instrument)"
+                 alt="icon"
+                 class="size-6 dark:invert" />
+            <span class="absolute -top-1 -right-1 rounded-full min-w-[18px] h-4 px-1 text-[10px] font-semibold flex items-center justify-center"
+                  [ngClass]="
+                    (b.remaining ?? 0) > 0
+                      ? 'bg-gray-200 text-gray-700 dark:bg-white/10 dark:text-gray-300'
+                      : 'bg-gray-300 text-gray-500 dark:bg-white/5 dark:text-gray-500'
+                  ">
+              {{ b.remaining ?? 0 }}
+            </span>
+          </button>
+      </div>
       <div class="mt-2">
         <div class="relative h-0.5">
           <div class="absolute inset-0 bg-gray-200 dark:bg-gray-700"></div>

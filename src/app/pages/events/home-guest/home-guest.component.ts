@@ -23,9 +23,13 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   lockDeadline: Record<number, number> = {};
   submitted: Record<number, boolean> = {};
   attempting: Record<number, boolean> = {};
+  submitError: Record<number, boolean> = {};
+  approvedMap: Record<number, boolean> = {};
+  myStatusMap: Record<number, string> = {};
   now: number = Date.now();
   tickHandle: any;
   songJamMap: Record<number, number> = {};
+  eventName = '';
 
   constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector) {}
 
@@ -37,6 +41,10 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     this.route.paramMap.subscribe(pm => {
       this.eventIdCode = pm.get('id_code') || '';
       if (this.eventIdCode) {
+        this.eventService.getPublicEventByIdCodeDetail(this.eventIdCode).subscribe({
+          next: (res) => { this.eventName = res?.event?.title || res?.event?.name || ''; },
+          error: () => { this.eventName = ''; }
+        });
         this.loadJams();
       } else {
         this.jams = [];
@@ -51,21 +59,38 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   private loadJams(): void {
     if (!this.eventIdCode) { this.jams = []; this.plannedSongs = []; return; }
-    this.eventService.getEventJams(this.eventIdCode).subscribe({
-      next: (jams) => {
-        this.jams = jams || [];
-        const songs = this.flattenSongsFromJams(this.jams);
-        // mapear song -> jam
+    this.eventService.getEventOpenJamsSongs(this.eventIdCode).subscribe({
+      next: (songs: ApiSong[]) => {
         this.songJamMap = {};
-        (this.jams || []).forEach(j => {
-          const jsongs = Array.isArray(j.songs) ? (j.songs as ApiSong[]) : [];
-          jsongs.forEach(s => { this.songJamMap[Number((s as any).id)] = Number(j.id); });
+        songs.forEach((s: any) => {
+          const sid = Number(s?.id);
+          const jid = Number(s?.jam?.id ?? s?.jam_id);
+          if (!Number.isNaN(sid) && !Number.isNaN(jid)) this.songJamMap[sid] = jid;
+          const my = s?.my_application;
+          if (my) {
+            const instr = String(my.instrument || '');
+            const status = String(my.status || 'pending');
+            this.selections[sid] = instr || null;
+            this.lockDeadline[sid] = this.now; // bloqueado
+            this.submitted[sid] = true;
+            this.submitError[sid] = status === 'rejected';
+            this.approvedMap[sid] = status === 'approved';
+            this.myStatusMap[sid] = status;
+          }
         });
-        this.plannedSongs = songs.filter(s => (s.status as any) === 'open_for_candidates');
+        this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates');
       },
-      error: () => { this.jams = []; this.plannedSongs = []; }
+      error: (err) => {
+        this.jams = []; this.plannedSongs = [];
+        const status = Number(err?.status || 0);
+        if (status === 401) this.triggerToast('error', 'Acesso negado', 'Faça login para ver as músicas abertas.');
+        else if (status === 403) this.triggerToast('error', 'Check-in necessário', 'Finalize o check-in no evento para ver as músicas.');
+        else this.triggerToast('error', 'Erro ao carregar', 'Não foi possível listar as músicas abertas.');
+      }
     });
   }
+
+  // removido: carregamento por jam, substituído por endpoint agregado
 
   private flattenSongsFromJams(jams: ApiJam[]): ApiSong[] {
     const acc: ApiSong[] = [];
@@ -78,7 +103,20 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   getInstrumentBuckets(song: ApiSong): any[] {
     const s: any = song as any;
-    return Array.isArray(s.instrument_buckets) ? s.instrument_buckets : [];
+    if (Array.isArray(s.instrument_buckets)) return s.instrument_buckets;
+    if (Array.isArray(s.instrument_slots)) {
+      return s.instrument_slots.map((slot: any) => ({
+        instrument: String(slot.instrument),
+        slots: Number(slot.slots || 0),
+        remaining: Number(
+          slot?.remaining_slots ?? (
+            Number(slot.slots || 0) - Number(slot.approved_count || 0)
+          )
+        )
+      }));
+    }
+    const inst = Array.isArray(s.instrumentation) ? s.instrumentation : [];
+    return inst.map((k: any) => ({ instrument: String(k), slots: 0, remaining: 0 }));
   }
 
   instrumentLabel(key: string): string {
@@ -153,20 +191,45 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       this.eventService.applySongCandidate(this.eventIdCode, jamId, songId, sel).subscribe({
         next: (ok) => {
           this.submitted[songId] = !!ok;
+          this.submitError[songId] = !ok;
           this.attempting[songId] = false;
-          if (ok) this.triggerToast('success', 'Candidatura enviada', 'Sua candidatura foi enviada com sucesso.');
+          if (ok) {
+            this.myStatusMap[songId] = 'pending';
+            this.triggerToast('warning', 'Candidatura enviada', 'Sua candidatura foi registrada e aguarda aprovação.');
+          }
           else this.triggerToast('error', 'Falha ao enviar', 'Não foi possível enviar sua candidatura.');
         },
         error: (err) => {
-          this.submitted[songId] = false;
+          const status = Number(err?.status || 0);
+          if (status === 409) {
+            this.submitted[songId] = true;
+            this.submitError[songId] = false;
+            this.myStatusMap[songId] = this.myStatusMap[songId] || 'pending';
+            this.triggerToast('error', 'Já candidatado', 'Você já possui candidatura para esta música.');
+          } else {
+            this.submitted[songId] = false;
+            this.submitError[songId] = true;
+            const msg = (err?.error?.message || err?.message || 'Erro ao enviar candidatura');
+            this.triggerToast('error', 'Erro', msg);
+          }
           this.attempting[songId] = false;
-          const msg = (err?.error?.message || err?.message || 'Erro ao enviar candidatura');
-          this.triggerToast('error', 'Erro', msg);
         }
       });
     });
   }
 
+  getCardBarClass(songId: number): string {
+    const locked = this.isLocked(songId);
+    const hasSel = !!this.selections[songId];
+    const ok = !!this.submitted[songId];
+    const err = !!this.submitError[songId];
+    const approved = !!this.approvedMap[songId];
+    if (hasSel && !locked) return 'bg-yellow-500 dark:bg-yellow-400';
+    if (locked && ok && approved) return 'bg-green-500 dark:bg-green-400';
+    if (locked && ok && !approved) return 'bg-yellow-500 dark:bg-yellow-400';
+    if (locked && err) return 'bg-red-500 dark:bg-red-400';
+    return 'bg-transparent';
+  }
   private triggerToast(
     variant: 'success' | 'info' | 'warning' | 'error',
     title: string,
@@ -176,25 +239,34 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       environmentInjector: this.envInjector,
       elementInjector: this.injector,
     });
-    try {
-      compRef.setInput('variant', variant);
-      compRef.setInput('title', title);
-      compRef.setInput('description', description);
-      compRef.setInput('hideDuration', 3000);
+    compRef.setInput('variant', variant);
+    compRef.setInput('title', title);
+    compRef.setInput('description', description);
+    compRef.setInput('hideDuration', 3000);
+    this.appRef.attachView(compRef.hostView);
+    const host = compRef.location.nativeElement as HTMLElement;
+    host.style.position = 'fixed';
+    host.style.top = '16px';
+    host.style.right = '16px';
+    host.style.zIndex = '2147483647';
+    host.style.pointerEvents = 'auto';
+    document.body.appendChild(host);
+    setTimeout(() => {
+      this.appRef.detachView(compRef.hostView);
+      compRef.destroy();
+    }, 3200);
+  }
 
-      this.appRef.attachView(compRef.hostView);
-      const host = compRef.location.nativeElement as HTMLElement;
-      host.style.position = 'fixed';
-      host.style.top = '16px';
-      host.style.right = '16px';
-      host.style.zIndex = '2147483647';
-      host.style.pointerEvents = 'auto';
-      document.body.appendChild(host);
-
-      setTimeout(() => {
-        this.appRef.detachView(compRef.hostView);
-        compRef.destroy();
-      }, 3200);
-    } catch { /* noop */ }
+  getBadge(song: ApiSong): { label: string; classes: string } {
+    const id = this.getSongId(song);
+    const base = 'inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium';
+    const my = this.myStatusMap[id] || '';
+    const isOpen = String((song as any)?.status) === 'open_for_candidates';
+    if (!isOpen) return { label: 'finished', classes: base + ' bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600' };
+    if (!my) return { label: 'open', classes: base + ' bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-600/30 dark:text-blue-200 dark:border-blue-500/40' };
+    if (my === 'pending') return { label: 'waiting', classes: base + ' bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-600/30 dark:text-yellow-200 dark:border-yellow-500/40' };
+    if (my === 'approved') return { label: 'finished', classes: base + ' bg-green-100 text-green-700 border-green-200 dark:bg-green-600/30 dark:text-green-200 dark:border-green-500/40' };
+    if (my === 'rejected') return { label: 'finished', classes: base + ' bg-red-100 text-red-700 border-red-200 dark:bg-red-600/30 dark:text-red-200 dark:border-red-500/40' };
+    return { label: 'open', classes: base + ' bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-600/30 dark:text-blue-200 dark:border-blue-500/40' };
   }
 }

@@ -121,6 +121,21 @@ export interface ApiSong {
   notes?: string | null;
   status?: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled';
   instrument_buckets?: any[];
+  instrument_slots?: Array<{
+    instrument: string;
+    slots: number;
+    required?: boolean;
+    fallback_allowed?: boolean;
+    approved_count?: number;
+    pending_count?: number;
+    remaining_slots?: number;
+  }>;
+  release_batch?: number;
+  jam?: { id: number; name?: string; status?: string } | null;
+  jam_id?: number; // compat
+  instrumentation?: string[]; // compat
+  rating_summary?: any;
+  my_application?: { instrument?: string; status?: 'pending' | 'approved' | 'rejected' } | null;
 }
 
 export interface InstrumentSlotPayload {
@@ -481,6 +496,42 @@ export class EventService {
     const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/apply`;
     return this.http.post<{ success: boolean; data?: any; message?: string }>(url, { instrument }, { headers }).pipe(
       map((resp) => !!resp?.success)
+    );
+  }
+
+  getOpenSongsWithMyApplication(eventId: string | number, jamId: string | number): Observable<any[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/open`;
+    return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
+      map((resp) => {
+        const songs = resp?.data?.songs || resp?.data || [];
+        return Array.isArray(songs) ? songs : [];
+      })
+    );
+  }
+
+  getEventOpenJamsSongs(eventId: string | number): Observable<ApiSong[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/open`;
+    return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
+      map((resp) => {
+        const songs = resp?.data?.songs || resp?.data || [];
+        return (Array.isArray(songs) ? songs : []) as ApiSong[];
+      })
+    );
+  }
+
+  getEventJamsPublic(eventId: string | number): Observable<ApiJam[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams`;
+    return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
+      map((resp) => {
+        const jams = resp?.data?.jams || resp?.data || [];
+        return (Array.isArray(jams) ? jams : []) as ApiJam[];
+      })
     );
   }
 
