@@ -151,6 +151,7 @@ export class AppSidebarComponent {
         { name: "Faqs", path: "/faq", pro: false },
         { name: "API Keys", path: "/api-keys", new: true },
         { name: "Integrations", path: "/integrations", new: true },
+        { name: "SSE Test", path: "/stream", pro: false },
         { name: "Blank Page", path: "/blank", pro: false },
         { name: "Blank (sem layout)", path: "/blank-no-layout", pro: false },
         { name: "404 Error", path: "/error-404", pro: false },

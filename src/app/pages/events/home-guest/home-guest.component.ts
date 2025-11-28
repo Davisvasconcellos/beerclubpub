@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
 import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CardComponent } from '../../../shared/components/ui/card/card.component';
 import { CardTitleComponent } from '../../../shared/components/ui/card/card-title.component';
@@ -37,17 +37,21 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   eventName = '';
   esMap: Record<number, EventSource> = {};
   sseRefreshTimer: any;
-  allJamIds: number[] = [];
+  
   debugSse = true;
   sseOpenCount = 0;
   lastEventType = '';
   lastEventAt = 0;
-  sseStatusText = '';
+  lastEventAtMap: Record<number, number> = {};
+  sseStatusText = 'SSE 0 • - • -';
   pollingHandle: any;
   backoffUntilMs = 0;
   enablePolling = false;
+  jamId: number | null = null;
+  sseWatchdogHandle: any;
+  enableWatchdog = false;
 
-  constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector, private authService: AuthService) {}
+  constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector, private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.tickHandle = setInterval(() => {
@@ -61,9 +65,15 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           next: (res) => { this.eventName = res?.event?.title || res?.event?.name || ''; },
           error: () => { this.eventName = ''; }
         });
+        this.eventService.getEventJamId(this.eventIdCode).subscribe({
+          next: (jid) => { this.jamId = jid; this.ensureStreams(); },
+          error: (err) => {
+            const status = Number(err?.status || 0);
+            if (status === 403 && this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
+          }
+        });
         this.loadJams();
         this.loadOnStageOnce();
-        this.loadAllJamsPublic();
       } else {
         this.jams = [];
         this.plannedSongs = [];
@@ -74,6 +84,11 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         this.enablePolling = sp.get('poll') === '1' || sp.get('fallback') === '1';
       } catch {}
       if (this.enablePolling) this.startPolling();
+      try {
+        const sp2 = new URLSearchParams(String((window as any)?.location?.search || ''));
+        this.enableWatchdog = sp2.get('watchdog') === '1';
+      } catch {}
+      if (this.enableWatchdog) this.startSseWatchdog();
       try {
         document.addEventListener('visibilitychange', () => {
           if (document.hidden) return;
@@ -92,6 +107,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     });
     if (this.sseRefreshTimer) clearTimeout(this.sseRefreshTimer);
     if (this.pollingHandle) clearInterval(this.pollingHandle);
+    if (this.sseWatchdogHandle) clearInterval(this.sseWatchdogHandle);
   }
 
   private loadJams(): void {
@@ -122,7 +138,10 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         this.jams = []; this.plannedSongs = [];
         const status = Number(err?.status || 0);
         if (status === 401) this.triggerToast('error', 'Acesso negado', 'Faça login para ver as músicas abertas.');
-        else if (status === 403) this.triggerToast('error', 'Check-in necessário', 'Finalize o check-in no evento para ver as músicas.');
+        else if (status === 403) {
+          this.triggerToast('error', 'Check-in necessário', 'Finalize o check-in no evento para ver as músicas.');
+          if (this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
+        }
         else this.triggerToast('error', 'Erro ao carregar', 'Não foi possível listar as músicas abertas.');
       }
     });
@@ -138,28 +157,21 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       error: (err) => {
         const status = Number(err?.status || 0);
         if (status === 401) this.onStageSongs = [];
-        else if (status === 403) this.onStageSongs = [];
+        else if (status === 403) {
+          this.onStageSongs = [];
+          if (this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
+        }
         else this.onStageSongs = [];
       }
     });
   }
 
-  private loadAllJamsPublic(): void {
-    if (!this.eventIdCode) { this.allJamIds = []; return; }
-    this.eventService.getEventJamsPublic(this.eventIdCode).subscribe({
-      next: (jams: ApiJam[]) => {
-        this.allJamIds = (jams || []).map(j => Number((j as any)?.id)).filter(n => !Number.isNaN(n));
-        this.ensureStreams();
-      },
-      error: () => { this.allJamIds = []; }
-    });
-  }
 
   private ensureStreams(): void {
     if (!this.eventIdCode) return;
     const idsFromOpen = Array.from(new Set(Object.values(this.songJamMap)));
     const idsFromStage = Array.from(new Set((this.onStageSongs || []).map(s => Number((s as any)?.jam?.id ?? (s as any)?.jam_id)).filter(n => !Number.isNaN(n))));
-    const jamIds = Array.from(new Set([ ...idsFromOpen, ...idsFromStage, ...this.allJamIds ]));
+    const jamIds = Array.from(new Set([ ...idsFromOpen, ...idsFromStage, ...(this.jamId ? [this.jamId] : []) ]));
     for (const jid of jamIds) {
       if (!jid || this.esMap[jid]) continue;
       const es = this.eventService.streamJam(this.eventIdCode, jid);
@@ -169,21 +181,25 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         this.updateSseStatus();
         if (this.debugSse) console.log('SSE open', { jamId: jid });
       };
-      es.onmessage = (ev: MessageEvent) => {
+      const handleMessage = (ev: MessageEvent) => {
         try {
+          if (this.debugSse) console.log('SSE raw', { jamId: jid, data: ev?.data });
           const data = JSON.parse(ev.data || '{}');
           const type = String(data?.type || data?.event || '');
           const payload = data?.payload || {};
           this.lastEventType = type || '';
           this.lastEventAt = Date.now();
+          this.lastEventAtMap[jid] = this.lastEventAt;
           this.updateSseStatus();
           if (this.debugSse) console.log('SSE event', { jamId: jid, type, payload });
-          if (type) this.scheduleRefresh();
+          this.scheduleRefresh();
         } catch {
           if (this.debugSse) console.log('SSE parse error', { jamId: jid, raw: ev?.data });
           this.scheduleRefresh();
         }
       };
+      es.onmessage = handleMessage;
+      try { (es as any).addEventListener && (es as any).addEventListener('message', handleMessage as any); } catch {}
       es.onerror = () => {
         if (this.debugSse) console.log('SSE error', { jamId: jid });
         this.updateSseStatus();
@@ -210,7 +226,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           if (!Number.isNaN(sid) && !Number.isNaN(jid)) this.songJamMap[sid] = jid;
         });
         this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates' && String((s as any)?.my_application?.status || '') !== 'rejected');
-        if (this.debugSse) console.log('Refetch open', { count: this.plannedSongs.length });
+        if (this.debugSse) console.log('Refetch open', { count: this.plannedSongs.length, ids: this.plannedSongs.map((x: any) => x?.id) });
       },
       error: (err) => {
         const status = Number(err?.status || 0);
@@ -218,16 +234,18 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           this.backoffUntilMs = Date.now() + 45000;
           if (this.debugSse) console.log('Backoff open', { until: this.backoffUntilMs });
         }
+        if (this.debugSse) console.log('Refetch open error', { status });
       }
     });
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
-      next: (songs: ApiSong[]) => { this.onStageSongs = Array.isArray(songs) ? songs : []; if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length }); },
+      next: (songs: ApiSong[]) => { this.onStageSongs = Array.isArray(songs) ? songs : []; if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length, ids: this.onStageSongs.map((x: any) => x?.id) }); },
       error: (err) => {
         const status = Number(err?.status || 0);
         if (status === 429) {
           this.backoffUntilMs = Date.now() + 45000;
           if (this.debugSse) console.log('Backoff onStage', { until: this.backoffUntilMs });
         }
+        if (this.debugSse) console.log('Refetch onStage error', { status });
       }
     });
   }
@@ -245,6 +263,25 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       if (typeof document !== 'undefined' && (document as any).hidden) return;
       if (this.backoffUntilMs && Date.now() < this.backoffUntilMs) return;
       this.refreshLists();
+    }, 15000);
+  }
+
+  private startSseWatchdog(): void {
+    if (this.sseWatchdogHandle) return;
+    this.sseWatchdogHandle = setInterval(() => {
+      const now = Date.now();
+      const staleIds = Object.keys(this.esMap).map(Number).filter(jid => {
+        const last = this.lastEventAtMap[jid] || 0;
+        return !last || (now - last) > 30000; // 30s sem eventos
+      });
+      if (staleIds.length) {
+        staleIds.forEach(jid => {
+          try { this.esMap[jid].close(); } catch {}
+          delete this.esMap[jid];
+          if (this.debugSse) console.log('SSE watchdog reconnect', { jamId: jid });
+        });
+        this.ensureStreams();
+      }
     }, 15000);
   }
 

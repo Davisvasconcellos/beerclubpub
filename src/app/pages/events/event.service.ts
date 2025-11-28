@@ -537,7 +537,7 @@ export class EventService {
   getEventOpenJamsSongs(eventId: string | number): Observable<ApiSong[]> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const url = `${this.API_BASE_URL}/events/${eventId}/jams/open`;
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/open`;
     return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
       map((resp) => {
         const songs = resp?.data?.songs || resp?.data || [];
@@ -549,7 +549,7 @@ export class EventService {
   getEventMyOnStage(eventId: string | number): Observable<ApiSong[]> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
-    const url = `${this.API_BASE_URL}/events/${eventId}/jams/my/on-stage`;
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/my/on-stage`;
     return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
       map((resp) => {
         const songs = resp?.data?.songs || resp?.data || [];
@@ -600,6 +600,20 @@ export class EventService {
   streamJam(eventId: string | number, jamId: string | number): EventSource {
     const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/${jamId}/stream`;
     return new EventSource(url);
+  }
+
+  getEventJamId(eventId: string | number): Observable<number | null> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jam`;
+    return this.http.get<any>(url, { headers }).pipe(
+      map((resp) => {
+        const jamId = resp?.data?.jam_id ?? resp?.jam_id ?? null;
+        if (jamId === null || jamId === undefined) return null;
+        const n = Number(jamId);
+        return Number.isNaN(n) ? null : n;
+      })
+    );
   }
 
   moveSongStatus(eventId: string | number, jamId: string | number, songId: string | number, status: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled'): Observable<ApiSong> {
