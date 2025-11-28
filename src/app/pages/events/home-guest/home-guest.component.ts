@@ -35,6 +35,17 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   tickHandle: any;
   songJamMap: Record<number, number> = {};
   eventName = '';
+  esMap: Record<number, EventSource> = {};
+  sseRefreshTimer: any;
+  allJamIds: number[] = [];
+  debugSse = true;
+  sseOpenCount = 0;
+  lastEventType = '';
+  lastEventAt = 0;
+  sseStatusText = '';
+  pollingHandle: any;
+  backoffUntilMs = 0;
+  enablePolling = false;
 
   constructor(private eventService: EventService, private route: ActivatedRoute, private appRef: ApplicationRef, private injector: Injector, private envInjector: EnvironmentInjector, private authService: AuthService) {}
 
@@ -52,15 +63,35 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         });
         this.loadJams();
         this.loadOnStageOnce();
+        this.loadAllJamsPublic();
       } else {
         this.jams = [];
         this.plannedSongs = [];
       }
+      try {
+        const sp = new URLSearchParams(String((window as any)?.location?.search || ''));
+        this.debugSse = sp.get('debug') === '1' || this.debugSse;
+        this.enablePolling = sp.get('poll') === '1' || sp.get('fallback') === '1';
+      } catch {}
+      if (this.enablePolling) this.startPolling();
+      try {
+        document.addEventListener('visibilitychange', () => {
+          if (document.hidden) return;
+          this.scheduleRefresh();
+        });
+      } catch {}
     });
   }
 
   ngOnDestroy(): void {
     if (this.tickHandle) clearInterval(this.tickHandle);
+    const ids = Object.keys(this.esMap);
+    ids.forEach(id => {
+      try { this.esMap[Number(id)].close(); } catch {}
+      delete this.esMap[Number(id)];
+    });
+    if (this.sseRefreshTimer) clearTimeout(this.sseRefreshTimer);
+    if (this.pollingHandle) clearInterval(this.pollingHandle);
   }
 
   private loadJams(): void {
@@ -84,7 +115,8 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
             this.myStatusMap[sid] = status;
           }
         });
-        this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates');
+        this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates' && String((s as any)?.my_application?.status || '') !== 'rejected');
+        this.ensureStreams();
       },
       error: (err) => {
         this.jams = []; this.plannedSongs = [];
@@ -101,6 +133,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.onStageSongs = Array.isArray(songs) ? songs : [];
+        this.ensureStreams();
       },
       error: (err) => {
         const status = Number(err?.status || 0);
@@ -109,6 +142,110 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         else this.onStageSongs = [];
       }
     });
+  }
+
+  private loadAllJamsPublic(): void {
+    if (!this.eventIdCode) { this.allJamIds = []; return; }
+    this.eventService.getEventJamsPublic(this.eventIdCode).subscribe({
+      next: (jams: ApiJam[]) => {
+        this.allJamIds = (jams || []).map(j => Number((j as any)?.id)).filter(n => !Number.isNaN(n));
+        this.ensureStreams();
+      },
+      error: () => { this.allJamIds = []; }
+    });
+  }
+
+  private ensureStreams(): void {
+    if (!this.eventIdCode) return;
+    const idsFromOpen = Array.from(new Set(Object.values(this.songJamMap)));
+    const idsFromStage = Array.from(new Set((this.onStageSongs || []).map(s => Number((s as any)?.jam?.id ?? (s as any)?.jam_id)).filter(n => !Number.isNaN(n))));
+    const jamIds = Array.from(new Set([ ...idsFromOpen, ...idsFromStage, ...this.allJamIds ]));
+    for (const jid of jamIds) {
+      if (!jid || this.esMap[jid]) continue;
+      const es = this.eventService.streamJam(this.eventIdCode, jid);
+      if (this.debugSse) console.log('SSE connect', { eventId: this.eventIdCode, jamId: jid });
+      es.onopen = () => {
+        this.sseOpenCount = Object.keys(this.esMap).length;
+        this.updateSseStatus();
+        if (this.debugSse) console.log('SSE open', { jamId: jid });
+      };
+      es.onmessage = (ev: MessageEvent) => {
+        try {
+          const data = JSON.parse(ev.data || '{}');
+          const type = String(data?.type || data?.event || '');
+          const payload = data?.payload || {};
+          this.lastEventType = type || '';
+          this.lastEventAt = Date.now();
+          this.updateSseStatus();
+          if (this.debugSse) console.log('SSE event', { jamId: jid, type, payload });
+          if (type) this.scheduleRefresh();
+        } catch {
+          if (this.debugSse) console.log('SSE parse error', { jamId: jid, raw: ev?.data });
+          this.scheduleRefresh();
+        }
+      };
+      es.onerror = () => {
+        if (this.debugSse) console.log('SSE error', { jamId: jid });
+        this.updateSseStatus();
+      };
+      this.esMap[jid] = es;
+    }
+  }
+
+  private scheduleRefresh(): void {
+    if (this.sseRefreshTimer) clearTimeout(this.sseRefreshTimer);
+    this.sseRefreshTimer = setTimeout(() => {
+      this.refreshLists();
+    }, 200);
+  }
+
+  private refreshLists(): void {
+    if (!this.eventIdCode) return;
+    this.eventService.getEventOpenJamsSongs(this.eventIdCode).subscribe({
+      next: (songs: ApiSong[]) => {
+        this.songJamMap = {};
+        songs.forEach((s: any) => {
+          const sid = Number(s?.id);
+          const jid = Number(s?.jam?.id ?? s?.jam_id);
+          if (!Number.isNaN(sid) && !Number.isNaN(jid)) this.songJamMap[sid] = jid;
+        });
+        this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates' && String((s as any)?.my_application?.status || '') !== 'rejected');
+        if (this.debugSse) console.log('Refetch open', { count: this.plannedSongs.length });
+      },
+      error: (err) => {
+        const status = Number(err?.status || 0);
+        if (status === 429) {
+          this.backoffUntilMs = Date.now() + 45000;
+          if (this.debugSse) console.log('Backoff open', { until: this.backoffUntilMs });
+        }
+      }
+    });
+    this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
+      next: (songs: ApiSong[]) => { this.onStageSongs = Array.isArray(songs) ? songs : []; if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length }); },
+      error: (err) => {
+        const status = Number(err?.status || 0);
+        if (status === 429) {
+          this.backoffUntilMs = Date.now() + 45000;
+          if (this.debugSse) console.log('Backoff onStage', { until: this.backoffUntilMs });
+        }
+      }
+    });
+  }
+
+  private updateSseStatus(): void {
+    const streams = Object.keys(this.esMap).length;
+    const last = this.lastEventAt ? new Date(this.lastEventAt).toLocaleTimeString() : '-';
+    const type = this.lastEventType || '-';
+    this.sseStatusText = `SSE ${streams} • ${type} • ${last}`;
+  }
+
+  private startPolling(): void {
+    if (this.pollingHandle) return;
+    this.pollingHandle = setInterval(() => {
+      if (typeof document !== 'undefined' && (document as any).hidden) return;
+      if (this.backoffUntilMs && Date.now() < this.backoffUntilMs) return;
+      this.refreshLists();
+    }, 15000);
   }
 
   private isSongOnStageApprovedForMe(song: ApiSong): boolean {
