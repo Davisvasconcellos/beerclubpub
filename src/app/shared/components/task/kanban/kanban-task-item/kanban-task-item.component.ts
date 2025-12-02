@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { DndModule } from 'ngx-drag-drop';
 import { EventService } from '../../../../../pages/events/event.service';
+import { forkJoin } from 'rxjs';
 
 
 @Component({
@@ -25,6 +26,7 @@ export class KanbanTaskItemComponent {
   @Input() jamId?: number | null;
   @Output() edit = new EventEmitter<Task>();
   @Output() delete = new EventEmitter<Task>();
+  @Output() readyToggled = new EventEmitter<Task>();
 
   isMenuOpen = false;
 
@@ -62,7 +64,25 @@ export class KanbanTaskItemComponent {
   toggleReady(event?: MouseEvent) {
     if (event) { try { event.stopPropagation(); } catch {} }
     if (this.task.status !== 'open_for_candidates') return;
-    this.task.ready = !this.task.ready;
+    const jamId = this.jamId ?? (this.task?.song?.jam?.id ?? this.task?.song?.jam_id);
+    const eventId = this.eventIdCode;
+    const songId = this.task?.song?.id ?? this.task?.id;
+    if (!eventId || !jamId || !songId) return;
+
+    const nextReady = !this.task.ready;
+    try { console.log('[Kanban] Toggle ready da música', { eventId, jamId, songId, ready: nextReady }); } catch {}
+    this.eventService.updateSongReady(eventId, jamId, songId, nextReady).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.task.ready = nextReady;
+          if (!nextReady) this.task.orderIndex = undefined;
+          this.readyToggled.emit(this.task);
+        }
+      },
+      error: (err) => {
+        try { console.log('[Kanban] Falha ao atualizar ready', err?.message || err); } catch {}
+      }
+    });
   }
 
   isToggleDisabled(): boolean {

@@ -5,6 +5,11 @@
   (dndEnd)="onDragEnd($event)"
   class="relative p-5 bg-white border task rounded-xl shadow-theme-sm dark:bg-white/5"
   [ngClass]="task.ready ? 'border-green-500' : 'border-gray-200 dark:border-gray-800'">
+      @if (task.status === 'open_for_candidates' && task.ready && task.orderIndex !== undefined) {
+      <div class="absolute -top-2 -left-2 flex items-center justify-center w-7 h-7 rounded-full bg-blue-500 text-white text-theme-xs font-semibold shadow-theme-sm border-2 border-white dark:border-gray-800">
+        {{ task.orderIndex }}
+      </div>
+      }
       <div class="space-y-4">
         <div>
           <h4 class="mb-5 mr-10 text-base text-gray-800 dark:text-white/90">
@@ -18,7 +23,6 @@
           <div class="flex items-center gap-2 mt-2">
             <span class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400">Aprovados: {{ getApprovedCount() }}</span>
             <span class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400">Candidatos: {{ getPendingCount() }}</span>
-            <span *ngIf="task.orderIndex !== undefined" class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">Fila: {{ task.orderIndex }}</span>
           </div>
         </div>
       </div>
@@ -56,15 +60,15 @@
         <div class="flex items-center gap-2">
           <div class="flex -space-x-2">
             @for (u of getApprovedUsers(); track $index) {
-            <img [src]="getUserAvatar(u)" class="size-7 rounded-full border border-gray-200 dark:border-gray-700" alt="user"/>
+            <img [src]="getUserAvatar(u)" class="size-7 rounded-full border border-gray-200 dark:border-gray-700" [attr.alt]="getUserName(u)" [title]="getUserName(u)"/>
             }
           </div>
         </div>
         <div class="space-y-1">
           @for (item of getApprovedUsersDetailed(); track $index) {
           <div (click)="onApprovedClick(item.bucket, item.user)" class="flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/10">
-            <img [src]="getUserAvatar(item.user)" class="size-6 rounded-full border border-green-300" alt="user"/>
-            <span class="text-sm text-gray-700 dark:text-gray-300">{{ getUserName(item.user) }}</span>
+            <img [src]="getUserAvatar(item.user)" class="size-6 rounded-full border border-green-300" [attr.alt]="getUserName(item.user)" [title]="getUserName(item.user)"/>
+            <span class="text-sm text-gray-700 dark:text-gray-300" [title]="getUserName(item.user)">{{ getUserName(item.user) | slice:0:10 }}</span>
             <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">{{ getInstrumentShort(item.instrument) }}</span>
             <span class="ml-2 text-xs text-green-600">
               <svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-success-500">
@@ -81,14 +85,14 @@
             <div class="space-y-1">
               @for (user of (bucket.pending || []); track $index) {
               <button (click)="onCandidateClick(bucket, user)" class="flex items-center gap-2 w-full text-left px-2 py-1 rounded-md hover:bg-gray-100 dark:hover:bg-white/10">
-                <img [src]="getUserAvatar(user)" class="size-6 rounded-full border border-gray-200 dark:border-gray-700" alt="user"/>
-                <span class="text-sm text-gray-700 dark:text-gray-300">{{ getUserName(user) }}</span>
+                <img [src]="getUserAvatar(user)" class="size-6 rounded-full border border-gray-200 dark:border-gray-700" [attr.alt]="getUserName(user)" [title]="getUserName(user)"/>
+                <span class="text-sm text-gray-700 dark:text-gray-300" [title]="getUserName(user)">{{ getUserName(user) | slice:0:10 }}</span>
               </button>
               }
               @for (user of (bucket.approved || []); track $index) {
               <div (click)="onApprovedClick(bucket, user)" class="flex items-center gap-2 px-2 py-1 rounded-md cursor-pointer hover:bg-red-100 dark:hover:bg-red-500/10">
-                <img [src]="getUserAvatar(user)" class="size-6 rounded-full border border-green-300" alt="user"/>
-                <span class="text-sm text-gray-700 dark:text-gray-300">{{ getUserName(user) }}</span>
+                <img [src]="getUserAvatar(user)" class="size-6 rounded-full border border-green-300" [attr.alt]="getUserName(user)" [title]="getUserName(user)"/>
+                <span class="text-sm text-gray-700 dark:text-gray-300" [title]="getUserName(user)">{{ getUserName(user) | slice:0:10 }}</span>
                 <span class="ml-auto text-xs text-green-600">
                   <svg width="1em" height="1em" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-success-500">
                     <path d="M13.4017 4.35986L6.12166 11.6399L2.59833 8.11657" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>

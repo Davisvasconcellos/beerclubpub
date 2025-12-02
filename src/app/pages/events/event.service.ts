@@ -120,6 +120,8 @@ export interface ApiSong {
   tempo_bpm?: number | null;
   notes?: string | null;
   status?: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled';
+  ready?: boolean | null;
+  order_index?: number | null;
   instrument_buckets?: any[];
   instrument_slots?: Array<{
     instrument: string;
@@ -622,6 +624,24 @@ export class EventService {
     const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/move`;
     return this.http.post<{ success: boolean; data: { song: ApiSong } }>(url, { status }, { headers }).pipe(
       map((resp) => resp?.data?.song as ApiSong)
+    );
+  }
+
+  updateSongReady(eventId: string | number, jamId: string | number, songId: string | number, ready: boolean): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' });
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}/ready`;
+    return this.http.patch<{ success: boolean; data?: any }>(url, { ready }, { headers }).pipe(
+      map((resp) => !!resp?.success)
+    );
+  }
+
+  updateSongOrder(eventId: string | number, jamId: string | number, status: 'planned' | 'open_for_candidates' | 'on_stage' | 'played', orderedIds: Array<string | number>): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' });
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/order`;
+    return this.http.patch<{ success: boolean; data?: any }>(url, { status, ordered_ids: orderedIds }, { headers }).pipe(
+      map((resp) => !!resp?.success)
     );
   }
 

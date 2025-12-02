@@ -24,9 +24,11 @@ export class BoardColumnComponent {
   @Output() taskDropped = new EventEmitter<{ event: DndDropEvent, status: string }>();
   @Output() editTask = new EventEmitter<Task>();
   @Output() deleteTask = new EventEmitter<Task>();
+  @Output() readyToggled = new EventEmitter<Task>();
 
   onEditTask(task: Task) { this.editTask.emit(task); }
   onDeleteTask(task: Task) { this.deleteTask.emit(task); }
+  onReadyToggled(task: Task) { this.readyToggled.emit(task); }
 
   getStatusStyles(): string {
     switch (this.status) {

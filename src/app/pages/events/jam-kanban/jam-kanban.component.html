@@ -2,7 +2,7 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
     <div class="flex items-center justify-between mb-4">
       <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Selecionar Evento</h2>
-      <button (click)="openAddModal()" class="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 text-white">Adicionar música</button>
+      <span></span>
     </div>
     <div class="grid grid-cols-1 gap-4">
       <div class="md:col-span-2">
@@ -18,12 +18,13 @@
   <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Setlist da Jam</h3>
+      <button (click)="openAddModal()" [disabled]="!selectedEventIdCode" [class.opacity-50]="!selectedEventIdCode" [class.cursor-not-allowed]="!selectedEventIdCode" class="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500 text-white">Adicionar música</button>
     </div>
     <div class="grid grid-cols-1 border-t border-gray-200 divide-x divide-gray-200 dark:divide-white/[0.05] mt-7 dark:border-white/[0.05] sm:mt-0 sm:grid-cols-2 xl:grid-cols-4">
-      <app-board-column title="Planned" [tasks]="plannedTasks" status="planned" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" />
-      <app-board-column title="Open for Candidates" [tasks]="openTasks" status="open_for_candidates" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" />
-      <app-board-column title="On Stage" [tasks]="onStageTasks" status="on_stage" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" />
-      <app-board-column title="Played" [tasks]="playedTasks" status="played" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" />
+      <app-board-column title="Planned" [tasks]="plannedTasks" status="planned" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" (readyToggled)="handleReadyToggled($event)" />
+      <app-board-column title="Open for Candidates" [tasks]="openTasks" status="open_for_candidates" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" (readyToggled)="handleReadyToggled($event)" />
+      <app-board-column title="On Stage" [tasks]="onStageTasks" status="on_stage" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" (readyToggled)="handleReadyToggled($event)" />
+      <app-board-column title="Played" [tasks]="playedTasks" status="played" [eventIdCode]="selectedEventIdCode" [jamId]="selectedJam?.id" (taskDropped)="handleTaskDrop($event)" (editTask)="handleEditTask($event)" (deleteTask)="handleDeleteTask($event)" (readyToggled)="handleReadyToggled($event)" />
     </div>
   </div>
 

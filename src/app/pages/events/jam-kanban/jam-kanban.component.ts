@@ -68,7 +68,7 @@ export class JamKanbanComponent implements OnInit {
         const jam = this.selectedJam as (ApiJam & { songs?: ApiSong[] }) | null;
         if (jam && Array.isArray(jam.songs) && jam.songs.length) {
           this.songs = jam.songs;
-        this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: false }));
+          this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
         } else {
           this.loadSongs();
         }
@@ -83,16 +83,21 @@ export class JamKanbanComponent implements OnInit {
     this.eventService.getJamSongs(this.selectedEventIdCode, jam.id).subscribe({
       next: (items) => {
         this.songs = items;
-        this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: false }));
+        this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
       },
       error: () => { this.songs = []; this.tasks = []; }
     });
   }
 
-  get plannedTasks() { return this.tasks.filter(t => t.status === 'planned'); }
-  get openTasks() { return this.tasks.filter(t => t.status === 'open_for_candidates'); }
-  get onStageTasks() { return this.tasks.filter(t => t.status === 'on_stage'); }
-  get playedTasks() { return this.tasks.filter(t => t.status === 'played'); }
+  private sortByOrder(a: Task, b: Task): number {
+    const ai = typeof a.orderIndex === 'number' ? a.orderIndex : Number.MAX_SAFE_INTEGER;
+    const bi = typeof b.orderIndex === 'number' ? b.orderIndex : Number.MAX_SAFE_INTEGER;
+    return ai - bi;
+  }
+  get plannedTasks() { return this.tasks.filter(t => t.status === 'planned').sort((a,b)=>this.sortByOrder(a,b)); }
+  get openTasks() { return this.tasks.filter(t => t.status === 'open_for_candidates').sort((a,b)=>this.sortByOrder(a,b)); }
+  get onStageTasks() { return this.tasks.filter(t => t.status === 'on_stage').sort((a,b)=>this.sortByOrder(a,b)); }
+  get playedTasks() { return this.tasks.filter(t => t.status === 'played').sort((a,b)=>this.sortByOrder(a,b)); }
 
   handleTaskDrop({ event, status }: { event: DndDropEvent, status: string }) {
     const dragged = event.data as Task;
@@ -138,23 +143,58 @@ export class JamKanbanComponent implements OnInit {
 
   private reorderTask(dragged: Task, toStatus: SongStatus, dropIndex?: number): void {
     const withoutDragged = this.tasks.filter(t => t.id !== dragged.id);
-    const targetList = withoutDragged.filter(t => t.status === toStatus);
-    const idx = typeof dropIndex === 'number' ? Math.max(0, Math.min(dropIndex, targetList.length)) : targetList.length;
-    const anchor = idx > 0 ? targetList[idx - 1] : null;
+    const isOpenApproved = (t: Task) => t.status === 'open_for_candidates' && t.ready === true;
+    const targetListUnsorted = toStatus === 'open_for_candidates'
+      ? withoutDragged.filter(isOpenApproved)
+      : withoutDragged.filter(t => t.status === toStatus);
+    const targetList = [...targetListUnsorted].sort((a,b)=>this.sortByOrder(a,b));
+    const fromStatusInitial = dragged.status as SongStatus;
+    let idx: number;
+    if (fromStatusInitial !== toStatus && toStatus === 'open_for_candidates' && (fromStatusInitial === 'on_stage' || fromStatusInitial === 'played')) {
+      // returning from stage/played: always append after last approved
+      idx = targetList.length;
+    } else {
+      const rawIdx = typeof dropIndex === 'number' ? dropIndex : targetList.length;
+      idx = Math.max(0, Math.min(rawIdx - 1, targetList.length));
+    }
     const newDragged = { ...dragged, status: toStatus } as Task;
     if (toStatus === 'planned') newDragged.ready = false;
     else if (toStatus === 'on_stage' || toStatus === 'played') newDragged.ready = true;
     const newTasks = [...withoutDragged];
-    if (anchor) {
-      const anchorIndex = newTasks.findIndex(t => t.id === anchor.id);
-      newTasks.splice(anchorIndex + 1, 0, newDragged);
+    if (idx < targetList.length) {
+      const beforeId = targetList[idx].id;
+      const beforeIndex = newTasks.findIndex(t => t.id === beforeId);
+      newTasks.splice(beforeIndex, 0, newDragged);
     } else if (targetList.length) {
-      const firstIndex = newTasks.findIndex(t => t.id === targetList[0].id);
-      newTasks.splice(firstIndex, 0, newDragged);
+      const lastId = targetList[targetList.length - 1].id;
+      const lastIndex = newTasks.findIndex(t => t.id === lastId);
+      newTasks.splice(lastIndex + 1, 0, newDragged);
     } else {
       newTasks.push(newDragged);
     }
     this.tasks = newTasks;
+    // Reindex only approved in open_for_candidates; clear others
+    const approvedList = this.tasks.filter(isOpenApproved);
+    approvedList.forEach((t, i) => {
+      const idxGlobal = this.tasks.findIndex(x => x.id === t.id);
+      this.tasks[idxGlobal] = { ...this.tasks[idxGlobal], orderIndex: i + 1 } as Task;
+    });
+    this.tasks.filter(t => t.status !== 'open_for_candidates' || !t.ready).forEach(t => {
+      const idxGlobal = this.tasks.findIndex(x => x.id === t.id);
+      if (idxGlobal !== -1) this.tasks[idxGlobal] = { ...this.tasks[idxGlobal], orderIndex: undefined } as Task;
+    });
+
+    const orderedIds = this.tasks.filter(t => t.status === 'open_for_candidates' && t.ready).map(t => t.id);
+    try { console.log('[Kanban] Atualizar ordem', { status: toStatus, ordered_ids: orderedIds }); } catch {}
+    const jam = this.selectedJam;
+    const eventId = this.selectedEventIdCode;
+    if (jam && eventId && toStatus !== 'canceled') {
+      const persistStatus: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' = 'open_for_candidates';
+      this.eventService.updateSongOrder(eventId, jam.id, persistStatus, orderedIds).subscribe({
+        next: (ok) => { try { console.log('[Kanban] Ordem persistida', ok); } catch {} },
+        error: (err) => { try { console.log('[Kanban] Falha ao persistir ordem', err?.message || err); } catch {} }
+      });
+    }
   }
 
   handleEditTask(task: Task): void {
@@ -166,7 +206,7 @@ export class JamKanbanComponent implements OnInit {
     this.tasks = this.tasks.filter(t => t.id !== task.id);
   }
 
-  openAddModal() { this.showAddModal = true; }
+  openAddModal() { if (!this.selectedEventIdCode) return; this.showAddModal = true; }
   closeAddModal() { this.showAddModal = false; }
 
   insertSong(): void {
@@ -181,7 +221,7 @@ export class JamKanbanComponent implements OnInit {
       next: (res) => {
         this.selectedJam = res.jam;
         const song = res.song;
-        this.tasks.unshift({ id: String(song.id), title: song.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (song.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song, ready: false });
+        this.tasks.unshift({ id: String(song.id), title: song.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (song.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song, ready: false, orderIndex: (typeof (song as any).order_index === 'number' ? Number((song as any).order_index) : undefined) });
         this.resetForm();
         this.closeAddModal();
       },
@@ -197,4 +237,32 @@ export class JamKanbanComponent implements OnInit {
   onTitleChange(val: string | number) { this.newSong.title = String(val || ''); }
   onArtistChange(val: string | number) { this.newSong.artist = String(val || ''); }
 
+  handleReadyToggled(task: Task): void {
+    const idx = this.tasks.findIndex(t => t.id === task.id);
+    if (idx === -1) return;
+    const toStatus = this.tasks[idx].status as SongStatus;
+    // Set initial order at end when approved in open_for_candidates
+    const isOpenApproved = (t: Task) => t.status === 'open_for_candidates' && t.ready === true;
+    if (toStatus === 'open_for_candidates' && task.ready) {
+      // push to end based on current approved count (before marking)
+      const approvedCountBefore = this.tasks.filter(isOpenApproved).length;
+      this.tasks[idx] = { ...this.tasks[idx], ready: true, orderIndex: approvedCountBefore + 1 } as Task;
+    } else {
+      // unapprove: clear order
+      this.tasks[idx] = { ...this.tasks[idx], orderIndex: undefined, ready: false } as Task;
+    }
+    // Reindex approved sequentially
+    const approvedList = this.tasks.filter(isOpenApproved);
+    approvedList.forEach((t, i) => {
+      const g = this.tasks.findIndex(x => x.id === t.id);
+      if (g !== -1) this.tasks[g] = { ...this.tasks[g], orderIndex: i + 1 } as Task;
+    });
+    // Persist
+    const jam = this.selectedJam;
+    const eventId = this.selectedEventIdCode;
+    const orderedIds = this.tasks.filter(t => t.status === 'open_for_candidates' && t.ready).map(t => t.id);
+    if (jam && eventId) {
+      this.eventService.updateSongOrder(eventId, jam.id, 'open_for_candidates', orderedIds).subscribe({ next: () => {}, error: () => {} });
+    }
+  }
 }
