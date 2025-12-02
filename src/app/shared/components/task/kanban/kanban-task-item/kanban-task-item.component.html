@@ -3,7 +3,8 @@
   [dndEffectAllowed]="'move'"
   (dndStart)="onDragStart($event)"
   (dndEnd)="onDragEnd($event)"
-  class="relative p-5 bg-white border border-gray-200 task rounded-xl shadow-theme-sm dark:border-gray-800 dark:bg-white/5">
+  class="relative p-5 bg-white border task rounded-xl shadow-theme-sm dark:bg-white/5"
+  [ngClass]="task.ready ? 'border-green-500' : 'border-gray-200 dark:border-gray-800'">
       <div class="space-y-4">
         <div>
           <h4 class="mb-5 mr-10 text-base text-gray-800 dark:text-white/90">
@@ -17,15 +18,38 @@
           <div class="flex items-center gap-2 mt-2">
             <span class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400">Aprovados: {{ getApprovedCount() }}</span>
             <span class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-400">Candidatos: {{ getPendingCount() }}</span>
+            <span *ngIf="task.orderIndex !== undefined" class="inline-flex rounded-full px-2 py-0.5 text-theme-xs font-medium bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400">Fila: {{ task.orderIndex }}</span>
           </div>
         </div>
       </div>
-      <button (click)="toggleExpand()" class="absolute top-5 right-5 flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-gray-800 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-300">
-        <svg class="size-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M12 5C7 5 3.73 8.11 2 12C3.73 15.89 7 19 12 19C17 19 20.27 15.89 22 12C20.27 8.11 17 5 12 5Z" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="1.5"/>
-        </svg>
-      </button>
+      <div class="absolute top-5 right-5 flex items-center gap-2">
+        <button (click)="toggleReady($event)" [attr.disabled]="isToggleDisabled() ? '' : null" class="flex items-center justify-center w-6 h-6 rounded-full border" [ngClass]="task.ready ? 'border-green-500 text-green-600 bg-green-50 dark:bg-green-500/15' : 'border-gray-200 text-gray-600 bg-white dark:border-gray-800 dark:bg-gray-700 dark:text-gray-300'" [class.opacity-50]="isToggleDisabled()" [class.cursor-not-allowed]="isToggleDisabled()">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button (click)="toggleExpand()" class="flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-gray-800 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-300">
+          <svg class="size-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 5C7 5 3.73 8.11 2 12C3.73 15.89 7 19 12 19C17 19 20.27 15.89 22 12C20.27 8.11 17 5 12 5Z" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </button>
+        <div class="relative">
+          <button (click)="toggleMenu($event)" class="flex items-center justify-center w-6 h-6 rounded-full border border-gray-200 bg-white text-gray-600 hover:text-gray-800 dark:border-gray-800 dark:bg-gray-700 dark:text-gray-300">
+            <svg class="size-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 12.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" fill="currentColor"/>
+              <path d="M12 6.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" fill="currentColor"/>
+              <path d="M12 18.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" fill="currentColor"/>
+            </svg>
+          </button>
+          @if (isMenuOpen) {
+          <div class="absolute right-0 top-full z-40 w-[140px] space-y-1 rounded-2xl border border-gray-200 bg-white p-2 shadow-theme-md dark:border-gray-800 dark:bg-gray-dark">
+            <button (click)="onEditClick($event)" class="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">Editar</button>
+            <button (click)="onDeleteClick($event)" class="flex w-full font-normal text-left text-gray-500 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">Excluir</button>
+          </div>
+          }
+        </div>
+      </div>
 
       @if (task.expanded) {
       <div class="mt-4 space-y-4">

@@ -14,6 +14,8 @@ export interface Task {
   };
   expanded?: boolean;
   song?: any;
+  ready?: boolean;
+  orderIndex?: number;
 }
 
 export interface DropResult {

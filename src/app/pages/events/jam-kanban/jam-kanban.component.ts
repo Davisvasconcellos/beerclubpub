@@ -68,7 +68,7 @@ export class JamKanbanComponent implements OnInit {
         const jam = this.selectedJam as (ApiJam & { songs?: ApiSong[] }) | null;
         if (jam && Array.isArray(jam.songs) && jam.songs.length) {
           this.songs = jam.songs;
-          this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s }));
+        this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: false }));
         } else {
           this.loadSongs();
         }
@@ -83,7 +83,7 @@ export class JamKanbanComponent implements OnInit {
     this.eventService.getJamSongs(this.selectedEventIdCode, jam.id).subscribe({
       next: (items) => {
         this.songs = items;
-        this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s }));
+        this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: false }));
       },
       error: () => { this.songs = []; this.tasks = []; }
     });
@@ -96,14 +96,26 @@ export class JamKanbanComponent implements OnInit {
 
   handleTaskDrop({ event, status }: { event: DndDropEvent, status: string }) {
     const dragged = event.data as Task;
-    const songId = dragged.id;
+    const fromStatus = dragged.status as SongStatus;
+    const toStatus = status as SongStatus;
+    const dropIndex = typeof event.index === 'number' ? event.index : undefined;
     const jam = this.selectedJam;
     if (!jam) return;
-    this.eventService.moveSongStatus(this.selectedEventIdCode, jam.id, songId, status as SongStatus).subscribe({
-      next: (updated) => {
-        this.tasks = this.tasks.map(t => t.id === songId ? { ...t, status: status as SongStatus } : t);
-        if (status === 'on_stage') {
-          const task = this.tasks.find(t => t.id === songId);
+
+    if (toStatus === 'on_stage' && !dragged.ready) {
+      return;
+    }
+
+    if (fromStatus === toStatus) {
+      this.reorderTask(dragged, toStatus, dropIndex);
+      return;
+    }
+
+    this.eventService.moveSongStatus(this.selectedEventIdCode, jam.id, dragged.id, toStatus).subscribe({
+      next: () => {
+        this.reorderTask(dragged, toStatus, dropIndex);
+        if (toStatus === 'on_stage') {
+          const task = this.tasks.find(t => t.id === dragged.id);
           const buckets = task?.song?.instrument_buckets || [];
           const rejects: any[] = [];
           for (const b of buckets as any[]) {
@@ -111,20 +123,47 @@ export class JamKanbanComponent implements OnInit {
             for (const u of pend) {
               const cid = (u?.candidate_id ?? u?.application_id ?? u?.id ?? u?.user_id);
               if (cid !== undefined && cid !== null) {
-                rejects.push(this.eventService.rejectSongCandidate(this.selectedEventIdCode, jam.id, songId, cid));
+                rejects.push(this.eventService.rejectSongCandidate(this.selectedEventIdCode, jam.id, dragged.id, cid));
               }
             }
           }
-          if (rejects.length) {
-            forkJoin(rejects).subscribe({ next: () => {}, error: () => {} });
-          }
+          if (rejects.length) forkJoin(rejects).subscribe({ next: () => {}, error: () => {} });
         }
       },
       error: () => {
-        // fallback: revert UI by reloading
         this.loadSongs();
       }
     });
+  }
+
+  private reorderTask(dragged: Task, toStatus: SongStatus, dropIndex?: number): void {
+    const withoutDragged = this.tasks.filter(t => t.id !== dragged.id);
+    const targetList = withoutDragged.filter(t => t.status === toStatus);
+    const idx = typeof dropIndex === 'number' ? Math.max(0, Math.min(dropIndex, targetList.length)) : targetList.length;
+    const anchor = idx > 0 ? targetList[idx - 1] : null;
+    const newDragged = { ...dragged, status: toStatus } as Task;
+    if (toStatus === 'planned') newDragged.ready = false;
+    else if (toStatus === 'on_stage' || toStatus === 'played') newDragged.ready = true;
+    const newTasks = [...withoutDragged];
+    if (anchor) {
+      const anchorIndex = newTasks.findIndex(t => t.id === anchor.id);
+      newTasks.splice(anchorIndex + 1, 0, newDragged);
+    } else if (targetList.length) {
+      const firstIndex = newTasks.findIndex(t => t.id === targetList[0].id);
+      newTasks.splice(firstIndex, 0, newDragged);
+    } else {
+      newTasks.push(newDragged);
+    }
+    this.tasks = newTasks;
+  }
+
+  handleEditTask(task: Task): void {
+    const idx = this.tasks.findIndex(t => t.id === task.id);
+    if (idx !== -1) this.tasks[idx] = { ...this.tasks[idx], expanded: true };
+  }
+
+  handleDeleteTask(task: Task): void {
+    this.tasks = this.tasks.filter(t => t.id !== task.id);
   }
 
   openAddModal() { this.showAddModal = true; }
@@ -142,7 +181,7 @@ export class JamKanbanComponent implements OnInit {
       next: (res) => {
         this.selectedJam = res.jam;
         const song = res.song;
-        this.tasks.unshift({ id: String(song.id), title: song.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (song.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song });
+        this.tasks.unshift({ id: String(song.id), title: song.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (song.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song, ready: false });
         this.resetForm();
         this.closeAddModal();
       },

@@ -263,11 +263,11 @@ export class AuthService {
       errorMessage = `Erro: ${error.error.message}`;
     } else {
       // Se o erro for de conexão ou token inválido, desloga o usuário.
-      if (error.status === 0 || error.status === 401) {
+      if (error.status === 0 || error.status === 401 || error.status === 403) {
         this.localStorageService.clearAuthData();
         this.currentUserSubject.next(null);
         this.isAuthenticatedSubject.next(false);
-        this.router.navigate(['/signin']);
+        this.router.navigate(['/signout']);
         errorMessage = `Sessão expirada ou servidor indisponível. Faça login novamente. (Erro: ${error.status})`;
       }
       // Erro do lado do servidor

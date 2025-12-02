@@ -23,6 +23,10 @@ export class KanbanTaskItemComponent {
   @Input() index: number = 0;
   @Input() eventIdCode: string = '';
   @Input() jamId?: number | null;
+  @Output() edit = new EventEmitter<Task>();
+  @Output() delete = new EventEmitter<Task>();
+
+  isMenuOpen = false;
 
   constructor(private eventService: EventService) {}
 
@@ -53,6 +57,33 @@ export class KanbanTaskItemComponent {
 
   toggleExpand() {
     this.task.expanded = !this.task.expanded;
+  }
+
+  toggleReady(event?: MouseEvent) {
+    if (event) { try { event.stopPropagation(); } catch {} }
+    if (this.task.status !== 'open_for_candidates') return;
+    this.task.ready = !this.task.ready;
+  }
+
+  isToggleDisabled(): boolean {
+    return this.task.status !== 'open_for_candidates';
+  }
+
+  toggleMenu(event?: MouseEvent) {
+    if (event) { try { event.stopPropagation(); } catch {} }
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  onEditClick(event?: MouseEvent) {
+    if (event) { try { event.stopPropagation(); } catch {} }
+    this.isMenuOpen = false;
+    this.edit.emit(this.task);
+  }
+
+  onDeleteClick(event?: MouseEvent) {
+    if (event) { try { event.stopPropagation(); } catch {} }
+    this.isMenuOpen = false;
+    this.delete.emit(this.task);
   }
 
   getApprovedUsers(): any[] {

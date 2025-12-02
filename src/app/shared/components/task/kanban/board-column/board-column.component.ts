@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { Task } from '../types/types';
 import { CommonModule } from '@angular/common';
 import { KanbanTaskItemComponent } from '../kanban-task-item/kanban-task-item.component';
-import { DndDropEvent, DndModule } from 'ngx-drag-drop';
+import { DndModule, DndDropEvent } from 'ngx-drag-drop';
 
 @Component({
   selector: 'app-board-column',
@@ -22,17 +22,11 @@ export class BoardColumnComponent {
   @Input() eventIdCode: string = '';
   @Input() jamId?: number | null;
   @Output() taskDropped = new EventEmitter<{ event: DndDropEvent, status: string }>();
+  @Output() editTask = new EventEmitter<Task>();
+  @Output() deleteTask = new EventEmitter<Task>();
 
-  isOpen = false;
-
-  toggleDropdown() {
-    this.isOpen = !this.isOpen;
-  }
-
-  onDropdownItemClick(action: string) {
-    this.isOpen = false;
-    // Implement action handling as needed
-  }
+  onEditTask(task: Task) { this.editTask.emit(task); }
+  onDeleteTask(task: Task) { this.deleteTask.emit(task); }
 
   getStatusStyles(): string {
     switch (this.status) {
