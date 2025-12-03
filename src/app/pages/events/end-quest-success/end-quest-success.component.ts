@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { RouterModule } from '@angular/router';
 import { GridShapeComponent } from '../../../shared/components/common/grid-shape/grid-shape.component';
 
@@ -12,11 +12,17 @@ import { GridShapeComponent } from '../../../shared/components/common/grid-shape
 })
 export class EndQuestSuccessComponent {
   currentYear = new Date().getFullYear();
-  constructor(private router: Router) {}
+  idCode: string = '';
+  constructor(private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit(): void {
+    try { this.idCode = this.route.snapshot.queryParamMap.get('id_code') || ''; } catch {}
     setTimeout(() => {
-      try { this.router.navigateByUrl('/events/home-guest'); } catch {}
+      if (this.idCode) {
+        try { this.router.navigate([`/events/home-guest/${this.idCode}`]); } catch {}
+      } else {
+        try { this.router.navigateByUrl('/events/home-guest'); } catch {}
+      }
     }, 3000);
   }
 }

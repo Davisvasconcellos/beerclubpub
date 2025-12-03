@@ -149,11 +149,20 @@ export class CheckinComponent implements OnInit, OnDestroy {
       this.router.navigateByUrl(returnUrl);
       return;
     }
-    // Sempre revalida flags e existência de perguntas para evitar corrida de dados
-    const idCode = this.idCode;
+    const routeParamId = this.route.snapshot.paramMap.get('id_code') || '';
+    const queryParamId = this.route.snapshot.queryParamMap.get('id_code') || '';
+    let returnUrlId = '';
+    try {
+      const pattern = /events\/(?:home-guest|answer|answer-plain)\/([A-Za-z0-9-]+)/;
+      const match = (this.route.snapshot.queryParamMap.get('returnUrl') || '').match(pattern);
+      returnUrlId = match ? match[1] : '';
+    } catch {}
+    const idCode = this.idCode || routeParamId || queryParamId || returnUrlId;
     if (!idCode) {
-      try { console.log('[CHECKIN][Destino] idCode ausente. Redirecionando home-guest'); } catch {}
-      this.router.navigate([`/events/home-guest`]);
+      const fallbackId = queryParamId || returnUrlId;
+      try { console.log('[CHECKIN][Destino] idCode ausente. Redirecionando home-guest com fallback', { fallbackId }); } catch {}
+      if (fallbackId) this.router.navigate([`/events/home-guest`], { queryParams: { id_code: fallbackId } });
+      else this.router.navigate([`/events/home-guest`]);
       return;
     }
     this.eventService.getEventByIdCodeDetail(idCode).subscribe({

@@ -251,7 +251,7 @@ export class QuestionnaireComponent implements OnInit {
           this.submitAll();
           return;
         }
-        try { this.router.navigateByUrl('/end-quest-success'); } catch { this.done = true; }
+        try { this.router.navigate(['/end-quest-success'], { queryParams: { id_code: this.idCode } }); } catch { this.done = true; }
       }
     };
 
@@ -459,7 +459,7 @@ export class QuestionnaireComponent implements OnInit {
       this.prepareCurrentQuestion();
     } else {
       // Ao terminar os resultados da última pergunta, ir para a tela de sucesso
-      try { this.router.navigateByUrl('/end-quest-success'); } catch { this.done = true; }
+      try { this.router.navigate(['/end-quest-success'], { queryParams: { id_code: this.idCode } }); } catch { this.done = true; }
     }
   }
 
@@ -571,7 +571,7 @@ export class QuestionnaireComponent implements OnInit {
     if (this.eventAlreadyStarted) {
       this.submitting = false;
       try { console.log('[Questionário] questionário existente \u2192 pulando envio em lote'); } catch {}
-      try { this.router.navigateByUrl('/end-quest-success'); } catch { this.done = true; }
+      try { this.router.navigate(['/end-quest-success'], { queryParams: { id_code: this.idCode } }); } catch { this.done = true; }
       return;
     }
 
@@ -614,7 +614,7 @@ export class QuestionnaireComponent implements OnInit {
         this.submitting = false;
         try { console.log('[Questionário] OK envio bulk (PATCH)'); } catch {}
         // Redireciona para página de sucesso dedicada
-        try { this.router.navigateByUrl('/end-quest-success'); } catch { this.done = true; }
+        try { this.router.navigate(['/end-quest-success'], { queryParams: { id_code: this.idCode } }); } catch { this.done = true; }
       },
       error: (err) => {
         this.submitting = false;

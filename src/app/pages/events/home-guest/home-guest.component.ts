@@ -63,13 +63,14 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       if (!this.eventIdCode) {
         this.eventIdCode = this.route.snapshot.queryParamMap.get('id_code') || '';
       }
+      try { console.log('[HomeGuest] init', { eventIdCode: this.eventIdCode }); } catch {}
       if (this.eventIdCode) {
         this.eventService.getPublicEventByIdCodeDetail(this.eventIdCode).subscribe({
-          next: (res) => { this.eventName = res?.event?.title || res?.event?.name || ''; },
+          next: (res) => { this.eventName = res?.event?.title || res?.event?.name || ''; try { console.log('[HomeGuest] event detail loaded', { eventIdCode: this.eventIdCode, eventName: this.eventName }); } catch {} },
           error: () => { this.eventName = ''; }
         });
         this.eventService.getEventJamId(this.eventIdCode).subscribe({
-          next: (jid) => { this.jamId = jid; this.ensureStreams(); },
+          next: (jid) => { this.jamId = jid; try { console.log('[HomeGuest] jam id resolved', { eventIdCode: this.eventIdCode, jamId: this.jamId }); } catch {} this.ensureStreams(); },
           error: (err) => {
             const status = Number(err?.status || 0);
             if (status === 403 && this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
@@ -115,6 +116,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   private loadJams(): void {
     if (!this.eventIdCode) { this.jams = []; this.plannedSongs = []; return; }
+    try { console.log('[HomeGuest] fetching open songs', { eventIdCode: this.eventIdCode }); } catch {}
     this.eventService.getEventOpenJamsSongs(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.songJamMap = {};
@@ -135,6 +137,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           }
         });
         this.plannedSongs = songs.filter(s => String((s as any)?.my_application?.status || '') !== 'rejected');
+        try { console.log('[HomeGuest] open songs loaded', { count: this.plannedSongs.length, songIds: this.plannedSongs.map((x: any) => x?.id) }); } catch {}
         this.ensureStreams();
       },
       error: (err) => {
@@ -152,9 +155,11 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   private loadOnStageOnce(): void {
     if (!this.eventIdCode) { this.onStageSongs = []; return; }
+    try { console.log('[HomeGuest] fetching my on-stage songs', { eventIdCode: this.eventIdCode }); } catch {}
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.onStageSongs = Array.isArray(songs) ? songs : [];
+        try { console.log('[HomeGuest] on-stage songs loaded', { count: this.onStageSongs.length, songIds: this.onStageSongs.map((x: any) => x?.id) }); } catch {}
         this.ensureStreams();
       },
       error: (err) => {
@@ -175,6 +180,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     const idsFromOpen = Array.from(new Set(Object.values(this.songJamMap)));
     const idsFromStage = Array.from(new Set((this.onStageSongs || []).map(s => Number((s as any)?.jam?.id ?? (s as any)?.jam_id)).filter(n => !Number.isNaN(n))));
     const jamIds = Array.from(new Set([ ...idsFromOpen, ...idsFromStage, ...(this.jamId ? [this.jamId] : []) ]));
+    try { console.log('[HomeGuest] ensureStreams', { eventIdCode: this.eventIdCode, jamIds, songJamMap: this.songJamMap }); } catch {}
     for (const jid of jamIds) {
       if (!jid || this.esMap[jid]) continue;
       const es = this.eventService.streamJam(this.eventIdCode, jid);
