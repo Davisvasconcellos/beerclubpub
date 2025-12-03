@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BoardColumnComponent } from '../../../shared/components/task/kanban/board-column/board-column.component';
@@ -8,6 +8,7 @@ import { ModalComponent } from '../../../shared/components/ui/modal/modal.compon
 import { LabelComponent } from '../../../shared/components/form/label/label.component';
 import { InputFieldComponent } from '../../../shared/components/form/input/input-field.component';
 import { EventService, EventListItem, ApiJam, ApiSong } from '../event.service';
+import { NotificationComponent } from '../../../shared/components/ui/notification/notification/notification.component';
 import { forkJoin, of } from 'rxjs';
 
 type SongStatus = 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled';
@@ -54,11 +55,17 @@ export class JamKanbanComponent implements OnInit {
     other: { enabled: false, slots: 1 },
   };
 
-  constructor(private eventService: EventService) {}
+  constructor(
+    private eventService: EventService,
+    private appRef: ApplicationRef,
+    private injector: Injector,
+    private envInjector: EnvironmentInjector
+  ) {}
 
   ngOnInit(): void {
     this.eventService.getEvents().subscribe({ next: (items) => this.events = items, error: () => this.events = [] });
   }
+
 
   onSelectEvent(): void {
     if (!this.selectedEventIdCode) { this.selectedJam = null; this.songs = []; this.tasks = []; return; }
@@ -69,6 +76,7 @@ export class JamKanbanComponent implements OnInit {
         if (jam && Array.isArray(jam.songs) && jam.songs.length) {
           this.songs = jam.songs;
           this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
+          
         } else {
           this.loadSongs();
         }
@@ -84,6 +92,7 @@ export class JamKanbanComponent implements OnInit {
       next: (items) => {
         this.songs = items;
         this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
+        
       },
       error: () => { this.songs = []; this.tasks = []; }
     });
@@ -203,7 +212,24 @@ export class JamKanbanComponent implements OnInit {
   }
 
   handleDeleteTask(task: Task): void {
-    this.tasks = this.tasks.filter(t => t.id !== task.id);
+    const jam = this.selectedJam;
+    const eventId = this.selectedEventIdCode;
+    const songId = task?.song?.id ?? task?.id;
+    if (!jam || !eventId || !songId) return;
+    this.eventService.deleteSong(eventId, jam.id, songId).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.tasks = this.tasks.filter(t => t.id !== String(songId));
+          this.triggerToast('success', 'jam excluída...', 'A música foi removida do setlist.');
+        } else {
+          this.triggerToast('error', 'Erro ao excluir', 'Falha ao remover a música.');
+        }
+      },
+      error: (err) => {
+        const msg = (err?.error?.message || err?.message || 'Falha ao remover a música.');
+        this.triggerToast('error', 'Erro ao excluir', msg);
+      }
+    });
   }
 
   openAddModal() { if (!this.selectedEventIdCode) return; this.showAddModal = true; }
@@ -264,5 +290,47 @@ export class JamKanbanComponent implements OnInit {
     if (jam && eventId) {
       this.eventService.updateSongOrder(eventId, jam.id, 'open_for_candidates', orderedIds).subscribe({ next: () => {}, error: () => {} });
     }
+  }
+
+  private triggerToast(
+    variant: 'success' | 'info' | 'warning' | 'error',
+    title: string,
+    description?: string
+  ) {
+    const compRef = createComponent(NotificationComponent, {
+      environmentInjector: this.envInjector,
+      elementInjector: this.injector,
+    });
+    compRef.setInput('variant', variant);
+    compRef.setInput('title', title);
+    compRef.setInput('description', description);
+    compRef.setInput('hideDuration', 3000);
+
+    this.appRef.attachView(compRef.hostView);
+    const host = compRef.location.nativeElement as HTMLElement;
+    host.style.position = 'fixed';
+    host.style.top = '16px';
+    host.style.right = '16px';
+    host.style.zIndex = '2147483647';
+    host.style.pointerEvents = 'auto';
+    document.body.appendChild(host);
+
+    setTimeout(() => {
+      this.appRef.detachView(compRef.hostView);
+      compRef.destroy();
+    }, 3200);
+  }
+
+  private reindexApproved(): void {
+    const isOpenApproved = (t: Task) => t.status === 'open_for_candidates' && t.ready === true;
+    const approvedList = this.tasks.filter(isOpenApproved).sort((a,b)=>this.sortByOrder(a,b));
+    approvedList.forEach((t, i) => {
+      const idxGlobal = this.tasks.findIndex(x => x.id === t.id);
+      this.tasks[idxGlobal] = { ...this.tasks[idxGlobal], orderIndex: i + 1 } as Task;
+    });
+    this.tasks.filter(t => t.status !== 'open_for_candidates' || !t.ready).forEach(t => {
+      const idxGlobal = this.tasks.findIndex(x => x.id === t.id);
+      if (idxGlobal !== -1) this.tasks[idxGlobal] = { ...this.tasks[idxGlobal], orderIndex: undefined } as Task;
+    });
   }
 }

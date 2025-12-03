@@ -60,6 +60,9 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     }, 100);
     this.route.paramMap.subscribe(pm => {
       this.eventIdCode = pm.get('id_code') || '';
+      if (!this.eventIdCode) {
+        this.eventIdCode = this.route.snapshot.queryParamMap.get('id_code') || '';
+      }
       if (this.eventIdCode) {
         this.eventService.getPublicEventByIdCodeDetail(this.eventIdCode).subscribe({
           next: (res) => { this.eventName = res?.event?.title || res?.event?.name || ''; },
@@ -131,7 +134,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
             this.myStatusMap[sid] = status;
           }
         });
-        this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates' && String((s as any)?.my_application?.status || '') !== 'rejected');
+        this.plannedSongs = songs.filter(s => String((s as any)?.my_application?.status || '') !== 'rejected');
         this.ensureStreams();
       },
       error: (err) => {
@@ -225,7 +228,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           const jid = Number(s?.jam?.id ?? s?.jam_id);
           if (!Number.isNaN(sid) && !Number.isNaN(jid)) this.songJamMap[sid] = jid;
         });
-        this.plannedSongs = songs.filter(s => String((s as any)?.status) === 'open_for_candidates' && String((s as any)?.my_application?.status || '') !== 'rejected');
+        this.plannedSongs = songs.filter(s => String((s as any)?.my_application?.status || '') !== 'rejected');
         if (this.debugSse) console.log('Refetch open', { count: this.plannedSongs.length, ids: this.plannedSongs.map((x: any) => x?.id) });
       },
       error: (err) => {

@@ -663,13 +663,13 @@ export const routes: Routes = [
       {
         path: 'events/home-guest',
         loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
-        canActivate: [AuthGuard, AutoCheckinGuard],
+        canActivate: [AutoCheckinGuard],
         title: 'Home do Convidado (Sem layout)'
       },
       {
         path: 'events/home-guest/:id_code',
         loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
-        canActivate: [AuthGuard, AutoCheckinGuard],
+        canActivate: [AutoCheckinGuard],
         title: 'Home do Convidado (Sem layout)'
       },
     ]

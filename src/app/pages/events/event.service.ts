@@ -645,6 +645,15 @@ export class EventService {
     );
   }
 
+  deleteSong(eventId: string | number, jamId: string | number, songId: string | number): Observable<boolean> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.API_BASE_URL}/events/${eventId}/jams/${jamId}/songs/${songId}`;
+    return this.http.delete<{ success: boolean }>(url, { headers }).pipe(
+      map((resp) => !!resp?.success)
+    );
+  }
+
   // Lista convidados do evento por id_code (ou ID) com paginação/filtros simples
   getEventGuests(idOrCode: string, params?: {
     page?: number;
