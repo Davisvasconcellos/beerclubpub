@@ -1,4 +1,4 @@
-import { Component, OnInit, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
+import { Component, OnInit, OnDestroy, ApplicationRef, Injector, EnvironmentInjector, createComponent } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BoardColumnComponent } from '../../../shared/components/task/kanban/board-column/board-column.component';
@@ -21,7 +21,7 @@ type SongStatus = 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'c
   templateUrl: './jam-kanban.component.html',
   styleUrl: './jam-kanban.component.css'
 })
-export class JamKanbanComponent implements OnInit {
+export class JamKanbanComponent implements OnInit, OnDestroy {
   events: EventListItem[] = [];
   selectedEventIdCode = '';
   selectedJam: ApiJam | null = null;
@@ -29,6 +29,10 @@ export class JamKanbanComponent implements OnInit {
   songs: ApiSong[] = [];
   tasks: Task[] = [];
   showAddModal = false;
+  isLoading = false;
+  private jamStream: EventSource | null = null;
+  private refreshTimerId: any = null;
+  private readonly refreshIntervalMs = 60000;
 
   // Form nova música
   newSong = { title: '', artist: '' };
@@ -66,36 +70,127 @@ export class JamKanbanComponent implements OnInit {
     this.eventService.getEvents().subscribe({ next: (items) => this.events = items, error: () => this.events = [] });
   }
 
+  ngOnDestroy(): void {
+    this.stopJamStream();
+    this.stopRefreshTimer();
+  }
+
 
   onSelectEvent(): void {
-    if (!this.selectedEventIdCode) { this.selectedJam = null; this.songs = []; this.tasks = []; return; }
+    if (!this.selectedEventIdCode) { this.selectedJam = null; this.songs = []; this.tasks = []; this.stopRefreshTimer(); return; }
+    this.stopRefreshTimer();
+    this.loadSelectedEvent();
+    this.startRefreshTimer();
+  }
+
+  private getExpandedStorageKey(): string {
+    const eventKey = String(this.selectedEventIdCode || '').trim();
+    const jamKey = String(this.selectedJam?.id ?? '').trim();
+    return `jam-kanban:expanded:${eventKey}:${jamKey}`;
+  }
+
+  private loadExpandedState(): Record<string, number> {
+    const key = this.getExpandedStorageKey();
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') return parsed as Record<string, number>;
+      return {};
+    } catch { return {}; }
+  }
+
+  private saveExpandedState(state: Record<string, number>): void {
+    const key = this.getExpandedStorageKey();
+    try { localStorage.setItem(key, JSON.stringify(state)); } catch {}
+  }
+
+  private applyExpandedState(nextTasks: Task[]): Task[] {
+    const persisted = this.loadExpandedState();
+    return nextTasks.map(t => ({ ...t, expanded: !!persisted[String(t.id)] }));
+  }
+
+  private loadSelectedEvent(): void {
+    this.isLoading = true;
     this.eventService.getEventJams(this.selectedEventIdCode).subscribe({
       next: (jams) => {
         this.selectedJam = jams && jams.length ? jams[0] : null;
         const jam = this.selectedJam as (ApiJam & { songs?: ApiSong[] }) | null;
-        if (jam && Array.isArray(jam.songs) && jam.songs.length) {
-          this.songs = jam.songs;
-          this.tasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
-          
+        if (jam) {
+          this.startJamStream();
+          if (Array.isArray(jam.songs) && jam.songs.length) {
+            this.songs = jam.songs;
+            const nextTasks = jam.songs.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
+            this.tasks = this.applyExpandedState(nextTasks);
+            this.isLoading = false;
+          } else {
+            this.loadSongs(true);
+          }
         } else {
-          this.loadSongs();
+          this.songs = [];
+          this.tasks = [];
+          this.isLoading = false;
+          this.stopJamStream();
         }
       },
-      error: () => { this.selectedJam = null; this.songs = []; this.tasks = []; }
+      error: () => { this.selectedJam = null; this.songs = []; this.tasks = []; this.isLoading = false; }
     });
   }
 
-  loadSongs(): void {
+  loadSongs(setLoading?: boolean): void {
     const jam = this.selectedJam;
-    if (!jam || !this.selectedEventIdCode) { this.songs = []; this.tasks = []; return; }
+    if (!jam || !this.selectedEventIdCode) { this.songs = []; this.tasks = []; if (setLoading) this.isLoading = false; return; }
+    if (setLoading) this.isLoading = true;
     this.eventService.getJamSongs(this.selectedEventIdCode, jam.id).subscribe({
       next: (items) => {
         this.songs = items;
-        this.tasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
+        const nextTasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
+        this.tasks = this.applyExpandedState(nextTasks);
+        if (setLoading) this.isLoading = false;
         
       },
-      error: () => { this.songs = []; this.tasks = []; }
+      error: () => { this.songs = []; this.tasks = []; if (setLoading) this.isLoading = false; }
     });
+  }
+
+  private startJamStream(): void {
+    const eventId = this.selectedEventIdCode;
+    const jamId = this.selectedJam?.id;
+    if (!eventId || !jamId) return;
+    this.stopJamStream();
+    const es = this.eventService.streamJam(eventId, jamId);
+    this.jamStream = es;
+    es.onopen = () => { try { console.log('[SSE][Jam] open', { eventId, jamId }); } catch {} };
+    es.onmessage = (ev: MessageEvent) => {
+      try { console.log('[SSE][Jam] message', { type: (ev as any)?.type || 'message', data: ev.data }); } catch {}
+    };
+    es.onerror = (err: any) => { try { console.log('[SSE][Jam] error', err); } catch {} };
+  }
+
+  private stopJamStream(): void {
+    if (this.jamStream) {
+      try { this.jamStream.close(); } catch {}
+      this.jamStream = null;
+    }
+  }
+
+  private startRefreshTimer(): void {
+    this.stopRefreshTimer();
+    this.refreshTimerId = setInterval(() => {
+      if (!this.selectedEventIdCode) { this.stopRefreshTimer(); return; }
+      this.loadSelectedEvent();
+    }, this.refreshIntervalMs);
+  }
+
+  private stopRefreshTimer(): void {
+    if (this.refreshTimerId) { try { clearInterval(this.refreshTimerId); } catch {} this.refreshTimerId = null; }
+  }
+
+  onRefreshClick(): void {
+    if (!this.selectedEventIdCode) return;
+    this.stopRefreshTimer();
+    this.loadSelectedEvent();
+    this.startRefreshTimer();
   }
 
   private sortByOrder(a: Task, b: Task): number {
@@ -208,7 +303,12 @@ export class JamKanbanComponent implements OnInit {
 
   handleEditTask(task: Task): void {
     const idx = this.tasks.findIndex(t => t.id === task.id);
-    if (idx !== -1) this.tasks[idx] = { ...this.tasks[idx], expanded: true };
+    if (idx !== -1) {
+      this.tasks[idx] = { ...this.tasks[idx], expanded: true };
+      const map = this.loadExpandedState();
+      map[String(task.id)] = 1;
+      this.saveExpandedState(map);
+    }
   }
 
   handleDeleteTask(task: Task): void {
@@ -290,6 +390,15 @@ export class JamKanbanComponent implements OnInit {
     if (jam && eventId) {
       this.eventService.updateSongOrder(eventId, jam.id, 'open_for_candidates', orderedIds).subscribe({ next: () => {}, error: () => {} });
     }
+  }
+
+  handleExpandedToggled(task: Task): void {
+    const idx = this.tasks.findIndex(t => t.id === task.id);
+    if (idx === -1) return;
+    this.tasks[idx] = { ...this.tasks[idx], expanded: !!task.expanded };
+    const map = this.loadExpandedState();
+    if (task.expanded) map[String(task.id)] = 1; else delete map[String(task.id)];
+    this.saveExpandedState(map);
   }
 
   private triggerToast(

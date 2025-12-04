@@ -27,6 +27,7 @@ export class KanbanTaskItemComponent {
   @Output() edit = new EventEmitter<Task>();
   @Output() delete = new EventEmitter<Task>();
   @Output() readyToggled = new EventEmitter<Task>();
+  @Output() expandedToggled = new EventEmitter<Task>();
 
   isMenuOpen = false;
 
@@ -59,6 +60,7 @@ export class KanbanTaskItemComponent {
 
   toggleExpand() {
     this.task.expanded = !this.task.expanded;
+    this.expandedToggled.emit(this.task);
   }
 
   toggleReady(event?: MouseEvent) {

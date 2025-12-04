@@ -25,10 +25,12 @@ export class BoardColumnComponent {
   @Output() editTask = new EventEmitter<Task>();
   @Output() deleteTask = new EventEmitter<Task>();
   @Output() readyToggled = new EventEmitter<Task>();
+  @Output() expandedToggled = new EventEmitter<Task>();
 
   onEditTask(task: Task) { this.editTask.emit(task); }
   onDeleteTask(task: Task) { this.deleteTask.emit(task); }
   onReadyToggled(task: Task) { this.readyToggled.emit(task); }
+  onExpandedToggled(task: Task) { this.expandedToggled.emit(task); }
 
   getStatusStyles(): string {
     switch (this.status) {
