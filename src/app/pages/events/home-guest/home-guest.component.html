@@ -47,7 +47,7 @@
          <button *ngFor="let b of getInstrumentBuckets(s)"
                  type="button"
                  (click)="toggleRequest(s,b)"
-                 class="relative inline-flex items-center justify-center size-10 rounded-md border"
+                 class="relative z-10 inline-flex items-center justify-center size-10 rounded-md border pointer-events-auto"
                  [ngClass]="
                    isRequested(getSongId(s), b.instrument)
                      ? 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30'
@@ -69,9 +69,9 @@
       </div>
       <div class="mt-2">
         <div class="relative h-0.5">
-          <div class="absolute inset-0 bg-gray-200 dark:bg-gray-700"></div>
+          <div class="absolute inset-0 bg-gray-200 dark:bg-gray-700 pointer-events-none"></div>
           <div *ngIf="hasDeadline(getSongId(s)) && !isLocked(getSongId(s))"
-               class="absolute inset-y-0 left-0 bg-yellow-500 dark:bg-yellow-400"
+               class="absolute inset-y-0 left-0 bg-yellow-500 dark:bg-yellow-400 pointer-events-none"
                [style.width]="getRemainingPercent(getSongId(s))"></div>
         </div>
       </div>
