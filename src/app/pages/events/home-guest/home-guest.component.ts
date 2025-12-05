@@ -46,10 +46,14 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   sseStatusText = 'SSE 0 • - • -';
   pollingHandle: any;
   backoffUntilMs = 0;
-  enablePolling = false;
+  enablePolling = true;
   jamId: number | null = null;
   sseWatchdogHandle: any;
   enableWatchdog = false;
+  useSse = false;
+  pollingIntervalMs = 60000;
+  isLoadingOpen: boolean = false;
+  isLoadingStage: boolean = false;
   showLog = false;
   readyMap: Record<number, boolean> = {};
   decisionsLog: Array<{ songId: number; tipo: string; acao: string; at: number }> = [];
@@ -94,7 +98,10 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       try {
         const sp = new URLSearchParams(String((window as any)?.location?.search || ''));
         this.debugSse = sp.get('debug') === '1' || this.debugSse;
-        this.enablePolling = sp.get('poll') === '1' || sp.get('fallback') === '1';
+        const pollParam = sp.get('poll');
+        const fallbackParam = sp.get('fallback');
+        if (pollParam === '1' || fallbackParam === '1') this.enablePolling = true;
+        else if (pollParam === '0') this.enablePolling = false;
       } catch {}
       if (this.enablePolling) this.startPolling();
       try {
@@ -128,6 +135,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     if (!this.eventIdCode) { this.jams = []; this.plannedSongs = []; return; }
     try { console.log('[HomeGuest] fetching open songs', { eventIdCode: this.eventIdCode }); } catch {}
     this.pushLog('[fetch] open songs');
+    this.isLoadingOpen = true;
     this.eventService.getEventOpenJamsSongs(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.songJamMap = {};
@@ -149,22 +157,20 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           }
         });
         this.plannedSongs = songs.filter((s: any) => {
-          const my = s?.my_application;
-          const myStatus = String(my?.status || '');
+          const myStatus = String(s?.my_application?.status || '');
           const st = String(s?.status || '');
           const sid = Number((s as any)?.id);
-          const hasOrderIndex = typeof (s as any)?.order_index === 'number';
           const sseReady = this.readyMap[sid] === true;
           const readyField = !!s?.ready;
-          const ready = readyField || sseReady || (st === 'open_for_candidates' && hasOrderIndex);
+          const isReady = readyField || sseReady;
           if (myStatus === 'rejected') {
             try { console.log('MUSICA', sid, 'TIPO', 'rejected', 'ACAO:ocultar'); } catch {}
             this.decisionsLog.unshift({ songId: sid, tipo: 'rejected', acao: 'ocultar', at: Date.now() });
             this.decisionsLog = this.decisionsLog.slice(0, 10);
             return false;
           }
-          if (ready) {
-            const tipo = sseReady ? 'sse_ready' : (readyField ? 'ready_field' : (hasOrderIndex ? 'order_index' : 'none'));
+          if (isReady) {
+            const tipo = sseReady ? 'sse_ready' : (readyField ? 'ready_field' : 'none');
             if (myStatus === 'approved') { try { console.log('MUSICA', sid, 'TIPO', tipo, 'ACAO:exibir'); } catch {} return true; }
             try { console.log('MUSICA', sid, 'TIPO', tipo, 'ACAO:ocultar'); } catch {}
             this.decisionsLog.unshift({ songId: sid, tipo, acao: 'ocultar', at: Date.now() });
@@ -177,6 +183,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         });
         try { console.log('[HomeGuest] open songs loaded', { count: this.plannedSongs.length, songIds: this.plannedSongs.map((x: any) => x?.id) }); } catch {}
         this.pushLog(`[loaded] open count ${this.plannedSongs.length}`);
+        this.isLoadingOpen = false;
         this.ensureStreams();
       },
       error: (err) => {
@@ -188,6 +195,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           if (this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
         }
         else this.triggerToast('error', 'Erro ao carregar', 'Não foi possível listar as músicas abertas.');
+        this.isLoadingOpen = false;
       }
     });
   }
@@ -196,11 +204,13 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     if (!this.eventIdCode) { this.onStageSongs = []; return; }
     try { console.log('[HomeGuest] fetching my on-stage songs', { eventIdCode: this.eventIdCode }); } catch {}
     this.pushLog('[fetch] on-stage songs');
+    this.isLoadingStage = true;
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.onStageSongs = Array.isArray(songs) ? songs : [];
         try { console.log('[HomeGuest] on-stage songs loaded', { count: this.onStageSongs.length, songIds: this.onStageSongs.map((x: any) => x?.id) }); } catch {}
         this.pushLog(`[loaded] on-stage count ${this.onStageSongs.length}`);
+        this.isLoadingStage = false;
         this.ensureStreams();
       },
       error: (err) => {
@@ -211,6 +221,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           if (this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
         }
         else this.onStageSongs = [];
+        this.isLoadingStage = false;
       }
     });
   }
@@ -218,6 +229,8 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   private ensureStreams(): void {
     if (!this.eventIdCode) return;
+    if (!this.useSse) return;
+    if (!this.useSse) return;
     const idsFromOpen = Array.from(new Set(Object.values(this.songJamMap)));
     const idsFromStage = Array.from(new Set((this.onStageSongs || []).map(s => Number((s as any)?.jam?.id ?? (s as any)?.jam_id)).filter(n => !Number.isNaN(n))));
     const jamIds = Array.from(new Set([ ...idsFromOpen, ...idsFromStage, ...(this.jamId ? [this.jamId] : []) ]));
@@ -290,6 +303,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   private refreshLists(): void {
     if (!this.eventIdCode) return;
+    this.isLoadingOpen = true;
     this.eventService.getEventOpenJamsSongs(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.songJamMap = {};
@@ -311,22 +325,20 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           }
         });
         this.plannedSongs = songs.filter((s: any) => {
-          const my = s?.my_application;
-          const myStatus = String(my?.status || '');
+          const myStatus = String(s?.my_application?.status || '');
           const st = String(s?.status || '');
           const sid = Number((s as any)?.id);
-          const hasOrderIndex = typeof (s as any)?.order_index === 'number';
           const sseReady = this.readyMap[sid] === true;
           const readyField = !!s?.ready;
-          const ready = readyField || sseReady || (st === 'open_for_candidates' && hasOrderIndex);
+          const isReady = readyField || sseReady;
           if (myStatus === 'rejected') {
             try { console.log('MUSICA', sid, 'TIPO', 'rejected', 'ACAO:ocultar'); } catch {}
             this.decisionsLog.unshift({ songId: sid, tipo: 'rejected', acao: 'ocultar', at: Date.now() });
             this.decisionsLog = this.decisionsLog.slice(0, 10);
             return false;
           }
-          if (ready) {
-            const tipo = sseReady ? 'sse_ready' : (readyField ? 'ready_field' : (hasOrderIndex ? 'order_index' : 'none'));
+          if (isReady) {
+            const tipo = sseReady ? 'sse_ready' : (readyField ? 'ready_field' : 'none');
             if (myStatus === 'approved') { try { console.log('MUSICA', sid, 'TIPO', tipo, 'ACAO:exibir'); } catch {} this.pushLog(`[card] exibir song ${sid} via ${tipo}`); return true; }
             try { console.log('MUSICA', sid, 'TIPO', tipo, 'ACAO:ocultar'); } catch {}
             this.decisionsLog.unshift({ songId: sid, tipo, acao: 'ocultar', at: Date.now() });
@@ -340,6 +352,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         });
         if (this.debugSse) console.log('Refetch open', { count: this.plannedSongs.length, ids: this.plannedSongs.map((x: any) => x?.id) });
         this.pushLog(`[loaded] refetch open count ${this.plannedSongs.length}`);
+        this.isLoadingOpen = false;
       },
       error: (err) => {
         const status = Number(err?.status || 0);
@@ -350,10 +363,12 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         }
         if (this.debugSse) console.log('Refetch open error', { status });
         this.pushLog(`[fetch] open error ${status}`);
+        this.isLoadingOpen = false;
       }
     });
+    this.isLoadingStage = true;
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
-      next: (songs: ApiSong[]) => { this.onStageSongs = Array.isArray(songs) ? songs : []; if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length, ids: this.onStageSongs.map((x: any) => x?.id) }); this.pushLog(`[loaded] refetch onStage count ${this.onStageSongs.length}`); },
+      next: (songs: ApiSong[]) => { this.onStageSongs = Array.isArray(songs) ? songs : []; if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length, ids: this.onStageSongs.map((x: any) => x?.id) }); this.pushLog(`[loaded] refetch onStage count ${this.onStageSongs.length}`); this.isLoadingStage = false; },
       error: (err) => {
         const status = Number(err?.status || 0);
         if (status === 429) {
@@ -363,9 +378,12 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
         }
         if (this.debugSse) console.log('Refetch onStage error', { status });
         this.pushLog(`[fetch] onStage error ${status}`);
+        this.isLoadingStage = false;
       }
     });
   }
+
+  manualRefresh(): void { this.refreshLists(); }
 
   private updateSseStatus(): void {
     const streams = Object.keys(this.esMap).length;
@@ -380,7 +398,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       if (typeof document !== 'undefined' && (document as any).hidden) return;
       if (this.backoffUntilMs && Date.now() < this.backoffUntilMs) return;
       this.refreshLists();
-    }, 15000);
+    }, this.pollingIntervalMs);
   }
 
   private startSseWatchdog(): void {
@@ -595,7 +613,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     if (!isOpen) return { label: 'finished', classes: base + ' bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600' };
     if (!my) return { label: 'open', classes: base + ' bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-600/30 dark:text-blue-200 dark:border-blue-500/40' };
     if (my === 'pending') return { label: 'waiting', classes: base + ' bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-600/30 dark:text-yellow-200 dark:border-yellow-500/40' };
-    if (my === 'approved') return { label: 'finished', classes: base + ' bg-green-100 text-green-700 border-green-200 dark:bg-green-600/30 dark:text-green-200 dark:border-green-500/40' };
+    if (my === 'approved') return { label: 'Approved', classes: base + ' bg-green-100 text-green-700 border-green-200 dark:bg-green-600/30 dark:text-green-200 dark:border-green-500/40' };
     if (my === 'rejected') return { label: 'finished', classes: base + ' bg-red-100 text-red-700 border-red-200 dark:bg-red-600/30 dark:text-red-200 dark:border-red-500/40' };
     return { label: 'open', classes: base + ' bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-600/30 dark:text-blue-200 dark:border-blue-500/40' };
   }
