@@ -1,0 +1,43 @@
+<div class="bg-white shadow rounded p-6">
+  <h2 class="text-lg font-semibold mb-4">Fornecedor</h2>
+  <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="md:col-span-2">
+      <label class="block text-sm font-medium mb-1">Nome</label>
+      <input class="w-full border rounded px-3 py-2" formControlName="name" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">CNPJ</label>
+      <input class="w-full border rounded px-3 py-2" formControlName="cnpj" placeholder="00.000.000/0000-00" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Email</label>
+      <input class="w-full border rounded px-3 py-2" formControlName="email" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Telefone</label>
+      <input class="w-full border rounded px-3 py-2" formControlName="phone" />
+    </div>
+
+    <fieldset class="md:col-span-2 border rounded px-4 py-3">
+      <legend class="text-sm font-medium">Dados Bancários</legend>
+      <div formGroupName="bank" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+        <div>
+          <label class="block text-sm font-medium mb-1">Conta</label>
+          <input class="w-full border rounded px-3 py-2" formControlName="account" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Agência</label>
+          <input class="w-full border rounded px-3 py-2" formControlName="agency" />
+        </div>
+      </div>
+    </fieldset>
+
+    <div class="md:col-span-2 flex gap-3 mt-2">
+      <button class="bg-brand-600 text-white rounded px-4 py-2" type="button" (click)="save()">Salvar</button>
+      <a class="text-brand-600 px-4 py-2" [routerLink]="['/financial/fornecedores']">Cancelar</a>
+    </div>
+  </form>
+</div>

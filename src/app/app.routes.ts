@@ -162,6 +162,13 @@ export const routes: Routes = [
         title:'Angular Logistics Dashboard'
       },
       {
+        path: 'financial',
+        canActivate: [RoleGuard],
+        data: { expectedRoles: ['user','manager','admin','master'] },
+        loadChildren: () => import('./financial/financial.module').then(m => m.FinancialModule),
+        title: 'Financeiro'
+      },
+      {
         path:'calendar',
         component:CalenderComponent,
         title:'Angular Calender'

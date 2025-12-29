@@ -1,0 +1,32 @@
+<mat-card>
+  <mat-card-title>Cliente</mat-card-title>
+  <mat-card-content>
+    <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <mat-form-field class="md:col-span-2">
+        <mat-label>Nome</mat-label>
+        <input matInput formControlName="name" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>CPF/CNPJ</mat-label>
+        <input matInput formControlName="cpf_cnpj" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" />
+      </mat-form-field>
+
+      <mat-form-field>
+        <mat-label>Telefone</mat-label>
+        <input matInput formControlName="phone" />
+      </mat-form-field>
+
+      <div class="md:col-span-2 flex gap-3 mt-2">
+        <button mat-raised-button color="primary" type="button" (click)="save()">Salvar</button>
+        <button mat-button routerLink="/financial/clientes">Cancelar</button>
+      </div>
+    </form>
+  </mat-card-content>
+</mat-card>
+

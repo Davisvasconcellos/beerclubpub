@@ -1,0 +1,43 @@
+<div class="bg-white shadow rounded p-6">
+  <h2 class="text-lg font-semibold mb-4">Pagamento</h2>
+  <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Conta Relacionada</label>
+      <input class="w-full border rounded px-3 py-2" formControlName="related_account_id_code" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Valor</label>
+      <input class="w-full border rounded px-3 py-2" type="number" formControlName="amount" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Data</label>
+      <input class="w-full border rounded px-3 py-2" type="date" formControlName="date" />
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium mb-1">Método</label>
+      <select class="w-full border rounded px-3 py-2" formControlName="method">
+        <option *ngFor="let m of methods" [value]="m">{{ m }}</option>
+      </select>
+    </div>
+
+    <div class="md:col-span-2">
+      <label class="inline-flex items-center gap-2">
+        <input type="checkbox" formControlName="partial" />
+        <span>Pagamento parcial</span>
+      </label>
+    </div>
+
+    <div class="md:col-span-2">
+      <label class="block text-sm font-medium mb-1">Observações</label>
+      <textarea class="w-full border rounded px-3 py-2" rows="3" formControlName="notes"></textarea>
+    </div>
+
+    <div class="md:col-span-2 flex gap-3 mt-2">
+      <button class="bg-brand-600 text-white rounded px-4 py-2" type="button" (click)="save()">Salvar</button>
+      <a class="text-brand-600 px-4 py-2" [routerLink]="['/financial/pagamentos']">Cancelar</a>
+    </div>
+  </form>
+</div>

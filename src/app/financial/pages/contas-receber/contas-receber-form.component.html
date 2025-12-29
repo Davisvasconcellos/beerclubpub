@@ -1,0 +1,86 @@
+<div class="bg-white dark:bg-boxdark rounded-lg shadow-lg p-6">
+  <h2 class="text-2xl font-bold mb-6">Conta a Receber</h2>
+  <form [formGroup]="form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Campos do formulário principal -->
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">Cliente</label>
+      <input type="text" formControlName="client_id" placeholder="ID / Nome do cliente" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+    </div>
+
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">Vendedor</label>
+      <input type="text" formControlName="seller_id" placeholder="ID / Nome do vendedor" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+    </div>
+
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">Venda Total</label>
+      <input type="number" formControlName="sale_total" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+    </div>
+
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">NF</label>
+      <input type="text" formControlName="nf" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+    </div>
+
+    <div class="md:col-span-2">
+      <label class="mb-3 block text-black dark:text-white">Descrição</label>
+      <textarea rows="2" formControlName="description" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary"></textarea>
+    </div>
+
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">Taxa Comissão (%)</label>
+      <input type="number" formControlName="commission_rate" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+    </div>
+
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">Vencimento</label>
+      <input type="date" formControlName="due_date" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+    </div>
+
+    <div class="relative z-20 bg-transparent dark:bg-form-input">
+      <label class="mb-3 block text-black dark:text-white">Status</label>
+      <select formControlName="status" class="relative z-20 w-full appearance-none rounded border border-stroke bg-transparent py-3 px-5 outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+        <option value="open">Aberto</option>
+        <option value="received">Recebido</option>
+        <option value="overdue">Atrasado</option>
+      </select>
+    </div>
+  </form>
+
+  <!-- Seção de Parcelas -->
+  <div class="mt-6">
+    <h3 class="text-xl font-bold mb-4">Parcelas</h3>
+    <div formArrayName="parcelas">
+      <div *ngFor="let parcela of parcelas.controls; let i=index" [formGroupName]="i" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-center mb-4 p-4 border rounded-lg">
+        <div class="relative z-20 bg-transparent dark:bg-form-input">
+          <label class="mb-3 block text-black dark:text-white">Parcela</label>
+          <input type="number" formControlName="number" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+        </div>
+
+        <div class="relative z-20 bg-transparent dark:bg-form-input">
+          <label class="mb-3 block text-black dark:text-white">Valor</label>
+          <input type="number" formControlName="value" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+        </div>
+
+        <div class="relative z-20 bg-transparent dark:bg-form-input">
+          <label class="mb-3 block text-black dark:text-white">Vencimento</label>
+          <input type="date" formControlName="due_date" class="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 font-medium outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:focus:border-primary">
+        </div>
+
+        <div class="flex items-center">
+          <input type="checkbox" formControlName="paid" class="mr-2">
+          <label class="text-black dark:text-white">Pago</label>
+        </div>
+
+        <button (click)="removeParcela(i)" class="inline-flex items-center justify-center rounded-md bg-danger py-3 px-4 text-center font-medium text-white hover:bg-opacity-90">Remover</button>
+      </div>
+    </div>
+    <button (click)="addParcela()" class="mt-4 inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90">Adicionar Parcela</button>
+  </div>
+
+  <!-- Botões de Ação -->
+  <div class="flex justify-end gap-3 mt-6">
+    <button (click)="save()" class="inline-flex items-center justify-center rounded-md bg-primary py-3 px-6 text-center font-medium text-white hover:bg-opacity-90">Salvar</button>
+    <a routerLink="/financial/contas-receber" class="inline-flex items-center justify-center rounded-md border border-primary py-3 px-6 text-center font-medium text-primary hover:bg-opacity-90">Cancelar</a>
+  </div>
+</div>
