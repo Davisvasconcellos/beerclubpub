@@ -147,7 +147,7 @@ export class JamKanbanComponent implements OnInit, OnDestroy {
         const nextTasks = items.map(s => ({ id: String(s.id), title: s.title, dueDate: '', assignee: '/images/user/user-01.jpg', status: (s.status as SongStatus) || 'planned', category: { name: 'Jam', color: 'default' }, expanded: false, song: s, ready: !!(s as any).ready, orderIndex: (!!(s as any).ready && typeof (s as any).order_index === 'number' ? Number((s as any).order_index) : undefined) }));
         this.tasks = this.applyExpandedState(nextTasks);
         if (setLoading) this.isLoading = false;
-        
+
       },
       error: () => { this.songs = []; this.tasks = []; if (setLoading) this.isLoading = false; }
     });
@@ -289,15 +289,31 @@ export class JamKanbanComponent implements OnInit, OnDestroy {
     });
 
     const orderedIds = this.tasks.filter(t => t.status === 'open_for_candidates' && t.ready).map(t => t.id);
-    try { console.log('[Kanban] Atualizar ordem', { status: toStatus, ordered_ids: orderedIds }); } catch {}
+    const orderedOnStageIds = this.tasks.filter(t => t.status === 'on_stage').map(t => t.id);
+
+    try { console.log('[Kanban] Atualizar ordem', { status: toStatus, ordered_ids: orderedIds, on_stage_ids: orderedOnStageIds }); } catch {}
     const jam = this.selectedJam;
     const eventId = this.selectedEventIdCode;
     if (jam && eventId && toStatus !== 'canceled') {
-      const persistStatus: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' = 'open_for_candidates';
-      this.eventService.updateSongOrder(eventId, jam.id, persistStatus, orderedIds).subscribe({
-        next: (ok) => { try { console.log('[Kanban] Ordem persistida', ok); } catch {} },
-        error: (err) => { try { console.log('[Kanban] Falha ao persistir ordem', err?.message || err); } catch {} }
-      });
+      // Se moveu para ou dentro de open_for_candidates, persiste ordem open
+      const draggedStatus = dragged.status as string;
+      const targetStatus = toStatus as string;
+      if (targetStatus === 'open_for_candidates' || (draggedStatus === 'open_for_candidates' && targetStatus !== 'open_for_candidates')) {
+         const persistStatus: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' = 'open_for_candidates';
+         this.eventService.updateSongOrder(eventId, jam.id, persistStatus, orderedIds).subscribe({
+           next: (ok) => { try { console.log('[Kanban] Ordem open persistida', ok); } catch {} },
+           error: (err) => { try { console.log('[Kanban] Falha ao persistir ordem open', err?.message || err); } catch {} }
+         });
+      }
+
+      // Se moveu para ou dentro de on_stage, persiste ordem stage
+      if (targetStatus === 'on_stage' || (draggedStatus === 'on_stage' && targetStatus !== 'on_stage')) {
+         const persistStatus: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' = 'on_stage';
+         this.eventService.updateSongOrder(eventId, jam.id, persistStatus, orderedOnStageIds).subscribe({
+           next: (ok) => { try { console.log('[Kanban] Ordem stage persistida', ok); } catch {} },
+           error: (err) => { try { console.log('[Kanban] Falha ao persistir ordem stage', err?.message || err); } catch {} }
+         });
+      }
     }
   }
 

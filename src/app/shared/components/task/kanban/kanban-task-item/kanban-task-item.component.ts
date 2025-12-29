@@ -33,6 +33,26 @@ export class KanbanTaskItemComponent {
 
   constructor(private eventService: EventService) {}
 
+  getBorderClass(): string {
+    // Se estiver em on_stage
+    if (this.task.status === 'on_stage') {
+      // Se for o primeiro (index 0), borda verde
+      if (this.index === 0) {
+        return 'border-green-500 border-2';
+      }
+      // Se for os demais, borda amarela (warning)
+      return 'border-warning-500 border-2';
+    }
+
+    // Comportamento original para ready em outras colunas (ex: open_for_candidates)
+    if (this.task.ready) {
+      return 'border-green-500';
+    }
+
+    // Padrão
+    return 'border-gray-200 dark:border-gray-800';
+  }
+
   getCategoryStyles(color: string): string {
     switch (color) {
       case 'error':

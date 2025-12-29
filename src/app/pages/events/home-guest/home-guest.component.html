@@ -5,14 +5,14 @@
     </div>
   </div>
 
-  <div *ngIf="onStageSongs.length">
+  <div *ngIf="playingNowSongs.length">
     <div class="flex items-center justify-between mb-2 px-4 sm:px-6 lg:px-8">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">On Stage</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">PLAYING NOW</h3>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 px-4 sm:px-6 lg:px-8">
-      <div *ngFor="let s of onStageSongs" class="flex items-center justify-between rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div *ngFor="let s of playingNowSongs" class="flex items-center justify-between rounded-lg border border-green-500/50 dark:border-green-500/50 bg-green-50 dark:bg-green-900/10 p-4 shadow-sm">
         <div class="flex items-center gap-4">
-          <div class="flex items-center justify-center size-12 rounded-lg bg-gray-100 dark:bg-white/10">
+          <div class="flex items-center justify-center size-12 rounded-lg bg-green-100 dark:bg-green-500/20">
             <img [src]="iconForInstrument(s.my_application?.instrument || 'other')" alt="instrument" class="w-6 h-6 dark:invert" />
           </div>
           <div>
@@ -20,7 +20,30 @@
             <div class="text-xs text-gray-500 dark:text-gray-400">{{ instrumentLabel(s.my_application?.instrument || 'other') }}</div>
           </div>
         </div>
-        <span class="inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-semibold bg-green-100 text-green-700 border-green-200 dark:bg-green-600/30 dark:text-green-200 dark:border-green-500/40">GO NOW</span>
+        <span class="inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-semibold bg-green-100 text-green-700 border-green-200 dark:bg-green-600/30 dark:text-green-200 dark:border-green-500/40 animate-pulse">PLAYING</span>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="goToStageSongs.length">
+    <div class="flex items-center justify-between mb-2 mt-6 px-4 sm:px-6 lg:px-8">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">GO TO STAGE</h3>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 px-4 sm:px-6 lg:px-8">
+      <div *ngFor="let s of goToStageSongs" class="flex items-center justify-between rounded-lg border border-yellow-200 dark:border-yellow-700/50 bg-white dark:bg-gray-800 p-4">
+        <div class="flex items-center gap-4">
+          <div class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-200 font-bold text-sm border border-yellow-200 dark:border-yellow-500/30">
+            {{ getDisplayIndex(s, 'go_to_stage') }}
+          </div>
+          <div class="flex items-center justify-center size-12 rounded-lg bg-yellow-50 dark:bg-yellow-500/10">
+            <img [src]="iconForInstrument(s.my_application?.instrument || 'other')" alt="instrument" class="w-6 h-6 dark:invert" />
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ s.title }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">{{ instrumentLabel(s.my_application?.instrument || 'other') }}</div>
+          </div>
+        </div>
+        <span class="inline-flex items-center rounded-md border px-2 py-1 text-[11px] font-semibold bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-600/30 dark:text-yellow-200 dark:border-yellow-500/40">GO TO STAGE</span>
       </div>
     </div>
   </div>
@@ -38,7 +61,7 @@
 
   <div *ngIf="plannedSongs.length">
     <div class="flex items-center justify-between mb-5 px-4 sm:px-6 lg:px-8">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Open candidates</h3>
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-white">OPEN CANDIDATES</h3>
       <div class="flex items-center gap-2">
         <button type="button"
                 (click)="manualRefresh()"

@@ -137,6 +137,7 @@ export interface ApiSong {
   jam_id?: number; // compat
   instrumentation?: string[]; // compat
   rating_summary?: any;
+  queue_position?: number;
   my_application?: { instrument?: string; status?: 'pending' | 'approved' | 'rejected' } | null;
 }
 

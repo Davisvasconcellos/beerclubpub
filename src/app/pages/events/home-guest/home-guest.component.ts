@@ -24,6 +24,8 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   jams: ApiJam[] = [];
   plannedSongs: ApiSong[] = [];
   onStageSongs: ApiSong[] = [];
+  playingNowSongs: ApiSong[] = [];
+  goToStageSongs: ApiSong[] = [];
   selections: Record<number, string | null> = {};
   lockDeadline: Record<number, number> = {};
   submitted: Record<number, boolean> = {};
@@ -37,7 +39,7 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
   eventName = '';
   esMap: Record<number, EventSource> = {};
   sseRefreshTimer: any;
-  
+
   debugSse = true;
   sseOpenCount = 0;
   lastEventType = '';
@@ -208,6 +210,31 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
       next: (songs: ApiSong[]) => {
         this.onStageSongs = Array.isArray(songs) ? songs : [];
+
+        // Filtra para Playing Now: apenas se tiver queue_position 1 (ou order_index 0, para compatibilidade)
+        this.playingNowSongs = this.onStageSongs.filter(s => {
+          const qp = (s as any).queue_position;
+          const idx = (s as any).order_index;
+          return (typeof qp === 'number' && qp === 1) || (qp === undefined && typeof idx === 'number' && idx === 0);
+        });
+
+        // Filtra para Go To Stage: se tiver queue_position > 1 (ou order_index > 0)
+        this.goToStageSongs = this.onStageSongs.filter(s => {
+          const qp = (s as any).queue_position;
+          const idx = (s as any).order_index;
+          return (typeof qp === 'number' && qp > 1) || (qp === undefined && typeof idx === 'number' && idx > 0);
+        }).sort((a, b) => {
+          const aq = (a as any).queue_position ?? ((a as any).order_index !== undefined ? (a as any).order_index + 1 : 999);
+          const bq = (b as any).queue_position ?? ((b as any).order_index !== undefined ? (b as any).order_index + 1 : 999);
+          return aq - bq;
+        });
+
+        // Fallback: se não vier queue_position nem order_index, usa a ordem do array
+        if (!this.onStageSongs.some(s => typeof (s as any).queue_position === 'number' || typeof (s as any).order_index === 'number')) {
+             this.playingNowSongs = this.onStageSongs.slice(0, 1);
+             this.goToStageSongs = this.onStageSongs.slice(1);
+        }
+
         try { console.log('[HomeGuest] on-stage songs loaded', { count: this.onStageSongs.length, songIds: this.onStageSongs.map((x: any) => x?.id) }); } catch {}
         this.pushLog(`[loaded] on-stage count ${this.onStageSongs.length}`);
         this.isLoadingStage = false;
@@ -215,12 +242,12 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         const status = Number(err?.status || 0);
-        if (status === 401) this.onStageSongs = [];
+        if (status === 401) { this.onStageSongs = []; this.playingNowSongs = []; this.goToStageSongs = []; }
         else if (status === 403) {
-          this.onStageSongs = [];
+          this.onStageSongs = []; this.playingNowSongs = []; this.goToStageSongs = [];
           if (this.eventIdCode) this.router.navigate([`/events/checkin/${this.eventIdCode}`], { queryParams: { returnUrl: `/events/home-guest/${this.eventIdCode}` } });
         }
-        else this.onStageSongs = [];
+        else { this.onStageSongs = []; this.playingNowSongs = []; this.goToStageSongs = []; }
         this.isLoadingStage = false;
       }
     });
@@ -368,7 +395,33 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     });
     this.isLoadingStage = true;
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
-      next: (songs: ApiSong[]) => { this.onStageSongs = Array.isArray(songs) ? songs : []; if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length, ids: this.onStageSongs.map((x: any) => x?.id) }); this.pushLog(`[loaded] refetch onStage count ${this.onStageSongs.length}`); this.isLoadingStage = false; },
+      next: (songs: ApiSong[]) => {
+        this.onStageSongs = Array.isArray(songs) ? songs : [];
+        // Filtra para Playing Now: apenas se tiver order_index 0 (1a posicao)
+        this.playingNowSongs = this.onStageSongs.filter(s => {
+          const idx = (s as any).order_index;
+          return typeof idx === 'number' && idx === 0;
+        });
+        // Filtra para Go To Stage: se tiver order_index > 0
+        this.goToStageSongs = this.onStageSongs.filter(s => {
+          const idx = (s as any).order_index;
+          return typeof idx === 'number' && idx > 0;
+        }).sort((a, b) => {
+          const ai = (a as any).order_index ?? 999;
+          const bi = (b as any).order_index ?? 999;
+          return ai - bi;
+        });
+
+        // Fallback: se não vier order_index (backend antigo), usa a ordem do array
+        if (!this.onStageSongs.some(s => typeof (s as any).order_index === 'number')) {
+             this.playingNowSongs = this.onStageSongs.slice(0, 1);
+             this.goToStageSongs = this.onStageSongs.slice(1);
+        }
+
+        if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length, ids: this.onStageSongs.map((x: any) => x?.id) });
+        this.pushLog(`[loaded] refetch onStage count ${this.onStageSongs.length}`);
+        this.isLoadingStage = false;
+      },
       error: (err) => {
         const status = Number(err?.status || 0);
         if (status === 429) {
@@ -603,6 +656,20 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
       this.appRef.detachView(compRef.hostView);
       compRef.destroy();
     }, 3200);
+  }
+
+  getDisplayIndex(song: ApiSong, section: string): number {
+    if (section === 'playing_now') return 1;
+    // Tenta usar queue_position primeiro, depois order_index+1
+    if (typeof song.queue_position === 'number') {
+      return song.queue_position;
+    }
+    if (typeof song.order_index === 'number') {
+      return song.order_index + 1;
+    }
+    // Fallback: índice no array + 2 (já que o 1 está no playing now)
+    const idx = this.goToStageSongs.indexOf(song);
+    return idx >= 0 ? idx + 2 : 0;
   }
 
   getBadge(song: ApiSong): { label: string; classes: string } {
