@@ -7,7 +7,7 @@ import { CardComponent } from '../../../shared/components/ui/card/card.component
 import { CardTitleComponent } from '../../../shared/components/ui/card/card-title.component';
 import { CardDescriptionComponent } from '../../../shared/components/ui/card/card-description.component';
 import { ThemeToggleTwoComponent } from '../../../shared/components/common/theme-toggle-two/theme-toggle-two.component';
-import { EventService, EventListItem, ApiJam, ApiSong } from '../event.service';
+import { EventService, EventListItem, ApiJam, ApiSong, OnStageResponse } from '../event.service';
 import { forkJoin, of } from 'rxjs';
 import { AuthService } from '../../../shared/services/auth.service';
 import { catchError } from 'rxjs/operators';
@@ -208,32 +208,13 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     this.pushLog('[fetch] on-stage songs');
     this.isLoadingStage = true;
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
-      next: (songs: ApiSong[]) => {
-        this.onStageSongs = Array.isArray(songs) ? songs : [];
+      next: (resp: OnStageResponse) => {
+        const nowPlaying = resp.now_playing ? [resp.now_playing] : [];
+        const upcoming = resp.my_upcoming || [];
 
-        // Filtra para Playing Now: apenas se tiver queue_position 1 (ou order_index 0, para compatibilidade)
-        this.playingNowSongs = this.onStageSongs.filter(s => {
-          const qp = (s as any).queue_position;
-          const idx = (s as any).order_index;
-          return (typeof qp === 'number' && qp === 1) || (qp === undefined && typeof idx === 'number' && idx === 0);
-        });
-
-        // Filtra para Go To Stage: se tiver queue_position > 1 (ou order_index > 0)
-        this.goToStageSongs = this.onStageSongs.filter(s => {
-          const qp = (s as any).queue_position;
-          const idx = (s as any).order_index;
-          return (typeof qp === 'number' && qp > 1) || (qp === undefined && typeof idx === 'number' && idx > 0);
-        }).sort((a, b) => {
-          const aq = (a as any).queue_position ?? ((a as any).order_index !== undefined ? (a as any).order_index + 1 : 999);
-          const bq = (b as any).queue_position ?? ((b as any).order_index !== undefined ? (b as any).order_index + 1 : 999);
-          return aq - bq;
-        });
-
-        // Fallback: se não vier queue_position nem order_index, usa a ordem do array
-        if (!this.onStageSongs.some(s => typeof (s as any).queue_position === 'number' || typeof (s as any).order_index === 'number')) {
-             this.playingNowSongs = this.onStageSongs.slice(0, 1);
-             this.goToStageSongs = this.onStageSongs.slice(1);
-        }
+        this.playingNowSongs = nowPlaying;
+        this.goToStageSongs = upcoming;
+        this.onStageSongs = [...nowPlaying, ...upcoming];
 
         try { console.log('[HomeGuest] on-stage songs loaded', { count: this.onStageSongs.length, songIds: this.onStageSongs.map((x: any) => x?.id) }); } catch {}
         this.pushLog(`[loaded] on-stage count ${this.onStageSongs.length}`);
@@ -395,28 +376,13 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
     });
     this.isLoadingStage = true;
     this.eventService.getEventMyOnStage(this.eventIdCode).subscribe({
-      next: (songs: ApiSong[]) => {
-        this.onStageSongs = Array.isArray(songs) ? songs : [];
-        // Filtra para Playing Now: apenas se tiver order_index 0 (1a posicao)
-        this.playingNowSongs = this.onStageSongs.filter(s => {
-          const idx = (s as any).order_index;
-          return typeof idx === 'number' && idx === 0;
-        });
-        // Filtra para Go To Stage: se tiver order_index > 0
-        this.goToStageSongs = this.onStageSongs.filter(s => {
-          const idx = (s as any).order_index;
-          return typeof idx === 'number' && idx > 0;
-        }).sort((a, b) => {
-          const ai = (a as any).order_index ?? 999;
-          const bi = (b as any).order_index ?? 999;
-          return ai - bi;
-        });
+      next: (resp: OnStageResponse) => {
+        const nowPlaying = resp.now_playing ? [resp.now_playing] : [];
+        const upcoming = resp.my_upcoming || [];
 
-        // Fallback: se não vier order_index (backend antigo), usa a ordem do array
-        if (!this.onStageSongs.some(s => typeof (s as any).order_index === 'number')) {
-             this.playingNowSongs = this.onStageSongs.slice(0, 1);
-             this.goToStageSongs = this.onStageSongs.slice(1);
-        }
+        this.playingNowSongs = nowPlaying;
+        this.goToStageSongs = upcoming;
+        this.onStageSongs = [...nowPlaying, ...upcoming];
 
         if (this.debugSse) console.log('Refetch onStage', { count: this.onStageSongs.length, ids: this.onStageSongs.map((x: any) => x?.id) });
         this.pushLog(`[loaded] refetch onStage count ${this.onStageSongs.length}`);
@@ -504,9 +470,16 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
 
   getInstrumentBuckets(song: ApiSong): any[] {
     const s: any = song as any;
-    if (Array.isArray(s.instrument_buckets)) return s.instrument_buckets;
+    // Se já tiver buckets cacheados ou vindos da API, retorna eles
+    if (Array.isArray(s.instrument_buckets) && s.instrument_buckets.length > 0) {
+        return s.instrument_buckets;
+    }
+
+    // Se não tiver, calcula e salva no próprio objeto para estabilizar a referência (cache)
+    let buckets: any[] = [];
+
     if (Array.isArray(s.instrument_slots)) {
-      return s.instrument_slots.map((slot: any) => ({
+      buckets = s.instrument_slots.map((slot: any) => ({
         instrument: String(slot.instrument),
         slots: Number(slot.slots || 0),
         remaining: Number(
@@ -515,9 +488,14 @@ export class HomeGuestComponent implements OnInit, OnDestroy {
           )
         )
       }));
+    } else {
+        const inst = Array.isArray(s.instrumentation) ? s.instrumentation : [];
+        buckets = inst.map((k: any) => ({ instrument: String(k), slots: 0, remaining: 0 }));
     }
-    const inst = Array.isArray(s.instrumentation) ? s.instrumentation : [];
-    return inst.map((k: any) => ({ instrument: String(k), slots: 0, remaining: 0 }));
+
+    // Salva no objeto para não recalcular na próxima (estabiliza o DOM)
+    s.instrument_buckets = buckets;
+    return buckets;
   }
 
   instrumentLabel(key: string): string {

@@ -423,7 +423,14 @@ export interface CheckinManualPayload {
   type: 'normal' | 'vip' | 'premium';
 }
 
-@Injectable({ providedIn: 'root' })
+export interface OnStageResponse {
+  now_playing?: ApiSong | null;
+  my_upcoming: ApiSong[];
+}
+
+@Injectable({
+  providedIn: 'root'
+})
 export class EventService {
   private readonly API_BASE_URL = `${environment.apiUrl}/api/v1`;
   private readonly PUBLIC_API_BASE_URL = `${environment.apiUrl}/api/public/v1`;
@@ -550,15 +557,18 @@ export class EventService {
     );
   }
 
-  getEventMyOnStage(eventId: string | number): Observable<ApiSong[]> {
+  getEventMyOnStage(eventId: string | number): Observable<OnStageResponse> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
     const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/my/on-stage`;
     try { console.log('[HTTP][EventService] GET my on-stage songs', { url, eventId, auth: !!token }); } catch {}
     return this.http.get<{ success?: boolean; data?: any }>(url, { headers }).pipe(
       map((resp) => {
-        const songs = resp?.data?.songs || resp?.data || [];
-        return (Array.isArray(songs) ? songs : []) as ApiSong[];
+        const data = resp?.data;
+        return {
+          now_playing: data?.now_playing ? (data.now_playing as ApiSong) : null,
+          my_upcoming: Array.isArray(data?.my_upcoming) ? (data.my_upcoming as ApiSong[]) : []
+        };
       })
     );
   }
