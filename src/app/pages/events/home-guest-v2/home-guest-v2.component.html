@@ -1,0 +1,424 @@
+<div class="relative w-full h-screen overflow-hidden flex flex-col bg-[#050505]">
+
+  <!-- Background Layer (Only for Playlist mode) -->
+  <ng-container *ngIf="viewMode === 'playlist' && selectedSong">
+    <div class="absolute inset-0 bg-cover bg-center z-0 opacity-30 transition-all duration-500"
+         [style.backgroundImage]="'url(' + (eventBanner || 'assets/images/bg-default.jpg') + ')'">
+    </div>
+    <div class="absolute inset-0 z-10 bg-gradient-to-t from-[#050505] via-[#050505]/80 to-transparent"></div>
+  </ng-container>
+
+  <!-- Header / Broadcast (Only for Playlist mode) -->
+  <div *ngIf="viewMode === 'playlist'" class="fixed top-0 left-0 right-0 z-50 flex justify-between items-center p-4 md:p-6 pointer-events-none">
+    <div class="flex items-center gap-2 md:gap-4 pointer-events-auto">
+      <button (click)="isSidebarOpen = !isSidebarOpen"
+              class="flex p-2.5 md:p-3 bg-black/60 border border-white/10 rounded-full backdrop-blur-md hover:bg-white/10 transition-all shadow-lg">
+        <svg *ngIf="isSidebarOpen" width="20" height="20" fill="#60a5fa" viewBox="0 0 24 24"><path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM7 15h10v2H7v-2z"/></svg>
+        <svg *ngIf="!isSidebarOpen" width="20" height="20" fill="white" viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+      </button>
+
+      <div class="bg-black/60 backdrop-blur-md border border-white/10 px-3 md:px-4 py-1.5 md:py-2 rounded-full flex items-center gap-2 md:gap-3 transition-all duration-500">
+        <ng-container *ngIf="selectedSong?.queue_position === 1; else pageNumber">
+            <div class="w-2 h-2 md:w-2.5 md:h-2.5 bg-red-600 rounded-full live-dot"></div>
+            <span class="text-[8px] md:text-xs font-black tracking-[0.2em] uppercase italic text-white">JAM AO VIVO</span>
+        </ng-container>
+        <ng-template #pageNumber>
+             <span class="text-yellow-500 font-oswald font-black text-2xl md:text-3xl italic tracking-widest" [class.animate-number]="animateFooter">#{{ selectedSong?.queue_position }}</span>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="relative flex-grow flex flex-row overflow-hidden z-20">
+      <main class="relative flex-grow flex flex-col overflow-hidden">
+
+          <!-- DASHBOARD VIEW -->
+          <div *ngIf="viewMode === 'dashboard'" @fadeIn class="w-full h-full flex flex-col bg-[#050505]">
+              <!-- Header -->
+              <header class="flex-none flex justify-between items-center px-4 py-6 md:px-10 md:py-8 border-b border-white/5 bg-[#050505] z-10">
+                <div>
+                  <h1 class="text-white font-oswald font-black italic text-3xl tracking-tighter uppercase leading-none">
+                    JAM <span class="text-blue-600">DASHBOARD</span>
+                  </h1>
+                  <p class="text-gray-500 text-[10px] font-bold tracking-[0.2em] uppercase mt-1">
+                    {{ eventName || 'Carregando...' }}
+                  </p>
+                </div>
+
+                <div class="flex items-center gap-4 border-l border-white/10 pl-6">
+                  <div class="text-right">
+                    <p class="text-white font-oswald font-bold text-xs uppercase italic">{{ currentUser?.name || 'Convidado' }}</p>
+                    <p class="text-blue-500 font-black text-[8px] uppercase tracking-widest">Participante</p>
+                  </div>
+                  <div class="w-10 h-10 rounded-full border-2 border-blue-600 p-0.5 overflow-hidden shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                    <img [src]="currentUser?.avatar_url || currentUser?.avatar || 'assets/images/avatar-placeholder.png'"
+                         (error)="onImageError($event)"
+                         class="w-full h-full rounded-full object-cover" alt="Profile" />
+                  </div>
+                </div>
+              </header>
+
+              <div class="flex-1 overflow-y-auto px-4 py-6 md:px-10 md:py-8 scrollbar-hide pb-32">
+              <div class="max-w-4xl mx-auto space-y-10">
+
+                <!-- 1 - NO PALCO AGORA -->
+                <section *ngIf="currentSong">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_#10b981]"></span>
+                    <h2 class="text-gray-400 font-oswald font-bold uppercase tracking-widest text-[10px]">NO PALCO AGORA</h2>
+                  </div>
+                  <div class="bg-[#121212] rounded-xl p-6 border-l-[6px] border-emerald-500 shadow-2xl relative overflow-hidden">
+                    <div class="relative z-10">
+                      <h3 class="text-white font-oswald font-black italic text-4xl uppercase tracking-tighter leading-tight">
+                        {{ currentSong.title }}
+                      </h3>
+                      <p class="text-gray-500 font-bold uppercase text-xs tracking-widest mt-1">{{ currentSong.artist }}</p>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- 2 - MINHA ESCALAÇÃO -->
+                <section>
+                  <h2 class="text-gray-400 font-oswald font-bold uppercase tracking-widest text-[10px] mb-4">MINHA ESCALAÇÃO</h2>
+                  <div class="space-y-4" [@listAnimation]="userQueue.length">
+                    <ng-container *ngIf="userQueue.length > 0; else emptyQueue">
+                      <div *ngFor="let song of userQueue; let i = index"
+                           class="bg-[#121212] rounded-2xl p-3 flex items-center gap-4 border border-white/5 group hover:border-yellow-500/20 transition-all shadow-lg overflow-hidden">
+
+                        <div class="flex items-stretch shrink-0 gap-1.5">
+                          <div class="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center bg-yellow-500 text-black rounded-xl shadow-[inset_0_0_10px_rgba(0,0,0,0.2)]">
+                            <span class="font-oswald font-black italic text-2xl md:text-3xl leading-none">#{{ getDisplayIndex(song, 'queue') }}</span>
+                          </div>
+                          <div class="w-14 h-14 md:w-16 md:h-16 flex items-center justify-center bg-yellow-500/10 border border-yellow-500/30 text-yellow-500 rounded-xl">
+                            <!-- Instrument Icon -->
+                            <ng-container [ngTemplateOutlet]="instrumentIcon" [ngTemplateOutletContext]="{ type: getInstrumentType(song.my_application?.instrument || '') }"></ng-container>
+                          </div>
+                        </div>
+
+                        <div class="flex-grow min-w-0 ml-1">
+                          <div class="flex flex-col">
+                            <h4 class="text-white font-oswald font-black italic text-xl md:text-3xl truncate uppercase leading-none tracking-tighter mb-1.5 group-hover:text-yellow-500 transition-colors">
+                              {{ song.title }}
+                            </h4>
+                            <p class="text-yellow-500 font-oswald font-bold text-[10px] md:text-sm uppercase tracking-[0.15em] italic">
+                              {{ song.artist }}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div class="hidden sm:flex gap-1.5 pr-4 shrink-0">
+                           <div *ngFor="let dot of [1,2,3]" class="w-2 h-2 rounded-full" [ngClass]="dot <= 2 ? 'bg-yellow-500/60 shadow-[0_0_8px_rgba(234,179,8,0.3)]' : 'bg-white/5'"></div>
+                        </div>
+                      </div>
+                    </ng-container>
+                    <ng-template #emptyQueue>
+                      <div class="border-2 border-dashed border-white/5 rounded-2xl p-10 text-center">
+                        <p class="text-gray-600 font-oswald uppercase italic tracking-widest text-sm">Nenhuma música na sua fila.</p>
+                      </div>
+                    </ng-template>
+                  </div>
+                </section>
+
+                <!-- 3 - DRAFTS DISPONÍVEIS -->
+                <section>
+                  <div class="flex justify-between items-end mb-4">
+                    <h2 class="text-gray-400 font-oswald font-bold uppercase tracking-widest text-[10px]">DRAFTS DISPONÍVEIS</h2>
+                    <span class="text-blue-500 font-black text-[9px] uppercase tracking-widest cursor-pointer hover:underline" (click)="loadJams()">ATUALIZAR</span>
+                  </div>
+                  <div class="grid grid-cols-1 gap-4" [@listAnimation]="plannedSongs.length">
+                    <div *ngFor="let song of plannedSongs"
+                         class="bg-[#121212] border border-white/5 rounded-xl overflow-hidden shadow-xl transition-all group relative"
+                         [ngClass]="myStatusMap[song.id] === 'pending' ? 'border-t-4 border-t-yellow-500' : 'border-t-4 border-t-blue-500'">
+
+                      <div class="p-5 md:p-6">
+                        <div class="flex justify-between items-start mb-4">
+                          <div class="flex-grow min-w-0 pr-4">
+                            <h3 class="text-white font-oswald font-black text-2xl md:text-3xl uppercase tracking-tighter leading-none mb-1 group-hover:text-blue-400 transition-colors truncate">
+                              {{ song.title }}
+                            </h3>
+                            <p class="text-gray-400 text-[10px] md:text-xs font-bold uppercase tracking-widest">{{ song.artist }}</p>
+                          </div>
+
+                          <div class="px-3 py-1 rounded-md border text-[10px] font-black uppercase tracking-widest leading-none shrink-0"
+                               [ngClass]="myStatusMap[song.id] === 'pending'
+                               ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/30'
+                               : 'bg-blue-500/10 text-blue-500 border-blue-500/30'">
+                            {{ myStatusMap[song.id] === 'pending' ? 'AGUARDANDO' : 'ABERTO' }}
+                          </div>
+                        </div>
+
+                        <div class="flex items-end justify-between flex-wrap gap-4">
+                          <div class="flex flex-wrap gap-2 md:gap-3">
+                            <ng-container *ngFor="let bucket of getInstrumentBuckets(song)">
+                              <button
+                                (click)="toggleRequest(song, bucket)"
+                                class="relative w-12 h-12 md:w-14 md:h-14 flex items-center justify-center border rounded-lg transition-all duration-300"
+                                [ngClass]="isRequested(song.id, bucket.instrument)
+                                  ? 'bg-blue-600/20 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]'
+                                  : 'bg-white/5 border-white/10 hover:border-white/30'">
+
+                                <div [ngClass]="isRequested(song.id, bucket.instrument) ? 'text-blue-400' : 'text-gray-400'">
+                                  <ng-container [ngTemplateOutlet]="instrumentIcon" [ngTemplateOutletContext]="{ type: getInstrumentType(bucket.instrument) }"></ng-container>
+                                </div>
+
+                                <div *ngIf="bucket.slots > 0" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full flex items-center justify-center border border-[#121212] transition-colors"
+                                     [ngClass]="isRequested(song.id, bucket.instrument) ? 'bg-blue-600 text-white' : 'bg-gray-600 text-white/90'">
+                                  <span class="text-[10px] font-black leading-none">{{ bucket.remaining }}</span>
+                                </div>
+                              </button>
+                            </ng-container>
+                          </div>
+
+                          <!-- Button / Status Area -->
+                          <div class="flex flex-col items-end gap-1">
+                            <button class="px-6 md:px-10 py-2.5 rounded-lg text-[11px] font-black uppercase italic tracking-tighter transition-all active:scale-95 shadow-lg"
+                                    [ngClass]="!selections[song.id]
+                                      ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                      : myStatusMap[song.id] === 'pending'
+                                        ? 'bg-yellow-600 hover:bg-yellow-500 text-white shadow-yellow-600/10'
+                                        : 'bg-blue-600 hover:bg-blue-500 text-white shadow-blue-600/10'">
+                               <span *ngIf="!selections[song.id]">ESCOLHA</span>
+                               <span *ngIf="selections[song.id] && !hasDeadline(song.id)">CONFIRMAR</span>
+                               <span *ngIf="selections[song.id] && hasDeadline(song.id)">
+                                 {{ getRemainingPercent(song.id) }}
+                               </span>
+                            </button>
+                            <span *ngIf="hasDeadline(song.id)" class="text-[9px] text-gray-500 uppercase font-bold tracking-widest">Confirmando...</span>
+                          </div>
+                        </div>
+
+                        <div class="mt-5 w-full h-[1px] bg-white/5"></div>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              </div>
+          </div>
+
+          <!-- PLAYLIST VIEW (Now Playing) -->
+          <div *ngIf="viewMode === 'playlist'" class="w-full h-full flex flex-col items-center justify-center py-2 md:py-4 overflow-y-auto scrollbar-hide">
+              <ng-container *ngIf="selectedSong; else noMusicPlaying">
+                <div class="w-full flex flex-col items-center">
+                    <div class="w-full flex flex-col items-center mb-2 md:mb-6 shrink-0" [class.animate-title]="animateFooter">
+                      <h2 *ngIf="selectedSong?.queue_position === 1" class="text-emerald-500 font-oswald uppercase tracking-[0.5em] text-[8px] md:text-xs font-bold mb-1 flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_emerald]"></span>
+                        AGORA NO PALCO
+                      </h2>
+                      <h1 class="text-white font-oswald font-black text-4xl md:text-6xl lg:text-7xl italic uppercase leading-tight tracking-tighter neon-text">
+                        {{ selectedSong.title }}
+                      </h1>
+                      <div class="flex flex-col items-center mt-1">
+                        <p class="text-gray-400 text-lg md:text-2xl font-light tracking-[0.3em] uppercase">{{ selectedSong.artist }}</p>
+                        <p class="hidden md:block text-blue-400/50 italic text-[10px] md:text-base mt-2 font-medium">"Sinta a vibe!"</p>
+                      </div>
+                    </div>
+
+                    <div class="relative w-full">
+                      <button (click)="prevPlaylistItem()"
+                              class="absolute left-2 md:left-6 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-black/40 border border-white/10 hover:bg-white/10 backdrop-blur-md transition-colors">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 18l-6-6 6-6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </button>
+                      <button (click)="nextPlaylistItem()"
+                              class="absolute right-2 md:right-6 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-black/40 border border-white/10 hover:bg-white/10 backdrop-blur-md transition-colors">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                      </button>
+                      <div class="flex flex-wrap justify-center items-end gap-6 md:gap-10 w-full overflow-visible shrink pb-4 md:pb-10" [@listAnimation]="selectedSong?.musicians?.length || 0">
+                        <div *ngFor="let m of selectedSong.musicians" class="flex flex-col items-center">
+                          <div class="w-20 h-20 md:w-28 md:h-28 rounded-full overflow-hidden border-2 border-white/20 shadow-[0_8px_30px_rgba(0,0,0,0.6)]">
+                            <img [src]="m.avatar_url || m.avatar || 'https://ui-avatars.com/api/?name='+m.name+'&background=random'"
+                                 (error)="onImageError($event)"
+                                 class="w-full h-full object-cover" alt=""/>
+                          </div>
+                          <div class="mt-2 md:mt-4 bg-white px-3 md:px-6 py-1 md:py-1.5 flex flex-col items-center min-w-[80px] md:min-w-[120px] skew-x-[-15deg] shadow-[4px_4px_0px_rgba(37,99,235,0.5)]">
+                            <span class="text-black font-oswald font-black text-sm md:text-xl uppercase italic leading-none skew-x-[15deg]">
+                              {{ m.name }}
+                            </span>
+                            <span class="text-blue-700 font-black text-[8px] md:text-[10px] uppercase tracking-tighter mt-0.5 md:mt-1 border-t border-blue-100 pt-0.5 md:pt-1 skew-x-[15deg]">
+                              {{ m.instrument }}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </ng-container>
+              <ng-template #noMusicPlaying>
+                <div class="flex flex-col items-center justify-center h-full text-gray-500">
+                    <h2 class="font-oswald text-2xl uppercase">O palco está livre</h2>
+                    <p class="text-sm">Nenhuma música tocando no momento.</p>
+                </div>
+              </ng-template>
+          </div>
+
+          <!-- Next Up Footer (Only in Playlist View) -->
+          <footer *ngIf="viewMode === 'playlist'" class="relative z-30 h-24 md:h-32 w-full border-t border-white/10 bg-black/95 backdrop-blur-xl flex items-stretch overflow-hidden shrink-0">
+              <div class="flex-grow flex items-center justify-between px-2 md:px-12 overflow-hidden">
+                  <ng-container *ngIf="selectedNextSong; else endOfList">
+                      <div id="next-song-container" class="flex items-center gap-2 md:gap-10 flex-grow min-w-0 overflow-hidden cursor-pointer" (click)="nextPlaylistItem()">
+                        <div *ngIf="selectedSong?.queue_position === 1" class="bg-blue-600 px-4 md:px-10 py-2 md:py-3 shrink-0 skew-x-[-15deg] shadow-[0_4px_15px_rgba(37,99,235,0.4)]">
+                        <span class="text-white font-oswald font-black text-[12px] md:text-2xl skew-x-[15deg] block leading-none tracking-tighter uppercase">PRÓXIMA</span>
+                      </div>
+                      <div *ngIf="selectedSong?.queue_position !== 1" class="bg-blue-600 px-4 md:px-10 py-2 md:py-3 shrink-0 skew-x-[-15deg] shadow-[0_4px_15px_rgba(37,99,235,0.4)]">
+                        <span class="text-white font-oswald font-black text-[12px] md:text-2xl skew-x-[15deg] block leading-none tracking-tighter uppercase">#{{ selectedNextSong.queue_position }}</span>
+                      </div>
+                        <div class="flex flex-col flex-grow min-w-0 pr-1 md:pr-4">
+                          <span class="text-white font-black text-2xl md:text-4xl lg:text-5xl uppercase font-oswald italic tracking-tight leading-none overflow-hidden text-ellipsis whitespace-nowrap block" [class.reveal-up]="animateFooter">
+                            {{ selectedNextSong.title }}
+                          </span>
+                          <span class="text-gray-500 text-[10px] md:text-base uppercase tracking-[0.2em] font-bold mt-0.5 md:mt-1">
+                            {{ selectedNextSong.artist }}
+                          </span>
+                        </div>
+                      </div>
+                  </ng-container>
+                  <ng-template #endOfList>
+                    <span class="text-gray-700 font-oswald italic text-sm md:text-2xl uppercase tracking-widest font-bold w-full text-center">FIM DA LISTA</span>
+                  </ng-template>
+              </div>
+          </footer>
+
+      </main>
+
+      <!-- Sidebar (Playlist Mode) -->
+      <aside *ngIf="isSidebarOpen && viewMode === 'playlist'"
+             class="absolute inset-0 md:static z-[100] md:z-40 w-full md:w-[35%] lg:w-[25%] bg-black/98 border-l border-white/10 backdrop-blur-3xl flex flex-col overflow-hidden shrink-0 h-full transition-all duration-300">
+
+          <!-- Header -->
+          <div class="p-6 pb-2 mt-20 md:mt-12 flex justify-between items-center shrink-0">
+              <div>
+                  <h2 class="font-oswald text-2xl md:text-3xl font-black italic tracking-tighter text-blue-500 uppercase">FILA DE ESPERA</h2>
+                  <p class="text-[9px] font-bold tracking-[0.2em] text-gray-500 uppercase mt-1">
+                      {{ playlistSongs.length }} MÚSICAS EM ESPERA
+                  </p>
+              </div>
+              <!-- Mobile Close Button -->
+              <button (click)="isSidebarOpen = false" class="md:hidden p-2 bg-white/5 rounded-full">
+                  <svg width="24" height="24" fill="white" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+              </button>
+          </div>
+
+          <!-- List -->
+          <div class="flex-grow overflow-y-auto px-4 pb-32 space-y-1 scrollbar-hide">
+              <ng-container *ngFor="let song of playlistSongs; let idx = index">
+                  <div (click)="setPlaylistIndex(idx)"
+                       class="flex items-center gap-3 p-4 transition-all group cursor-pointer last:border-none"
+                       [ngClass]="{
+                          'bg-emerald-500/10 border-l-4 border-emerald-500': song.queue_position === 1,
+                          'bg-white/10': idx === selectedPlaylistIndex && song.queue_position !== 1,
+                          'hover:bg-white/5 border-b border-white/5': song.queue_position !== 1 && idx !== selectedPlaylistIndex,
+                          'border-b border-white/5': song.queue_position !== 1 && idx === selectedPlaylistIndex
+                       }">
+
+                      <div class="w-20 shrink-0 flex justify-center items-center">
+                           <!-- Indicators -->
+                           <ng-container *ngIf="song.queue_position === 1; else notPlaying">
+                               <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_#10b981]"></div>
+                           </ng-container>
+                           <ng-template #notPlaying>
+                              <!-- Logic: If queue_position is 2, it is Next. -->
+                              <ng-container *ngIf="song.queue_position === 2; else justNumber">
+                                <div class="bg-blue-600 px-3 py-1 skew-x-[-15deg] shadow-lg">
+                                   <span class="text-white font-oswald font-black text-[10px] uppercase italic skew-x-[15deg] block leading-none">PRÓXIMA</span>
+                                </div>
+                           </ng-container>
+                           <ng-template #justNumber>
+                               <div class="font-oswald italic font-black text-2xl text-yellow-500/80 group-hover:text-yellow-500 transition-colors">#{{ song.queue_position }}</div>
+                           </ng-template>
+                            </ng-template>
+                      </div>
+
+                      <div class="flex-grow min-w-0">
+                          <h4 class="font-black text-[12px] md:text-sm truncate uppercase tracking-tight group-hover:text-white transition-colors"
+                              [ngClass]="song.queue_position === 1 ? 'text-emerald-400' : 'text-gray-200'">
+                              {{ song.title }}
+                          </h4>
+                          <p class="text-gray-500 text-[8px] md:text-[10px] uppercase tracking-widest font-bold">{{ song.artist }}</p>
+                      </div>
+
+                      <!-- Singers -->
+                      <div class="flex -space-x-2 shrink-0 ml-1">
+                          <ng-container *ngFor="let s of song.musicians">
+                               <img [src]="s.avatar_url || s.avatar || 'https://ui-avatars.com/api/?name='+s.name+'&background=random'"
+                                    class="w-7 h-7 md:w-8 md:h-8 rounded-full border border-black shadow object-cover"
+                                    [title]="s.name + ' (' + s.instrument + ')'"
+                                    (error)="onImageError($event)">
+                          </ng-container>
+                      </div>
+                  </div>
+              </ng-container>
+
+              <!-- Empty State -->
+              <div *ngIf="playlistSongs.length === 0" class="p-8 text-center text-gray-500">
+                  <p class="font-oswald uppercase tracking-widest text-xs">Fila vazia</p>
+              </div>
+          </div>
+      </aside>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="relative z-[60] h-20 w-full bg-black border-t-2 border-white/10 flex items-stretch shrink-0">
+    <button
+      (click)="viewMode = 'dashboard'"
+      class="flex-1 flex items-center justify-center border-r border-white/5 hover:bg-white/5 transition-colors group"
+      [ngClass]="viewMode === 'dashboard' ? 'bg-blue-600/10' : ''">
+      <div class="flex flex-col items-center">
+        <span class="text-white font-oswald font-black italic text-2xl md:text-3xl leading-none">D</span>
+        <span class="text-blue-500 font-oswald font-bold text-[9px] uppercase tracking-[0.2em] mt-1 opacity-60 group-hover:opacity-100">Dashboard</span>
+      </div>
+    </button>
+    <button
+      (click)="viewMode = 'playlist'"
+      class="flex-1 flex items-center justify-center hover:bg-white/5 transition-colors group"
+      [ngClass]="viewMode === 'playlist' ? 'bg-blue-600/10' : ''">
+      <div class="flex flex-col items-center">
+        <span class="text-white font-oswald font-black italic text-2xl md:text-3xl leading-none">P</span>
+        <span class="text-blue-500 font-oswald font-bold text-[9px] uppercase tracking-[0.2em] mt-1 opacity-60 group-hover:opacity-100">Playlist</span>
+      </div>
+    </button>
+  </nav>
+
+</div>
+
+<!-- Instrument Icon Template -->
+<ng-template #instrumentIcon let-type="type">
+  <ng-container [ngSwitch]="type">
+    <!-- Vocal -->
+    <svg *ngSwitchCase="'vocal'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>
+    </svg>
+    <!-- Keys -->
+    <svg *ngSwitchCase="'keys'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 5v14"/><path d="M10 5v14"/><path d="M14 5v14"/><path d="M18 5v14"/><path d="M2 14h20"/>
+    </svg>
+    <!-- Drums -->
+    <svg *ngSwitchCase="'drums'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <ellipse cx="12" cy="12" rx="10" ry="5"/><path d="M2 12v7c0 2.8 4.5 5 10 5s10-2.2 10-5v-7"/><path d="M7 15l-3-3"/><path d="M17 15l3-3"/>
+    </svg>
+    <!-- Bass -->
+    <svg *ngSwitchCase="'bass'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+    </svg>
+    <!-- Electric Guitar -->
+    <svg *ngSwitchCase="'electric-guitar'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m16 2 4 4"/><path d="m21 3-3 3"/><path d="m5 13 5-5"/><path d="m8 10-5 5v6h6l5-5"/><circle cx="15.5" cy="8.5" r="2.5"/>
+    </svg>
+    <!-- Acoustic Guitar -->
+    <svg *ngSwitchCase="'acoustic-guitar'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 7c0-5-6-5-6 0v10c0 5 6 5 6 0V7Z"/><path d="M12 7c0-5-6-5-6 0v10c0 5 6 5 6 0V7Z"/><circle cx="12" cy="12" r="2"/>
+    </svg>
+    <!-- Horns -->
+    <svg *ngSwitchCase="'horns'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12h10l4-4h4v8h-4l-4-4H3z"/><path d="M7 12v4"/><path d="M10 12v4"/>
+    </svg>
+    <!-- Percussion -->
+    <svg *ngSwitchCase="'percussion'" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><path d="M12 3v18"/><path d="M3 12h18"/><path d="m4.93 4.93 14.14 14.14"/><path d="m19.07 4.93-14.14 14.14"/>
+    </svg>
+    <!-- Other -->
+    <svg *ngSwitchDefault width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/>
+    </svg>
+  </ng-container>
+</ng-template>

@@ -668,17 +668,29 @@ export const routes: Routes = [
         title: 'Responder Perguntas (Sem layout)'
       },
       {
-        path: 'events/home-guest',
-        loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
-        canActivate: [AutoCheckinGuard],
-        title: 'Home do Convidado (Sem layout)'
-      },
-      {
-        path: 'events/home-guest/:id_code',
-        loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
-        canActivate: [AutoCheckinGuard],
-        title: 'Home do Convidado (Sem layout)'
-      },
+                path: 'events/home-guest',
+                loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
+                canActivate: [AutoCheckinGuard],
+                title: 'Home do Convidado (Sem layout)'
+            },
+            {
+                path: 'events/home-guest/:id_code',
+                loadComponent: () => import('./pages/events/home-guest/home-guest.component').then(m => m.HomeGuestComponent),
+                canActivate: [AutoCheckinGuard],
+                title: 'Home do Convidado (Sem layout)'
+            },
+            {
+                path: 'events/home-guest-v2',
+                loadComponent: () => import('./pages/events/home-guest-v2/home-guest-v2.component').then(m => m.HomeGuestV2Component),
+                canActivate: [AutoCheckinGuard],
+                title: 'Home do Convidado V2 (Sem layout)'
+            },
+            {
+                path: 'events/home-guest-v2/:id_code',
+                loadComponent: () => import('./pages/events/home-guest-v2/home-guest-v2.component').then(m => m.HomeGuestV2Component),
+                canActivate: [AutoCheckinGuard],
+                title: 'Home do Convidado V2 (Sem layout)'
+            },
     ]
   },
   {

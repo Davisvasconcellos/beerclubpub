@@ -1,0 +1,85 @@
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+:root {
+    --soccer-blue: #2563eb;
+    --soccer-glow: rgba(37, 99, 235, 0.5);
+}
+
+.animate-title {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: revealSoft 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+.singer-card {
+    opacity: 0;
+    transform: scale(0.9) translateY(30px);
+    transition: all 1.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+.singer-card.visible {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+}
+
+.name-tag {
+    transform: skewX(-15deg);
+    box-shadow: 4px 4px 0px var(--soccer-glow);
+}
+
+.name-text {
+    transform: skewX(15deg);
+}
+
+@keyframes slideDown {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.neon-text {
+    text-shadow: 0 0 15px var(--soccer-glow);
+}
+
+.bg-transition {
+    transition: background-image 1.5s ease-in-out;
+}
+
+.live-dot {
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Reveal Up animation for footer song title - Smoother and Slower */
+.reveal-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: revealSoft 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+@keyframes revealSoft {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Fade from left for header position number - Smoother and Slower */
+.animate-number {
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: fadeLeft 1.5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+}
+
+@keyframes fadeLeft {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}

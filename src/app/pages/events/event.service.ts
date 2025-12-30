@@ -634,6 +634,15 @@ export class EventService {
     );
   }
 
+  getEventPlaylist(eventId: string | number): Observable<any[]> {
+    const token = this.authService.getAuthToken();
+    const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
+    const url = `${this.NON_VERSIONED_API_BASE_URL}/events/${eventId}/jams/playlist`;
+    return this.http.get<{ success: boolean; data: any[] }>(url, { headers }).pipe(
+      map((resp) => resp?.data || [])
+    );
+  }
+
   moveSongStatus(eventId: string | number, jamId: string | number, songId: string | number, status: 'planned' | 'open_for_candidates' | 'on_stage' | 'played' | 'canceled'): Observable<ApiSong> {
     const token = this.authService.getAuthToken();
     const headers: HttpHeaders = new HttpHeaders(token ? { Authorization: `Bearer ${token}` } : {});
